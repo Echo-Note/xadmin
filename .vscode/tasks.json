@@ -3,11 +3,13 @@
   "version": "2.0.0",
   "tasks": [
     // 启动前端 Vite dev server (端口 8848)
+    // 通过 nvm 加载 .nvmrc 指定的 Node 版本 (v24.11.0)
+    // PATH="$NVM_BIN:$PATH" 确保 nvm 的 node 优先于 .local/bin
     // 被 launch.json 中前端调试配置的 preLaunchTask 引用
     {
       "label": "vite: dev (client)",
       "type": "shell",
-      "command": "pnpm dev",
+      "command": "source $HOME/.nvm/nvm.sh && nvm use && PATH=\"$NVM_BIN:$PATH\" pnpm dev",
       "options": {
         "cwd": "${workspaceFolder}/client"
       },

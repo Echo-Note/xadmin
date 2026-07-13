@@ -1,8 +1,16 @@
 {
   // VS Code 工作区设置
+
+  // ===== 后端 Python =====
   // 指定后端 Python 解释器为 server/.venv
   "python.defaultInterpreterPath": "${workspaceFolder}/server/.venv/bin/python",
   "python.analysis.extraPaths": [
     "${workspaceFolder}/server"
-  ]
+  ],
+
+  // ===== 前端 Node.js =====
+  // 指定包管理器为 pnpm
+  "npm.packageManager": "pnpm",
+  // 禁用 npm 自动安装提示，使用 nvm 管理的 Node
+  "npm.runSilent": false
 }
