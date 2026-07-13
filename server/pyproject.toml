@@ -86,6 +86,7 @@ dev = [
     "debugpy>=1.8.0",
     "ipython>=8.30.0",
     "ipdb>=0.13.13",
+    "django-stubs>=5.1.0",
 ]
 
 # Django 应用项目，不需要作为 Python 包构建发布
@@ -127,3 +128,18 @@ known-first-party = ["server", "system", "settings", "common", "notifications", 
 [tool.ruff.format]
 quote-style = "single"
 indent-style = "space"
+
+# django-stubs 配置
+# 注意: django-stubs 的 mypy 插件仅在 mypy 下生效，pyright/basedpyright 仅使用其类型存根
+[tool.django-stubs]
+django_settings_module = "server.settings"
+
+# basedpyright 类型检查配置
+# 文档: https://docs.basedpyright.com/latest/configuration/config-files/
+[tool.basedpyright]
+# 将项目根目录加入导入路径（与 VS Code python.analysis.extraPaths 对齐）
+extraPaths = ["."]
+# Django 动态特性较多，缺少存根的第三方包不报错
+reportMissingTypeStubs = "none"
+# 隐式字符串拼接在 Django 代码中常见，不报错
+reportImplicitStringConcatenation = "none"
