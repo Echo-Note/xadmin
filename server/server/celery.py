@@ -4,6 +4,7 @@
 # filename : celery
 # author : ly_13
 # date : 6/29/2023
+"""Celery 应用初始化模块，配置并自动发现各 Django app 中的异步任务。"""
 
 import os
 

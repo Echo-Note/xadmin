@@ -1,3 +1,4 @@
+"""验证码图片、音频及刷新视图。"""
 import json
 import os
 import random
@@ -5,20 +6,29 @@ import subprocess
 import tempfile
 from io import BytesIO
 
-from PIL import Image, ImageDraw, ImageFont
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
+from PIL import Image, ImageDraw, ImageFont
 from ranged_response import RangedFileResponse
 
-from apps.captcha.helpers import captcha_audio_url, captcha_image_url, noise_functions, filter_functions, makeimg
+from apps.captcha.helpers import captcha_audio_url, captcha_image_url, filter_functions, makeimg, noise_functions
 from apps.captcha.models import CaptchaStore
 
 # Distance of the drawn text from the top of the captcha image
 DISTANCE_FROM_TOP = 4
 
 
-def getsize(font, text):
+def getsize(font: ImageFont.FreeTypeFont, text: str) -> tuple:
+    """获取指定字体下文本的尺寸。
+
+    Args:
+        font: 字体对象。
+        text: 待测量的文本。
+
+    Returns:
+        包含宽度和高度的元组。
+    """
     if hasattr(font, "getbbox"):
         _top, _left, _right, _bottom = font.getbbox(text)
         return _right - _left, _bottom - _top
@@ -28,7 +38,17 @@ def getsize(font, text):
         return font.getsize(text)
 
 
-def captcha_image(request, key, scale=1):
+def captcha_image(request: HttpRequest, key: str, scale: int = 1) -> HttpResponse:
+    """生成并返回验证码图片。
+
+    Args:
+        request: HTTP 请求对象。
+        key: 验证码 hashkey。
+        scale: 图片缩放倍数，1 为普通，2 为高清。
+
+    Returns:
+        包含 PNG 图片的 HTTP 响应。
+    """
     if scale == 2 and not settings.CAPTCHA_2X_IMAGE:
         raise Http404
     try:
@@ -135,7 +155,16 @@ def captcha_image(request, key, scale=1):
     return response
 
 
-def captcha_audio(request, key):
+def captcha_audio(request: HttpRequest, key: str) -> HttpResponse:
+    """生成并返回验证码音频。
+
+    Args:
+        request: HTTP 请求对象。
+        key: 验证码 hashkey。
+
+    Returns:
+        包含音频文件的 HTTP 响应。
+    """
     if settings.CAPTCHA_FLITE_PATH:
         try:
             store = CaptchaStore.objects.get(hashkey=key)
@@ -199,8 +228,15 @@ def captcha_audio(request, key):
     raise Http404
 
 
-def captcha_refresh(request):
-    """Return json with new captcha for ajax refresh request"""
+def captcha_refresh(request: HttpRequest) -> HttpResponse:
+    """返回包含新验证码的 JSON 响应，用于 ajax 刷新请求。
+
+    Args:
+        request: HTTP 请求对象。
+
+    Returns:
+        包含新验证码 key、图片和音频地址的 JSON 响应。
+    """
     if not request.headers.get("x-requested-with") == "XMLHttpRequest":
         raise Http404
 

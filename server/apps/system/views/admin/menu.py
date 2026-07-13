@@ -1,15 +1,13 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : server
-# filename : menu
-# author : ly_13
-# date : 6/6/2023
+"""菜单管理视图。"""
+
 from django.db.models.signals import post_save
 from django_filters import rest_framework as filters
 from drf_spectacular.plumbing import build_object_type, build_basic_type, build_array_type
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiRequest
 from rest_framework.decorators import action
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from apps.common.base.magic import temporary_disable_signal
 from apps.common.core.filter import BaseFilterSet
@@ -25,18 +23,23 @@ from apps.system.utils.menu import get_view_permissions
 
 
 class MenuFilter(BaseFilterSet):
+    """菜单过滤器。"""
+
     name = filters.CharFilter(field_name='name', lookup_expr='icontains')
     component = filters.CharFilter(field_name='component', lookup_expr='icontains')
     title = filters.CharFilter(field_name='meta__title', lookup_expr='icontains')
     path = filters.CharFilter(field_name='path', lookup_expr='icontains')
 
     class Meta:
+        """过滤器元数据。"""
+
         model = Menu
         fields = ['name']
 
 
 class MenuViewSet(BaseModelSet, RankAction, ImportExportDataAction, ChoicesAction, CacheListResponseMixin):
-    """菜单"""
+    """菜单视图集。"""
+
     queryset = Menu.objects.order_by('rank').all()
     serializer_class = MenuSerializer
     pagination_class = DynamicPageNumber(1000)
@@ -64,12 +67,19 @@ class MenuViewSet(BaseModelSet, RankAction, ImportExportDataAction, ChoicesActio
         )
     )
     @action(methods=['get'], detail=False, url_path='api-url')
-    def api_url(self, request, *args, **kwargs):
-        """获取后端API列表"""
+    def api_url(self, request: Request, *args, **kwargs) -> Response:
+        """获取后端 API 路由列表。"""
         return ApiResponse(data=get_all_url_dict(''))
 
     @temporary_disable_signal(post_save, receiver=clean_cache_handler, sender=Menu)
-    def _save_permissions(self, instance, permissions, skip_existing):
+    def _save_permissions(self, instance: Menu, permissions: list[dict], skip_existing: bool) -> None:
+        """保存 API 权限菜单，禁用信号以避免缓存刷新。
+
+        Args:
+            instance: 父菜单实例。
+            permissions: 权限列表。
+            skip_existing: 为 True 时跳过已存在的权限。
+        """
         # 该代码禁用了信号，菜单数据不刷新
         rank = 10000
         for permission in permissions:
@@ -116,8 +126,8 @@ class MenuViewSet(BaseModelSet, RankAction, ImportExportDataAction, ChoicesActio
         responses=get_default_response_schema()
     )
     @action(methods=['post'], detail=True, url_path='permissions')
-    def permissions(self, request, *args, **kwargs):
-        """自动添加API权限"""
+    def permissions(self, request: Request, *args, **kwargs) -> Response:
+        """根据前端视图自动添加 API 权限菜单。"""
         views = request.data.get('views')
         component = request.data.get('component')
         skip_existing = request.data.get('skip_existing')

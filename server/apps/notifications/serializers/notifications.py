@@ -4,6 +4,8 @@
 # filename : notifications
 # author : ly_13
 # date : 9/13/2024
+"""消息订阅序列化器定义。"""
+
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
@@ -13,6 +15,8 @@ from apps.notifications.models import SystemMsgSubscription, UserMsgSubscription
 
 
 class SystemMsgSubscriptionSerializer(BaseModelSerializer):
+    """系统消息订阅序列化器。"""
+
     ignore_field_permission = True
     receive_backends = serializers.ListField(child=serializers.CharField())
     message_type_label = serializers.CharField(read_only=True)
@@ -20,6 +24,8 @@ class SystemMsgSubscriptionSerializer(BaseModelSerializer):
                                            label=_("User"), many=True, format='{nickname}({username})')
 
     class Meta:
+        """元数据配置。"""
+
         model = SystemMsgSubscription
         fields = ['message_type', 'message_type_label', 'users', 'receive_backends', 'receivers']
         read_only_fields = ['pk', 'message_type', 'message_type_label', 'receivers']
@@ -27,12 +33,16 @@ class SystemMsgSubscriptionSerializer(BaseModelSerializer):
 
 
 class SystemMsgSubscriptionByCategorySerializer(serializers.Serializer):
+    """按分类分组的系统消息订阅序列化器。"""
+
     category = serializers.CharField()
     category_label = serializers.CharField()
     children = SystemMsgSubscriptionSerializer(many=True)
 
 
 class UserMsgSubscriptionSerializer(BaseModelSerializer):
+    """用户消息订阅序列化器。"""
+
     ignore_field_permission = True
     receive_backends = serializers.ListField(child=serializers.CharField())
     message_type_label = serializers.CharField(read_only=True, label=_("Message Type"))
@@ -40,6 +50,8 @@ class UserMsgSubscriptionSerializer(BaseModelSerializer):
                                            source='user', format='{nickname}({username})')
 
     class Meta:
+        """元数据配置。"""
+
         model = UserMsgSubscription
         fields = ['message_type', 'message_type_label', 'user', 'receive_backends', 'receivers']
         read_only_fields = ['pk', 'message_type', 'message_type_label', 'receivers']
@@ -47,6 +59,8 @@ class UserMsgSubscriptionSerializer(BaseModelSerializer):
 
 
 class UserMsgSubscriptionByCategorySerializer(serializers.Serializer):
+    """按分类分组的用户消息订阅序列化器。"""
+
     category = serializers.CharField()
     category_label = serializers.CharField()
     children = UserMsgSubscriptionSerializer(many=True)

@@ -1,1 +1,1 @@
-# Create your tests here.
+"""通知应用测试模块。"""

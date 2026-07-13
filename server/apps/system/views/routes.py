@@ -1,22 +1,29 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : routes
-# author : ly_13
-# date : 4/21/2024
+"""菜单路由视图。"""
+
 from drf_spectacular.utils import extend_schema
 from rest_framework.generics import GenericAPIView
+from rest_framework.request import Request
+from rest_framework.response import Response
+from django.db.models import QuerySet
 
 from apps.common.base.magic import cache_response
 from apps.common.base.utils import menu_list_to_tree, format_menu_data
 from apps.common.core.modelset import CacheDetailResponseMixin
 from apps.common.core.permission import get_user_menu_queryset
 from apps.common.core.response import ApiResponse
-from apps.system.models import Menu
+from apps.system.models import Menu, UserInfo
 from apps.system.serializers.route import RouteSerializer
 
 
-def get_auths(user):
+def get_auths(user: UserInfo) -> QuerySet:
+    """获取用户的权限标识列表。
+
+    Args:
+        user: 用户对象。
+
+    Returns:
+        权限标识名称的查询集。
+    """
     if user.is_superuser:
         menu_obj = Menu.objects.filter(is_active=True)
     else:
@@ -27,11 +34,12 @@ def get_auths(user):
 
 
 class UserRoutesAPIView(GenericAPIView, CacheDetailResponseMixin):
-    """获取菜单路由"""
+    """用户菜单路由视图。"""
 
     @extend_schema(exclude=True)
     @cache_response(timeout=3600 * 24, key_func='get_cache_key')
-    def get(self, request):
+    def get(self, request: Request) -> Response:
+        """获取当前用户的菜单路由和权限列表。"""
         route_list = []
         user_obj = request.user
         menu_type = [Menu.MenuChoices.DIRECTORY, Menu.MenuChoices.MENU]

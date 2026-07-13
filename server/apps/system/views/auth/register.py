@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : register
-# author : ly_13
-# date : 8/8/2024
+"""用户注册视图。"""
 
 from django.conf import settings
 from django.core.cache import cache
@@ -13,6 +8,8 @@ from drf_spectacular.plumbing import build_object_type, build_basic_type
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiRequest
 from rest_framework.generics import GenericAPIView
+from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.common.base.utils import AESCipherV2
@@ -26,7 +23,8 @@ from apps.system.utils.auth import get_token_lifetime, save_login_log, verify_sm
 
 
 class RegisterViewAPIView(GenericAPIView):
-    """用户注册"""
+    """用户注册视图。"""
+
     permission_classes = []
     authentication_classes = []
     throttle_classes = [RegisterThrottle]
@@ -56,8 +54,8 @@ class RegisterViewAPIView(GenericAPIView):
             }
         )
     )
-    def post(self, request, *args, **kwargs):
-        """注册账户"""
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        """注册新用户账户，自动绑定部门并返回 JWT 令牌。"""
         if not settings.SECURITY_REGISTER_ACCESS_ENABLED:
             return ApiResponse(code=1001, detail=_("Registration forbidden"))
 

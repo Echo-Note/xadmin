@@ -1,6 +1,10 @@
+"""Excel 文件渲染器模块，实现 xlsx 格式导出文件的渲染、数据验证与样式调整。"""
+
+
 import json
 import os
 from tempfile import NamedTemporaryFile, mktemp
+from collections.abc import Iterable
 
 from openpyxl import Workbook
 from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
@@ -15,6 +19,8 @@ from .base import BaseFileRenderer
 
 
 class ExcelFileRenderer(BaseFileRenderer):
+    """Excel (xlsx) 文件渲染器，支持数据验证、列宽自适应及表格样式。"""
+
     media_type = "application/xlsx"
     format = "xlsx"
 
@@ -22,11 +28,17 @@ class ExcelFileRenderer(BaseFileRenderer):
     ws = None
     row_count = 0
 
-    def initial_writer(self):
+    def initial_writer(self) -> None:
+        """初始化 Excel 工作簿与工作表。"""
         self.wb = Workbook()
         self.ws = self.wb.active
 
-    def write_row(self, row):
+    def write_row(self, row: list) -> None:
+        """写入单行数据到工作表，处理非法字符并设置单元格为文本格式。
+
+        Args:
+            row: 行数据列表。
+        """
         self.row_count += 1
         self.ws.row_dimensions[self.row_count].height = 20
         column_count = 0
@@ -38,7 +50,16 @@ class ExcelFileRenderer(BaseFileRenderer):
             # 设置单元格格式为纯文本, 防止执行公式
             cell.data_type = 's'
 
-    def format_values(self, data, related=False):
+    def format_values(self, data: dict, related: bool = False) -> list:
+        """将字典格式化为值列表，用于数据验证下拉项。
+
+        Args:
+            data: 键值对字典。
+            related: 是否为关联字段模式，True 时仅输出值，False 时输出 ``值(键)``。
+
+        Returns:
+            格式化后的值列表。
+        """
         result = []
         for key, value in data.items():
             if related:
@@ -47,7 +68,12 @@ class ExcelFileRenderer(BaseFileRenderer):
                 result.append(f"{value}({key})")
         return json.loads(json.dumps(result, cls=encoders.JSONEncoder, ensure_ascii=False))
 
-    def add_validation(self, rendered_fields):
+    def add_validation(self, rendered_fields: Iterable) -> None:
+        """为导入/更新模板的字段添加 Excel 数据验证下拉列表。
+
+        Args:
+            rendered_fields: 渲染字段实例可迭代对象。
+        """
         if self.template not in ['import', 'update']:
             return
         validation_data_dict = {}
@@ -81,7 +107,8 @@ class ExcelFileRenderer(BaseFileRenderer):
             for inx, ele in enumerate(validation_data):
                 w_data[f"{get_column_letter(index + 1)}{inx + 2}"] = ele
 
-    def after_render(self):
+    def after_render(self) -> None:
+        """渲染完成后调整列宽并应用表格样式。"""
         count = 0
         for col in self.ws.columns:
             max_length = 0
@@ -110,7 +137,12 @@ class ExcelFileRenderer(BaseFileRenderer):
             tab.tableStyleInfo = style
             self.ws.add_table(tab)
 
-    def get_rendered_value(self):
+    def get_rendered_value(self) -> bytes:
+        """获取渲染后的 Excel 文件字节内容，兼容 Windows 平台临时文件权限问题。
+
+        Returns:
+            Excel 文件字节内容。
+        """
         if os.name == 'nt':
             ## 针对 windows 平台，解决 NamedTemporaryFile 方法 权限异常
             tmp_name = mktemp()

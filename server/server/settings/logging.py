@@ -4,6 +4,7 @@
 # filename : logging
 # author : ly_13
 # date : 10/18/2024
+"""日志配置模块，定义日志格式、处理器及 logger。"""
 import os
 
 from ..const import LOG_DIR, CONFIG, TMP_DIR, CELERY_LOG_DIR

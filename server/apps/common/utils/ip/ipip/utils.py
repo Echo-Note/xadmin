@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 #
+"""基于 IPIP 数据库的 IP 城市查询工具。"""
+
 import os
 
 import ipdb
 from django.conf import settings
 
 __all__ = ['get_ip_city_by_ipip']
-ipip_db = None
+ipip_db: ipdb.City | None = None
 
 
-def init_ipip_db():
+def init_ipip_db() -> None:
+    """初始化 IPIP 城市数据库，重复调用时仅初始化一次。"""
     global ipip_db
     if ipip_db is not None:
         return
@@ -18,11 +21,19 @@ def init_ipip_db():
     if not os.path.exists(ipip_db_path):
         ipip_db_path = os.path.join(os.path.dirname(__file__), 'ipipfree.ipdb')
     if not os.path.exists(ipip_db_path):
-        raise FileNotFoundError(f"IP Database not found, please run `python manage.py download_ip_db`")
+        raise FileNotFoundError('IP Database not found, please run `python manage.py download_ip_db`')
     ipip_db = ipdb.City(ipip_db_path)
 
 
-def get_ip_city_by_ipip(ip):
+def get_ip_city_by_ipip(ip: str) -> dict[str, str] | None:
+    """根据 IP 地址查询城市与国家信息。
+
+    Args:
+        ip: 待查询的 IP 地址字符串。
+
+    Returns:
+        包含 city 和 country 名称的字典，查询失败时返回 None。
+    """
     try:
         init_ipip_db()
     except Exception:
@@ -32,5 +43,5 @@ def get_ip_city_by_ipip(ip):
     except ValueError:
         return None
     if not info:
-        raise None
+        return None
     return {'city': info.city_name, 'country': info.country_name}

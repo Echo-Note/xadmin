@@ -1,14 +1,19 @@
+"""演示应用的书籍模型。"""
 from django.db import models
 from django.utils import timezone
 from pilkit.processors import ResizeToFill
 
-from apps.common.core.models import DbAuditModel, upload_directory_path, AutoCleanFileMixin
+from apps.common.core.models import AutoCleanFileMixin, DbAuditModel, upload_directory_path
 from apps.common.fields.image import ProcessedImageField
-from apps.system.models import UserInfo, UploadFile
+from apps.system.models import UploadFile, UserInfo
 
 
 class Book(AutoCleanFileMixin, DbAuditModel):
+    """书籍模型，用于演示各种字段类型与关联关系。"""
+
     class CategoryChoices(models.IntegerChoices):
+        """书籍类型枚举。"""
+
         DIRECTORY = 0, "小说"
         MENU = 1, "文学"
         PERMISSION = 2, "哲学"
@@ -55,8 +60,11 @@ class Book(AutoCleanFileMixin, DbAuditModel):
     is_active = models.BooleanField(verbose_name="是否启用", default=False)
 
     class Meta:
+        """书籍模型的元数据配置。"""
+
         verbose_name = '书籍名称'
         verbose_name_plural = verbose_name
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """返回书籍名称。"""
         return f"{self.name}"

@@ -4,12 +4,15 @@
 # filename : filter
 # author : ly_13
 # date : 6/2/2023
+"""数据过滤模块，提供数据权限过滤、所有者过滤及基础过滤集。"""
 import datetime
 import json
+from typing import Any
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q, QuerySet
+from django.forms import Form
 from django.forms.utils import from_current_timezone
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -18,6 +21,7 @@ from django_filters import rest_framework as filters
 from django_filters.fields import MultipleChoiceField
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.filters import BaseFilterBackend
+from rest_framework.request import Request
 
 from apps.common.base.magic import timeit, count_sql_queries
 from apps.common.cache.storage import CommonResourceIDsCache
@@ -28,7 +32,19 @@ from apps.system.models import UserInfo, DataPermission, ModeTypeAbstract, DeptI
 logger = get_logger(__name__)
 
 
-def get_filter_q_base(model, permission, user_obj=None, dept_obj=None):
+def get_filter_q_base(model: Any, permission: QuerySet, user_obj: UserInfo | None = None,
+                      dept_obj: Any = None) -> Q:
+    """根据数据权限规则构造基础的 Q 查询条件。
+
+    Args:
+        model: 模型类。
+        permission: 数据权限查询集。
+        user_obj: 当前用户对象，可为 None。
+        dept_obj: 当前部门对象，可为 None。
+
+    Returns:
+        构造好的 ``Q`` 查询对象。
+    """
     results = []
     for obj in permission:
         rules = []
@@ -143,7 +159,7 @@ def get_filter_q_base(model, permission, user_obj=None, dept_obj=None):
 
 @timeit
 @count_sql_queries
-def get_filter_queryset(queryset: QuerySet, user_obj: UserInfo):
+def get_filter_queryset(queryset: QuerySet, user_obj: UserInfo) -> QuerySet:
     """
     1.获取所有数据权限规则
     2.循环判断规则
@@ -197,27 +213,69 @@ def get_filter_queryset(queryset: QuerySet, user_obj: UserInfo):
 
 
 class OwnerUserFilter(BaseFilterBackend):
+    """按 owner 字段过滤当前用户数据的过滤器。"""
 
-    def filter_queryset(self, request, queryset, view):
+    def filter_queryset(self, request: Request, queryset: QuerySet, view: Any) -> QuerySet:
+        """过滤出当前用户拥有的数据。
+
+        Args:
+            request: DRF 请求对象。
+            queryset: 原始查询集。
+            view: 视图对象。
+
+        Returns:
+            过滤后的查询集。
+
+        Raises:
+            NotAuthenticated: 用户未认证时抛出。
+        """
         if request.user and request.user.is_authenticated:
             return queryset.filter(owner=request.user)
         raise NotAuthenticated(_("Unauthorized authentication"))
 
 
 class CreatorUserFilter(BaseFilterBackend):
+    """按 creator 字段过滤当前用户创建的数据。"""
 
-    def filter_queryset(self, request, queryset, view):
+    def filter_queryset(self, request: Request, queryset: QuerySet, view: Any) -> QuerySet:
+        """过滤出当前用户创建的数据。
+
+        Args:
+            request: DRF 请求对象。
+            queryset: 原始查询集。
+            view: 视图对象。
+
+        Returns:
+            过滤后的查询集。
+
+        Raises:
+            NotAuthenticated: 用户未认证时抛出。
+        """
         if request.user and request.user.is_authenticated:
             return queryset.filter(creator=request.user)
         raise NotAuthenticated(_("Unauthorized authentication"))
 
 
 class BaseDataPermissionFilter(BaseFilterBackend):
-    def filter_queryset(self, request, queryset, view):
+    """基于数据权限的过滤器，调用 ``get_filter_queryset`` 进行过滤。"""
+
+    def filter_queryset(self, request: Request, queryset: QuerySet, view: Any) -> QuerySet:
+        """根据当前用户的数据权限过滤查询集。
+
+        Args:
+            request: DRF 请求对象。
+            queryset: 原始查询集。
+            view: 视图对象。
+
+        Returns:
+            过滤后的查询集。
+        """
         return get_filter_queryset(queryset, request.user)
 
 
 class BaseFilterSet(filters.FilterSet):
+    """基础过滤集，提供通用字段的过滤定义。"""
+
     pk = filters.NumberFilter(field_name='id')
     spm = filters.CharFilter(field_name='spm', method='get_spm_filter')
     creator = filters.NumberFilter(field_name='creator')
@@ -227,7 +285,17 @@ class BaseFilterSet(filters.FilterSet):
     updated_time = filters.DateTimeFromToRangeFilter(field_name='updated_time')
     description = filters.CharFilter(field_name='description', lookup_expr='icontains')
 
-    def get_spm_filter(self, queryset, name, value):
+    def get_spm_filter(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
+        """根据 SPM 缓存的主键列表过滤查询集。
+
+        Args:
+            queryset: 原始查询集。
+            name: 过滤字段名。
+            value: SPM 值。
+
+        Returns:
+            过滤后的查询集。
+        """
         pks = CommonResourceIDsCache(value).get_storage_cache()
         if pks:
             return queryset.filter(pk__in=pks)
@@ -235,7 +303,17 @@ class BaseFilterSet(filters.FilterSet):
 
 
 class PkMultipleChoiceField(MultipleChoiceField):
-    def validate(self, value):
+    """主键多选字段，重写校验逻辑以允许空值。"""
+
+    def validate(self, value: list) -> None:
+        """校验字段值。
+
+        Args:
+            value: 待校验的值列表。
+
+        Raises:
+            ValidationError: 必填且值为空时抛出。
+        """
         if self.required and not value:
             raise ValidationError(self.error_messages["required"], code="required")
 
@@ -247,6 +325,11 @@ class PkMultipleFilter(filters.MultipleChoiceFilter):
 
     field_class = PkMultipleChoiceField
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
+        """初始化多选过滤器。
+
+        Args:
+            **kwargs: 透传给父类的关键字参数，支持 ``input_type`` 自定义前端展示。
+        """
         self.input_type = kwargs.pop('input_type', None)
         super().__init__(**kwargs)

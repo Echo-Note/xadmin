@@ -1,3 +1,5 @@
+"""通知应用 URL 路由配置。"""
+
 from rest_framework.routers import SimpleRouter
 
 from apps.notifications.views.message import NoticeMessageViewSet, NoticeUserReadMessageViewSet

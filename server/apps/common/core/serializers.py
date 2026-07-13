@@ -4,8 +4,9 @@
 # filename : serializers
 # author : ly_13
 # date : 12/21/2023
+"""基础序列化器模块，提供字段权限控制、字段展示控制及文件关联处理。"""
 from inspect import isfunction
-from typing import List
+from typing import Any, List
 
 from django.conf import settings
 from django.db.models import QuerySet
@@ -19,23 +20,35 @@ from server.utils import get_current_request
 
 
 class BaseModelSerializer(ModelSerializer):
+    """基础模型序列化器，集成字段权限控制与文件关联处理。"""
+
     serializer_related_field = BasePrimaryKeyRelatedField
     serializer_choice_field = LabeledChoiceField
     ignore_field_permission = False  # 忽略字段权限
 
     class Meta:
+        """元数据配置，定义模型与字段展示。"""
+
         model = None
         table_fields = []  # 用于控制前端table的字段展示
         tabs = []
 
-    def get_field_names(self, declared_fields, info):
+    def get_field_names(self, declared_fields: dict, info: Any) -> list:
         """将默认的id字段 转换为 pk"""
         fields = super().get_field_names(declared_fields, info)
         if 'id' in fields:
             return ['pk'] + [f for f in fields if f != 'id']
         return fields
 
-    def get_value(self, dictionary):
+    def get_value(self, dictionary: dict) -> Any:
+        """从数据字典中获取当前字段的值。
+
+        Args:
+            dictionary: 包含字段值的数据字典。
+
+        Returns:
+            字段对应的值，不存在时返回 ``empty``。
+        """
         # We override the default field access in order to support
         # nested HTML forms.
         # 下面两行注释是因为已经在前面处理过form-data，这里无需再次处理
@@ -43,7 +56,7 @@ class BaseModelSerializer(ModelSerializer):
         #     return html.parse_html_dict(dictionary, prefix=self.field_name) or empty
         return dictionary.get(self.field_name, empty)
 
-    def get_allow_fields(self, fields, ignore_field_permission):
+    def get_allow_fields(self, fields: list | set | None, ignore_field_permission: bool) -> set:
         """
         self.fields: 默认定义的字段
         fields: 需要展示的字段
@@ -70,7 +83,8 @@ class BaseModelSerializer(ModelSerializer):
 
         return set(fields) & _fields & set(allow_fields)
 
-    def __init__(self, instance=None, data=empty, fields=None, ignore_field_permission=False, **kwargs):
+    def __init__(self, instance: Any = None, data: Any = empty, fields: list | set | None = None,
+                 ignore_field_permission: bool = False, **kwargs: Any) -> None:
         """
         :param instance:
         :param data:
@@ -92,6 +106,14 @@ class BaseModelSerializer(ModelSerializer):
 
     @staticmethod
     def get_fields_from_tabs(tabs: List) -> List[str]:
+        """从标签页配置中提取去重后的字段列表。
+
+        Args:
+            tabs: 标签页配置列表。
+
+        Returns:
+            去重后的字段名列表。
+        """
         seen = set()
         result = []
         for tab in tabs:
@@ -101,7 +123,16 @@ class BaseModelSerializer(ModelSerializer):
                     result.append(field)
         return result
 
-    def build_standard_field(self, field_name, model_field):
+    def build_standard_field(self, field_name: str, model_field: Any) -> tuple:
+        """构建标准字段，同步 model 字段的默认值到序列化器。
+
+        Args:
+            field_name: 字段名称。
+            model_field: Django 模型字段对象。
+
+        Returns:
+            字段类与字段参数的元组。
+        """
         field_class, field_kwargs = super().build_standard_field(field_name, model_field)
         default = getattr(model_field, 'default', NOT_PROVIDED)
         if default != NOT_PROVIDED:
@@ -111,7 +142,15 @@ class BaseModelSerializer(ModelSerializer):
             field_kwargs.setdefault("default", default)
         return field_class, field_kwargs
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict) -> Any:
+        """创建模型实例，并处理关联文件的状态更新。
+
+        Args:
+            validated_data: 校验通过的数据字典。
+
+        Returns:
+            创建的模型实例。
+        """
         n_file_objs = []
         for field in self.Meta.model._meta.get_fields():
             if field.is_relation and field.related_model._meta.label == "system.UploadFile":
@@ -129,7 +168,16 @@ class BaseModelSerializer(ModelSerializer):
             n_file.save(update_fields=['is_tmp'])
         return result
 
-    def update(self, instance, validated_data):
+    def update(self, instance: Any, validated_data: dict) -> Any:
+        """更新模型实例，并处理新旧关联文件的清理与状态更新。
+
+        Args:
+            instance: 待更新的模型实例。
+            validated_data: 校验通过的数据字典。
+
+        Returns:
+            更新后的模型实例。
+        """
         n_file_objs = []
         d_file_objs = []
         for field in self.Meta.model._meta.get_fields():
@@ -159,10 +207,18 @@ class BaseModelSerializer(ModelSerializer):
 
 
 class TabsColumn(object):
+    """标签页列配置，用于定义前端表格中的标签页分组。"""
 
-    def __init__(self, label: str, fields: List[str]):
+    def __init__(self, label: str, fields: List[str]) -> None:
+        """初始化标签页列。
+
+        Args:
+            label: 标签页显示名称。
+            fields: 标签页包含的字段名列表。
+        """
         self.label = label
         self.fields = fields
 
-    def __str__(self):
+    def __str__(self) -> dict:
+        """返回标签页配置的字典表示。"""
         return {'label': self.label, 'fields': self.fields}

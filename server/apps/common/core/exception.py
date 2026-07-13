@@ -4,6 +4,8 @@
 # filename : exception
 # author : ly_13
 # date : 6/2/2023
+"""全局异常处理模块，统一封装 DRF 异常响应格式。"""
+
 import traceback
 from logging import getLogger
 
@@ -22,7 +24,19 @@ logger = getLogger('drf_exception')
 unexpected_exception_logger = getLogger('unexpected_exception')
 
 
-def common_exception_handler(exc, context):
+def common_exception_handler(exc: Exception, context: dict) -> ApiResponse:
+    """DRF 全局异常处理函数。
+
+    将各类异常（限流、API 异常、JWT 异常、404、外键保护等）统一转换为 ``ApiResponse`` 格式，
+    并记录日志与事务回滚。
+
+    Args:
+        exc: 捕获到的异常对象。
+        context: DRF 提供的异常上下文，包含 view、request 等信息。
+
+    Returns:
+        统一格式的 ``ApiResponse`` 响应对象。
+    """
     if settings.DEBUG_DEV:
         logger.exception('Print traceback exception for Debug')
         traceback.print_exc()
@@ -32,16 +46,12 @@ def common_exception_handler(exc, context):
     logger.error(f'{context["view"].__class__.__name__} ERROR: {exc} ret:{ret}')
     if isinstance(exc, Throttled):
         if not exc.wait:
-            detail = _("Your visit is too fast, please visit again later")
+            detail = _('Your visit is too fast, please visit again later')
         else:
-            detail = _("Your visit is too fast, please visit again in {} seconds").format(exc.wait)
-        ret.data = {
-            'code': 999,
-            'detail': detail
-        }
+            detail = _('Your visit is too fast, please visit again in {} seconds').format(exc.wait)
+        ret.data = {'code': 999, 'detail': detail}
 
     elif isinstance(exc, APIException):
-
         if isinstance(exc, InvalidToken):
             if isinstance(exc.detail, dict) and 'messages' in exc.detail:
                 ret.code = 40001  # access token 失效或者过期
@@ -57,12 +67,12 @@ def common_exception_handler(exc, context):
 
     elif isinstance(exc, Http404):
         ret.status_code = 400
-        ret.data = {'detail': _("The requested address is incorrect or the data permission is not allowed")}
+        ret.data = {'detail': _('The requested address is incorrect or the data permission is not allowed')}
 
     elif isinstance(exc, ProtectedError):
         set_rollback()
         verbose_name = exc.protected_objects.pop()._meta.verbose_name
-        return ApiResponse(code=998, detail=_("Is referenced by other {} and cannot be deleted").format(verbose_name))
+        return ApiResponse(code=998, detail=_('Is referenced by other {} and cannot be deleted').format(verbose_name))
     else:
         unexpected_exception_logger.exception('')
 

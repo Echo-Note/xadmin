@@ -1,3 +1,4 @@
+"""演示应用的路由与权限白名单配置。"""
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 # project : xadmin-server
@@ -5,8 +6,7 @@
 # author : ly_13
 # date : 6/12/2024
 
-
-from django.urls import path, include
+from django.urls import include, path
 
 # 路由配置，当添加APP完成时候，会自动注入路由到总服务
 URLPATTERNS = [

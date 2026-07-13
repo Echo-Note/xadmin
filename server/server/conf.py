@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
+"""配置管理模块，提供按点号路径导入、多来源（Python 文件/对象/JSON/YAML）加载与类型转换的配置管理能力。"""
 
 import errno
 import json
@@ -9,6 +10,7 @@ import os
 import sys
 import types
 from importlib import import_module
+from typing import Any
 
 import yaml
 
@@ -17,7 +19,18 @@ PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 logger = logging.getLogger('xadmin.conf')
 
 
-def import_string(dotted_path):
+def import_string(dotted_path: str) -> Any:
+    """按点号路径导入并返回模块中的属性或类。
+
+    Args:
+        dotted_path: 形如 ``package.module.ClassName`` 的点号路径。
+
+    Returns:
+        路径指向的属性或类。
+
+    Raises:
+        ImportError: 路径格式不合法或目标属性不存在时抛出。
+    """
     try:
         module_path, class_name = dotted_path.rsplit('.', 1)
     except ValueError as err:
@@ -34,10 +47,12 @@ def import_string(dotted_path):
 
 
 class DoesNotExist(Exception):
-    pass
+    """配置项不存在时抛出的异常。"""
 
 
 class Config(dict):
+    """支持默认值、类型转换及多来源加载的配置字典。"""
+
     base = {
         'SECRET_KEY': '',
         'DEBUG': False,
@@ -194,10 +209,22 @@ class Config(dict):
 
     }
 
-    def __init__(self, *args):
+    def __init__(self, *args: Any) -> None:
+        """初始化配置字典。"""
         super().__init__(*args)
 
-    def convert_type(self, k, v):
+    def convert_type(self, k: str, v: Any) -> Any:
+        """根据默认值类型将配置值转换为对应类型。
+
+        对布尔值、列表、字典等做特殊处理，其余类型直接调用构造函数转换。
+
+        Args:
+            k: 配置键名。
+            v: 待转换的配置值。
+
+        Returns:
+            转换后的配置值。
+        """
         default_value = self.defaults.get(k)
         if default_value is None:
             return v
@@ -224,23 +251,51 @@ class Config(dict):
             pass
         return v
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """返回配置对象的字符串表示。"""
         return '<%s %s>' % (self.__class__.__name__, dict.__repr__(self))
 
-    def get_from_config(self, item):
+    def get_from_config(self, item: str) -> Any:
+        """从已加载的配置字典中获取指定键的值。
+
+        Args:
+            item: 配置键名。
+
+        Returns:
+            配置值，不存在时返回 None。
+        """
         try:
             value = super().__getitem__(item)
         except KeyError:
             value = None
         return value
 
-    def get_from_env(self, item):
+    def get_from_env(self, item: str) -> Any:
+        """从环境变量中获取指定键的值并做类型转换。
+
+        Args:
+            item: 配置键名（同时也是环境变量名）。
+
+        Returns:
+            转换后的环境变量值，不存在时返回 None。
+        """
         value = os.environ.get(item, None)
         if value is not None:
             value = self.convert_type(item, value)
         return value
 
-    def get(self, item, default=None):
+    def get(self, item: str, default: Any = None) -> Any:
+        """按优先级（配置字典 > 环境变量 > 默认值）获取配置值。
+
+        当配置项不存在时，会尝试从 old_config_map 映射的旧键名递归查找。
+
+        Args:
+            item: 配置键名。
+            default: 默认值。
+
+        Returns:
+            配置值。
+        """
         # 再从配置文件中获取
         value = self.get_from_config(item)
         if value is None:
@@ -255,22 +310,53 @@ class Config(dict):
             value = default
         return value
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> Any:
+        """通过 ``config[key]`` 方式获取配置值。
+
+        Args:
+            item: 配置键名。
+
+        Returns:
+            配置值。
+        """
         return self.get(item)
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> Any:
+        """通过属性访问方式获取配置值。
+
+        Args:
+            item: 配置键名。
+
+        Returns:
+            配置值。
+        """
         return self.get(item)
 
 
 class ConfigManager:
+    """配置管理器，负责从不同来源加载配置到 Config 实例中。"""
+
     config_class = Config
 
-    def __init__(self, root_path=None):
+    def __init__(self, root_path: str | None = None) -> None:
+        """初始化配置管理器。
+
+        Args:
+            root_path: 配置文件根目录，默认为 None。
+        """
         self.root_path = root_path
         self.config = self.config_class()
 
-    def from_pyfile(self, filename='config.py', silent=False):
+    def from_pyfile(self, filename: str = 'config.py', silent: bool = False) -> bool:
+        """从 Python 文件加载配置。
 
+        Args:
+            filename: 配置文件名。
+            silent: 文件不存在时是否静默返回 False 而不抛出异常。
+
+        Returns:
+            加载成功返回 True，文件不存在且 silent 为 True 时返回 False。
+        """
         if self.root_path:
             filename = os.path.join(self.root_path, filename)
         d = types.ModuleType('config')
@@ -286,14 +372,28 @@ class ConfigManager:
         self.from_object(d)
         return True
 
-    def from_object(self, obj):
+    def from_object(self, obj: Any) -> None:
+        """从 Python 对象加载配置，将所有大写属性键写入配置。
+
+        Args:
+            obj: 配置对象或点号路径字符串。
+        """
         if isinstance(obj, str):
             obj = import_string(obj)
         for key in dir(obj):
             if key.isupper():
                 self.config[key] = getattr(obj, key)
 
-    def from_json(self, filename, silent=False):
+    def from_json(self, filename: str, silent: bool = False) -> bool:
+        """从 JSON 文件加载配置。
+
+        Args:
+            filename: JSON 配置文件名。
+            silent: 文件不存在时是否静默返回 False 而不抛出异常。
+
+        Returns:
+            加载成功返回 True，文件不存在且 silent 为 True 时返回 False。
+        """
         if self.root_path:
             filename = os.path.join(self.root_path, filename)
         try:
@@ -306,7 +406,16 @@ class ConfigManager:
             raise
         return self.from_mapping(obj)
 
-    def from_yaml(self, filename, silent=False):
+    def from_yaml(self, filename: str, silent: bool = False) -> bool:
+        """从 YAML 文件加载配置。
+
+        Args:
+            filename: YAML 配置文件名。
+            silent: 文件不存在时是否静默返回 False 而不抛出异常。
+
+        Returns:
+            加载成功返回 True，文件不存在且 silent 为 True 时返回 False。
+        """
         if self.root_path:
             filename = os.path.join(self.root_path, filename)
         try:
@@ -321,7 +430,16 @@ class ConfigManager:
             return self.from_mapping(obj)
         return True
 
-    def from_mapping(self, *mapping, **kwargs):
+    def from_mapping(self, *mapping: Any, **kwargs: Any) -> bool:
+        """从字典或关键字参数加载配置，将大写键写入配置。
+
+        Args:
+            *mapping: 最多一个位置参数，可为字典或键值对序列。
+            **kwargs: 关键字参数形式配置。
+
+        Returns:
+            始终返回 True。
+        """
         mappings = []
         if len(mapping) == 1:
             if hasattr(mapping[0], 'items'):
@@ -339,7 +457,12 @@ class ConfigManager:
                     self.config[key] = value
         return True
 
-    def load_from_object(self):
+    def load_from_object(self) -> bool:
+        """尝试从 ``config`` 模块导入配置对象。
+
+        Returns:
+            导入并加载成功返回 True，否则返回 False。
+        """
         sys.path.insert(0, PROJECT_DIR)
         try:
             from config import config as c
@@ -351,7 +474,12 @@ class ConfigManager:
         else:
             return False
 
-    def load_from_yml(self):
+    def load_from_yml(self) -> bool:
+        """尝试从 ``config.yml`` 或 ``config.yaml`` 加载配置。
+
+        Returns:
+            加载成功返回 True，否则返回 False。
+        """
         for i in ['config.yml', 'config.yaml']:
             if not os.path.isfile(os.path.join(self.root_path, i)):
                 continue
@@ -361,7 +489,16 @@ class ConfigManager:
         return False
 
     @classmethod
-    def load_user_config(cls, root_path=None, config_class=None):
+    def load_user_config(cls, root_path: str | None = None, config_class: type[Config] | None = None) -> Config:
+        """按优先级（Python 文件 > 对象 > YAML）加载用户配置。
+
+        Args:
+            root_path: 配置文件根目录，默认为项目根目录。
+            config_class: 自定义配置类，默认为 Config。
+
+        Returns:
+            加载完成的 Config 实例。
+        """
         config_class = config_class or Config
         cls.config_class = config_class
         if not root_path:

@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : server
-# filename : urls
-# author : ly_13
-# date : 6/6/2023
+"""系统应用 URL 路由配置。"""
 from django.urls import re_path, include
 from rest_framework.routers import SimpleRouter
 

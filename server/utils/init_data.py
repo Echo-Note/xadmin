@@ -4,6 +4,7 @@
 # filename : tests
 # author : ly_13
 # date : 12/23/2023
+"""数据库初始化脚本，用于创建超级用户、加载初始数据等。"""
 import os
 import sys
 

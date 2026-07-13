@@ -4,6 +4,8 @@
 # filename : sms
 # author : ly_13
 # date : 8/6/2024
+"""短信服务设置视图集定义。"""
+
 import importlib
 
 from django.conf import settings
@@ -14,6 +16,8 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from apps.common.base.utils import get_choices_dict
 from apps.common.core.response import ApiResponse
@@ -28,7 +32,8 @@ logger = get_logger(__name__)
 
 
 class SmsSettingViewSet(BaseSettingViewSet):
-    """短信配置"""
+    """短信配置设置视图集。"""
+
     serializer_class = SMSSettingSerializer
     category = "sms"
 
@@ -43,23 +48,34 @@ class SmsSettingViewSet(BaseSettingViewSet):
         }
     ))
     @action(methods=['get'], detail=False)
-    def backends(self, request, *args, **kwargs):
-        """获取可配置短信后端"""
+    def backends(self, request: Request, *args, **kwargs) -> Response:
+        """获取可配置短信后端。"""
         return ApiResponse(data=get_choices_dict(BACKENDS.choices))
 
 
 class SmsConfigViewSet(BaseSettingViewSet):
-    """短信服务"""
+    """短信服务配置视图集。"""
+
     serializer_class_mapper = {
         'alibaba': AlibabaSMSSettingSerializer,
     }
 
     @property
-    def test_code(self):
+    def test_code(self) -> str:
+        """返回测试验证码。"""
         return '6' * settings.VERIFY_CODE_LENGTH
 
     @staticmethod
-    def get_or_from_setting(key, value=''):
+    def get_or_from_setting(key: str, value: str = '') -> str:
+        """从数据库设置中获取值，若传入值非空则直接返回。
+
+        Args:
+            key: 设置项名称。
+            value: 传入值。
+
+        Returns:
+            设置值或空字符串。
+        """
         if not value:
             secret = Setting.objects.filter(name=key).first()
             if secret:
@@ -67,7 +83,15 @@ class SmsConfigViewSet(BaseSettingViewSet):
 
         return value or ''
 
-    def get_alibaba_params(self, data):
+    def get_alibaba_params(self, data: dict) -> tuple:
+        """构建阿里云短信的初始化与发送参数。
+
+        Args:
+            data: 包含阿里云配置的字典。
+
+        Returns:
+            tuple: (初始化参数, 发送短信参数)。
+        """
         init_params = {
             'access_key_id': data['ALIBABA_ACCESS_KEY_ID'],
             'access_key_secret': self.get_or_from_setting(
@@ -81,17 +105,21 @@ class SmsConfigViewSet(BaseSettingViewSet):
         }
         return init_params, send_sms_params
 
-    def get_params_by_backend(self, backend, data):
-        """
-        返回两部分参数
-            1、实例化参数
-            2、发送测试短信参数
+    def get_params_by_backend(self, backend: str, data: dict) -> tuple:
+        """根据后端类型返回对应的参数。
+
+        Args:
+            backend: 后端名称。
+            data: 配置数据。
+
+        Returns:
+            tuple: (初始化参数, 发送短信参数)。
         """
         get_params_func = getattr(self, 'get_%s_params' % backend)
         return get_params_func(data)
 
-    def create(self, request, *args, **kwargs):
-        """测试{cls}"""
+    def create(self, request: Request, *args, **kwargs) -> Response:
+        """测试短信服务连通性。"""
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
 

@@ -4,6 +4,8 @@
 # filename : logging
 # author : ly_13
 # date : 10/18/2024
+"""自定义日志处理器与格式化器模块。"""
+
 import logging
 import os
 from datetime import datetime, timedelta
@@ -13,15 +15,30 @@ from server.utils import get_current_request
 
 
 class DailyTimedRotatingFileHandler(TimedRotatingFileHandler):
-    def rotator(self, source, dest):
-        """ Override the original method to rotate the log file daily."""
+    """按天轮转的日志文件处理器，保证多进程下仅一个进程完成轮转。"""
+
+    def rotator(self, source: str, dest: str) -> None:
+        """重写轮转方法，按前一天日期生成归档文件名并重命名。
+
+        Args:
+            source: 原始日志文件路径。
+            dest: 目标归档文件路径（本方法会重新计算实际目标路径）。
+        """
         dest = self._get_rotate_dest_filename(source)
         if os.path.exists(source) and not os.path.exists(dest):
             # 存在多个服务进程时, 保证只有一个进程成功 rotate
             os.rename(source, dest)
 
     @staticmethod
-    def _get_rotate_dest_filename(source):
+    def _get_rotate_dest_filename(source: str) -> str:
+        """根据原始日志路径生成前一天日期命名的归档文件路径。
+
+        Args:
+            source: 原始日志文件路径。
+
+        Returns:
+            归档日志文件的完整路径。
+        """
         date_yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
         path = [os.path.dirname(source), date_yesterday, os.path.basename(source)]
         filename = os.path.join(*path)
@@ -30,7 +47,17 @@ class DailyTimedRotatingFileHandler(TimedRotatingFileHandler):
 
 
 class ServerFormatter(logging.Formatter):
-    def format(self, record):
+    """自定义日志格式化器，在日志记录中注入请求用户与请求 UUID 信息。"""
+
+    def format(self, record: logging.LogRecord) -> str:
+        """格式化日志记录，附加当前请求用户与请求标识。
+
+        Args:
+            record: 日志记录对象。
+
+        Returns:
+            格式化后的日志字符串。
+        """
         current_request = get_current_request()
         record.requestUser = str(current_request.user if current_request else 'SYSTEM')[:16]
         record.requestUuid = str(getattr(current_request, 'request_uuid', ""))
@@ -38,6 +65,8 @@ class ServerFormatter(logging.Formatter):
 
 
 class ColorHandler(logging.StreamHandler):
+    """带颜色高亮的终端日志处理器，按日志级别输出不同颜色。"""
+
     WHITE = "0"
     RED = "31"
     GREEN = "32"
@@ -45,7 +74,12 @@ class ColorHandler(logging.StreamHandler):
     BLUE = "34"
     PURPLE = "35"
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
+        """将日志记录按级别颜色写入流。
+
+        Args:
+            record: 日志记录对象。
+        """
         try:
             msg = self.format(record)
             level_color_map = {

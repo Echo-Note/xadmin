@@ -4,6 +4,7 @@
 # filename : flower
 # author : ly_13
 # date : 6/29/2023
+"""Celery Flower 监控代理视图。"""
 import base64
 
 from django.conf import settings
@@ -13,6 +14,8 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from drf_spectacular.utils import extend_schema
 from proxy.views import proxy_view
 from rest_framework.generics import GenericAPIView
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from apps.common.utils import get_logger
 
@@ -26,8 +29,8 @@ class CeleryFlowerAPIView(GenericAPIView):
 
     @extend_schema(exclude=True)
     @xframe_options_exempt
-    def get(self, request, path):
-        """获取{cls}"""
+    def get(self, request: Request, path: str) -> Response:
+        """获取 Flower 监控页面。"""
         remote_url = 'http://{}/api/flower/{}'.format(flower_url, path)
         try:
             basic_auth = base64.b64encode(settings.CELERY_FLOWER_AUTH.encode('utf-8')).decode('utf-8')
@@ -44,6 +47,7 @@ class CeleryFlowerAPIView(GenericAPIView):
 
     @extend_schema(exclude=True)
     @xframe_options_exempt
-    def post(self, request, path):
-        """操作{cls}"""
+    def post(self, request: Request, path: str) -> Response:
+        """操作 Flower 监控页面。"""
         return self.get(request, path)
+

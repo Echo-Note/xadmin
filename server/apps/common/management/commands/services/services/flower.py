@@ -1,3 +1,6 @@
+"""Flower 任务监控服务模块。"""
+
+
 from .base import BaseService
 from ..hands import *
 
@@ -5,16 +8,23 @@ __all__ = ['FlowerService']
 
 
 class FlowerService(BaseService):
-    # https://flower.readthedocs.io/en/latest/man.html?highlight=pool#description
-    def __init__(self, **kwargs):
+    """Flower Celery 任务监控服务。
+
+    参考: https://flower.readthedocs.io/en/latest/man.html?highlight=pool#description
+    """
+
+    def __init__(self, **kwargs) -> None:
+        """初始化 Flower 服务实例。"""
         super().__init__(**kwargs)
 
     @property
-    def db_file(self):
+    def db_file(self) -> str:
+        """返回 Flower 持久化数据库文件路径。"""
         return os.path.join(LOG_DIR, 'flower.db')
 
     @property
-    def cmd(self):
+    def cmd(self) -> list:
+        """返回启动 Flower 监控的命令列表。"""
         print("\n- Start Flower as Task Monitor")
 
         if os.getuid() == 0:
@@ -40,5 +50,6 @@ class FlowerService(BaseService):
         return cmd
 
     @property
-    def cwd(self):
+    def cwd(self) -> str:
+        """返回服务工作目录。"""
         return APPS_DIR

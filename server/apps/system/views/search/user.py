@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : user
-# author : ly_13
-# date : 7/22/2024
+"""用户搜索视图。"""
 
 from django_filters import rest_framework as filters
 
@@ -14,17 +9,25 @@ from apps.system.serializers.user import UserSerializer
 
 
 class SearchUserFilter(BaseFilterSet):
+    """用户搜索过滤器。"""
+
     username = filters.CharFilter(field_name='username', lookup_expr='icontains')
     nickname = filters.CharFilter(field_name='nickname', lookup_expr='icontains')
     phone = filters.CharFilter(field_name='phone', lookup_expr='icontains')
 
     class Meta:
+        """过滤器元数据。"""
+
         model = UserInfo
         fields = ['username', 'nickname', 'phone', 'email', 'is_active', 'gender', 'dept']
 
 
 class SearchUserSerializer(UserSerializer):
+    """用户搜索序列化器。"""
+
     class Meta:
+        """序列化器元数据。"""
+
         model = UserInfo
         fields = ['pk', 'avatar', 'username', 'nickname', 'phone', 'email', 'gender', 'is_active', 'password', 'dept',
                   'description', 'last_login', 'date_joined']
@@ -36,7 +39,8 @@ class SearchUserSerializer(UserSerializer):
 
 
 class SearchUserViewSet(OnlyListModelSet):
-    """用户搜索"""
+    """用户搜索视图集。"""
+
     queryset = UserInfo.objects.all()
     serializer_class = SearchUserSerializer
 

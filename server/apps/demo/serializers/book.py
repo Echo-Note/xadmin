@@ -1,3 +1,4 @@
+"""书籍序列化器。"""
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 # project : xadmin-server
@@ -13,7 +14,11 @@ from apps.demo import models
 
 
 class BookSerializer(BaseModelSerializer):
+    """书籍序列化器，定义书籍的字段、表单分组及额外参数。"""
+
     class Meta:
+        """序列化器元数据配置。"""
+
         model = models.Book
         ## pk 字段用于前端删除，更新等标识，如果有删除更新等，必须得加上 pk 字段
         ## 数据返回的字段，该字段受字段权限控制
@@ -107,5 +112,13 @@ class BookSerializer(BaseModelSerializer):
     block = input_wrapper(serializers.SerializerMethodField)(read_only=True, input_type='boolean',
                                                              label="自定义input_type")
 
-    def get_block(self, obj) -> bool:
+    def get_block(self, obj: models.Book) -> bool:
+        """返回书籍是否启用的状态。
+
+        Args:
+            obj: 书籍模型实例。
+
+        Returns:
+            书籍的启用状态。
+        """
         return obj.is_active

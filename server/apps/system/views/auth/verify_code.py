@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : code
-# author : ly_13
-# date : 8/10/2024
+"""验证码发送与配置视图。"""
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -12,6 +7,8 @@ from drf_spectacular.plumbing import build_object_type, build_basic_type, build_
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter, OpenApiRequest
 from rest_framework.generics import GenericAPIView
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from apps.common.base.utils import AESCipherV2
 from apps.common.core.response import ApiResponse
@@ -96,12 +93,21 @@ from apps.system.utils.auth import check_token_and_captcha, check_is_block
     )
 )
 class SendVerifyCodeAPIView(GenericAPIView):
-    """获取验证码配置"""
+    """验证码配置与发送视图。"""
+
     permission_classes = []
     authentication_classes = []
 
     @staticmethod
-    def prepare_code_data(username):
+    def prepare_code_data(username: str) -> tuple[dict, str]:
+        """准备验证码邮件内容和验证码。
+
+        Args:
+            username: 用户名。
+
+        Returns:
+            包含邮件主题和正文的字典，以及验证码字符串。
+        """
         subject = _('Verify code')
         code = random_string(settings.VERIFY_CODE_LENGTH, lower=settings.VERIFY_CODE_LOWER_CASE,
                              upper=settings.VERIFY_CODE_UPPER_CASE, digit=settings.VERIFY_CODE_DIGIT_CASE)
@@ -112,13 +118,14 @@ class SendVerifyCodeAPIView(GenericAPIView):
         content = {'subject': subject, 'message': message}
         return content, code
 
-    def get(self, request):
+    def get(self, request: Request) -> Response:
+        """获取指定类别的验证码配置信息。"""
         category = request.query_params.get('category')
         get_config_func = getattr(self, 'get_%s_config' % category)
         return ApiResponse(data=get_config_func(request))
 
-    def post(self, request):
-        """发送验证码"""
+    def post(self, request: Request) -> Response:
+        """发送验证码，校验目标并生成验证令牌。"""
         category = request.query_params.get('category')
         config = getattr(self, 'get_%s_config' % category)(request)
         if not config.get("access"):
@@ -174,7 +181,15 @@ class SendVerifyCodeAPIView(GenericAPIView):
         return ApiResponse(data=data, detail=_("The verification code has been sent"))
 
     @staticmethod
-    def get_register_config(request):
+    def get_register_config(request: Request) -> dict:
+        """获取注册验证码配置。
+
+        Args:
+            request: HTTP 请求对象。
+
+        Returns:
+            注册验证码配置字典。
+        """
         config = {
             'access': settings.SECURITY_REGISTER_ACCESS_ENABLED,
             'captcha': settings.SECURITY_REGISTER_CAPTCHA_ENABLED,
@@ -189,7 +204,15 @@ class SendVerifyCodeAPIView(GenericAPIView):
         return config
 
     @staticmethod
-    def get_login_config(request):
+    def get_login_config(request: Request) -> dict:
+        """获取登录验证码配置。
+
+        Args:
+            request: HTTP 请求对象。
+
+        Returns:
+            登录验证码配置字典。
+        """
         config = {
             'access': settings.SECURITY_LOGIN_ACCESS_ENABLED,
             'captcha': settings.SECURITY_LOGIN_CAPTCHA_ENABLED,
@@ -206,7 +229,15 @@ class SendVerifyCodeAPIView(GenericAPIView):
         return config
 
     @staticmethod
-    def get_reset_config(request):
+    def get_reset_config(request: Request) -> dict:
+        """获取重置密码验证码配置。
+
+        Args:
+            request: HTTP 请求对象。
+
+        Returns:
+            重置密码验证码配置字典。
+        """
         config = {
             'access': settings.SECURITY_RESET_PASSWORD_ACCESS_ENABLED,
             'captcha': settings.SECURITY_RESET_PASSWORD_CAPTCHA_ENABLED,
@@ -220,7 +251,18 @@ class SendVerifyCodeAPIView(GenericAPIView):
         return config
 
     @staticmethod
-    def check_register_config(request, form_type, query_key, target):
+    def check_register_config(request: Request, form_type: str, query_key: str, target: str) -> tuple[str, dict]:
+        """校验注册目标是否已存在。
+
+        Args:
+            request: HTTP 请求对象。
+            form_type: 表单类型（sms/email/username）。
+            query_key: 查询字段名。
+            target: 目标值。
+
+        Returns:
+            用户名和额外数据的元组。
+        """
         extra = request.data.get('extra', {})
         if form_type == 'sms':
             detail = _("Phone already exist")
@@ -235,7 +277,18 @@ class SendVerifyCodeAPIView(GenericAPIView):
         return '', extra
 
     @staticmethod
-    def check_reset_config(request, form_type, query_key, target):
+    def check_reset_config(request: Request, form_type: str, query_key: str, target: str) -> tuple[str, dict]:
+        """校验重置密码目标是否存在。
+
+        Args:
+            request: HTTP 请求对象。
+            form_type: 表单类型（sms/email/username）。
+            query_key: 查询字段名。
+            target: 目标值。
+
+        Returns:
+            用户名和额外数据的元组。
+        """
         extra = request.data.get('extra', {})
         if form_type == 'sms':
             detail = _("Phone does not exist")
@@ -249,11 +302,30 @@ class SendVerifyCodeAPIView(GenericAPIView):
             raise Exception(detail)
         return user.username, extra
 
-    def check_login_config(self, request, form_type, query_key, target):
+    def check_login_config(self, request: Request, form_type: str, query_key: str, target: str) -> tuple[str, dict]:
+        """校验登录目标是否存在，复用重置密码逻辑。
+
+        Args:
+            request: HTTP 请求对象。
+            form_type: 表单类型（sms/email/username）。
+            query_key: 查询字段名。
+            target: 目标值。
+
+        Returns:
+            用户名和额外数据的元组。
+        """
         return self.check_reset_config(request, form_type, query_key, target)
 
     @staticmethod
-    def get_bind_email_config(request):
+    def get_bind_email_config(request: Request) -> dict:
+        """获取绑定邮箱验证码配置。
+
+        Args:
+            request: HTTP 请求对象。
+
+        Returns:
+            绑定邮箱验证码配置字典。
+        """
         config = {
             'access': settings.SECURITY_BIND_EMAIL_ACCESS_ENABLED,
             'captcha': settings.SECURITY_BIND_EMAIL_CAPTCHA_ENABLED,
@@ -265,7 +337,18 @@ class SendVerifyCodeAPIView(GenericAPIView):
         return config
 
     @staticmethod
-    def check_bind_email_config(request, form_type, query_key, target):
+    def check_bind_email_config(request: Request, form_type: str, query_key: str, target: str) -> tuple[str, dict]:
+        """校验绑定邮箱目标，返回额外用户信息。
+
+        Args:
+            request: HTTP 请求对象。
+            form_type: 表单类型。
+            query_key: 查询字段名。
+            target: 目标值。
+
+        Returns:
+            空用户名和包含用户信息的额外数据元组。
+        """
         extra = request.data.get('extra', {})
         user = UserInfo.objects.filter(**{query_key: target}).first()
         if user:
@@ -275,7 +358,15 @@ class SendVerifyCodeAPIView(GenericAPIView):
         return '', extra
 
     @staticmethod
-    def get_bind_phone_config(request):
+    def get_bind_phone_config(request: Request) -> dict:
+        """获取绑定手机验证码配置。
+
+        Args:
+            request: HTTP 请求对象。
+
+        Returns:
+            绑定手机验证码配置字典。
+        """
         config = {
             'access': settings.SECURITY_BIND_PHONE_ACCESS_ENABLED,
             'captcha': settings.SECURITY_BIND_PHONE_CAPTCHA_ENABLED,
@@ -286,5 +377,16 @@ class SendVerifyCodeAPIView(GenericAPIView):
         }
         return config
 
-    def check_bind_phone_config(self, request, form_type, query_key, target):
+    def check_bind_phone_config(self, request: Request, form_type: str, query_key: str, target: str) -> tuple[str, dict]:
+        """校验绑定手机目标，复用绑定邮箱逻辑。
+
+        Args:
+            request: HTTP 请求对象。
+            form_type: 表单类型。
+            query_key: 查询字段名。
+            target: 目标值。
+
+        Returns:
+            空用户名和包含用户信息的额外数据元组。
+        """
         return self.check_bind_email_config(request, form_type, query_key, target)

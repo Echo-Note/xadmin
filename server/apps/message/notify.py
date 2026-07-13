@@ -1,3 +1,4 @@
+"""消息通知 WebSocket Consumer。"""
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 # project : server
@@ -6,7 +7,6 @@
 # date : 6/2/2023
 import asyncio
 import os
-from typing import Dict
 
 import aiofiles
 from channels.db import database_sync_to_async
@@ -16,15 +16,23 @@ from apps.common.core.config import UserConfig
 from apps.common.utils import get_logger
 from apps.message.base import AsyncJsonWebsocket
 from apps.message.utils import async_push_message, get_user_layer_group_name
-from server.utils import get_current_request
 from apps.system.models import UserInfo, UserLoginLog
 from apps.system.views.auth.login import login_success
+from server.utils import get_current_request
 
 logger = get_logger(__name__)
 
 
 @database_sync_to_async
-def get_user_pk(username):
+def get_user_pk(username: str) -> int | None:
+    """根据用户名获取用户主键。
+
+    Args:
+        username: 用户名。
+
+    Returns:
+        用户主键，不存在时返回 None。
+    """
     try:
         return UserInfo.objects.filter(username=username, is_active=True).values_list('pk', flat=True).first()
     except UserInfo.DoesNotExist:
@@ -32,11 +40,25 @@ def get_user_pk(username):
 
 
 @database_sync_to_async
-def get_can_push_message(pk):
+def get_can_push_message(pk: int) -> bool:
+    """判断指定用户是否允许接收推送消息。
+
+    Args:
+        pk: 用户主键。
+
+    Returns:
+        允许推送返回 True，否则返回 False。
+    """
     return UserConfig(pk).PUSH_CHAT_MESSAGE
 
 
-async def notify_at_user_msg(data: Dict, username: str):
+async def notify_at_user_msg(data: dict, username: str) -> None:
+    """处理 @ 用户的消息，向被提及的用户推送通知。
+
+    Args:
+        data: 消息数据字典。
+        username: 发送消息的用户名。
+    """
     text = data.get('text')
     if text.startswith('@'):
         target = text.split(' ')[0].split('@')
@@ -58,21 +80,30 @@ async def notify_at_user_msg(data: Dict, username: str):
 
 
 @database_sync_to_async
-def websocket_login_success(user_obj, channel_name):
+def websocket_login_success(user_obj: UserInfo, channel_name: str) -> None:
+    """记录 WebSocket 登录成功日志。
+
+    Args:
+        user_obj: 用户对象。
+        channel_name: 通道名称。
+    """
     request = get_current_request()
     request.channel_name = channel_name
     login_success(request, user_obj, UserLoginLog.LoginTypeChoices.WEBSOCKET)
 
 
 class MessageNotify(AsyncJsonWebsocket):
+    """消息通知 WebSocket Consumer，处理聊天、任务日志等消息。"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
+        """初始化消息通知实例。"""
         super().__init__(args, kwargs)
         self.group_name = ''
         self.disconnected = True
         self.user = None
 
-    async def connect(self):
+    async def connect(self) -> None:
+        """处理 WebSocket 连接建立，加入用户组并接受连接。"""
         self.user = self.scope["user"]
         if not self.user:
             logger.error(f"user not exists. so close. {self.scope}")
@@ -94,7 +125,12 @@ class MessageNotify(AsyncJsonWebsocket):
             await self.channel_layer.group_add(self.group_name, self.channel_name)
             await self.accept()
 
-    async def disconnect(self, close_code):
+    async def disconnect(self, close_code: int) -> None:
+        """处理 WebSocket 连接断开，从组中移除通道。
+
+        Args:
+            close_code: 关闭码。
+        """
         self.disconnected = True
         if self.group_name:
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
@@ -102,7 +138,14 @@ class MessageNotify(AsyncJsonWebsocket):
         logger.info(f"{self.user} disconnect")
 
     # Receive message from WebSocket
-    async def receive_json(self, action, data, content, **kwargs):
+    async def receive_json(self, action: str, data: dict, content: dict, **kwargs) -> None:
+        """处理接收到的 JSON 消息，按动作分发处理。
+
+        Args:
+            action: 消息动作。
+            data: 消息数据。
+            content: 完整的原始消息内容。
+        """
         match action:
             case 'chat_message':
                 data['pk'] = self.user.pk
@@ -119,12 +162,23 @@ class MessageNotify(AsyncJsonWebsocket):
                 await self.close()
 
     # 下面查看文件方法忽略
-    async def task_log(self, event):
+    async def task_log(self, event: dict) -> None:
+        """处理任务日志查看请求，获取任务日志路径并开始推送。
+
+        Args:
+            event: 包含 type 和 data 的事件字典。
+        """
         task_id = event.get("data", {}).get('task_id')
         log_path = get_celery_task_log_path(task_id)
         await self.async_handle_task(task_id, log_path)
 
-    async def async_handle_task(self, task_id, log_path):
+    async def async_handle_task(self, task_id: str, log_path: str) -> None:
+        """异步处理任务日志，持续推送日志内容给客户端。
+
+        Args:
+            task_id: 任务 ID。
+            log_path: 日志文件路径。
+        """
         logger.info("Task id: {}".format(task_id))
         while not self.disconnected:
             if not os.path.exists(log_path):
@@ -134,7 +188,13 @@ class MessageNotify(AsyncJsonWebsocket):
                 await self.send_task_log(task_id, log_path)
                 break
 
-    async def send_task_log(self, task_id, log_path):
+    async def send_task_log(self, task_id: str, log_path: str) -> None:
+        """读取任务日志文件并持续推送给客户端。
+
+        Args:
+            task_id: 任务 ID。
+            log_path: 日志文件路径。
+        """
         await self.send_json({'message': '\r\n'})
         try:
             logger.debug('Task log path: {}'.format(log_path))

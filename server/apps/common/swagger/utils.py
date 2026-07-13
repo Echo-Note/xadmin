@@ -4,13 +4,16 @@
 # filename : utils
 # author : ly_13
 # date : 8/12/2024
+"""OpenAPI/Swagger schema 扩展工具。"""
 from typing import List
 
+from django.db import models
 from drf_spectacular.extensions import OpenApiAuthenticationExtension, OpenApiSerializerFieldExtension
 from drf_spectacular.openapi import AutoSchema
 from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiResponse
+from drf_spectacular.utils import OpenApiResponse, Direction
+from rest_framework.fields import Field as RFField
 
 from apps.common.utils import get_logger
 
@@ -18,23 +21,31 @@ logger = get_logger(__name__)
 
 
 class CustomAutoSchema(AutoSchema):
+    """自定义 OpenAPI schema 生成器。"""
 
     def get_tags(self) -> List[str]:
+        """以视图类名作为 API 标签。"""
         return [self.view.__class__.__name__]
 
 
 class OpenApiAuthenticationScheme(OpenApiAuthenticationExtension):
+    """CookieJWTAuthentication 的 OpenAPI 认证扩展。"""
+
     target_class = 'common.core.auth.CookieJWTAuthentication'  # full import path OR class ref
     name = 'CookieJWTAuthentication'  # name used in the schema
 
-    def get_security_definition(self, auto_schema):
+    def get_security_definition(self, auto_schema: AutoSchema) -> dict:
+        """返回安全定义，空字典表示无额外约束。"""
         return {}
 
 
 class OpenApiPrimaryKeyRelatedField(OpenApiSerializerFieldExtension):
+    """BasePrimaryKeyRelatedField 的 OpenAPI schema 扩展。"""
+
     target_class = 'common.core.fields.BasePrimaryKeyRelatedField'
 
-    def map_serializer_field(self, auto_schema, direction):
+    def map_serializer_field(self, auto_schema: AutoSchema, direction: Direction) -> dict:
+        """生成主键关联字段的 OpenAPI schema。"""
         field = self.target
         # 获取字段的基本信息
         field_type = 'array' if field.many else 'object'
@@ -56,16 +67,12 @@ class OpenApiPrimaryKeyRelatedField(OpenApiSerializerFieldExtension):
                 'title': getattr(field, 'label', ''),
             }
 
-    def _get_openapi_item_schema(self, field):
-        """
-        获取数组项的 OpenAPI schema
-        """
+    def _get_openapi_item_schema(self, field: RFField) -> dict:
+        """获取数组项的 OpenAPI schema。"""
         return self._get_openapi_object_schema(field)
 
-    def _get_openapi_object_schema(self, field):
-        """
-        获取对象的 OpenAPI schema
-        """
+    def _get_openapi_object_schema(self, field: RFField) -> dict:
+        """获取对象的 OpenAPI schema。"""
         properties = {}
 
         # 动态分析 attrs 中的属性类型
@@ -83,10 +90,8 @@ class OpenApiPrimaryKeyRelatedField(OpenApiSerializerFieldExtension):
             'required': ['id'] if 'id' in field.attrs else []
         }
 
-    def _infer_field_type(self, field, attr_name):
-        """
-        智能推断字段类型
-        """
+    def _infer_field_type(self, field: RFField, attr_name: str) -> str:
+        """智能推断字段类型。"""
         try:
             # 如果有 queryset，尝试从 model 中获取字段信息
             if hasattr(field, 'queryset') and field.queryset is not None:
@@ -101,10 +106,8 @@ class OpenApiPrimaryKeyRelatedField(OpenApiSerializerFieldExtension):
         # 如果没有 queryset 或无法获取字段信息，使用启发式规则
         return self._heuristic_field_type(attr_name)
 
-    def _map_django_field_type(self, model_field):
-        """
-        将 Django 字段类型映射到 OpenAPI 类型
-        """
+    def _map_django_field_type(self, model_field: models.Field) -> str:
+        """将 Django 字段类型映射到 OpenAPI 类型。"""
         field_type = type(model_field).__name__
 
         # 整数类型
@@ -126,10 +129,8 @@ class OpenApiPrimaryKeyRelatedField(OpenApiSerializerFieldExtension):
         else:
             return 'string'
 
-    def _heuristic_field_type(self, attr_name):
-        """
-        启发式推断字段类型
-        """
+    def _heuristic_field_type(self, attr_name: str) -> str:
+        """启发式推断字段类型。"""
         # 基于属性名的启发式规则
 
         if attr_name in ['is_active', 'enabled', 'visible'] or attr_name.startswith('is_'):
@@ -142,20 +143,18 @@ class OpenApiPrimaryKeyRelatedField(OpenApiSerializerFieldExtension):
             # 默认返回字符串类型
             return 'string'
 
-    def _get_openapi_properties_schema(self, field):
-        """
-        获取对象属性的 OpenAPI schema
-        """
+    def _get_openapi_properties_schema(self, field: RFField) -> dict:
+        """获取对象属性的 OpenAPI schema。"""
         return self._get_openapi_object_schema(field)['properties']
 
 
 class LabeledChoiceFieldExtension(OpenApiSerializerFieldExtension):
-    """
-    为 LabeledChoiceField 提供 OpenAPI schema
-    """
+    """为 LabeledChoiceField 提供 OpenAPI schema。"""
+
     target_class = 'common.core.fields.LabeledChoiceField'
 
-    def map_serializer_field(self, auto_schema, direction):
+    def map_serializer_field(self, auto_schema: AutoSchema, direction: Direction) -> dict:
+        """生成带标签选择字段的 OpenAPI schema。"""
         field = self.target
 
         if getattr(field, 'many', False):
@@ -183,7 +182,15 @@ class LabeledChoiceFieldExtension(OpenApiSerializerFieldExtension):
             }
 
 
-def get_default_response_schema(data=None):
+def get_default_response_schema(data: dict | None = None) -> dict:
+    """生成默认的响应 schema。
+
+    Args:
+        data: 额外的属性字典。
+
+    Returns:
+        以状态码为键的响应 schema 字典。
+    """
     if data is None:
         data = {}
     return {
@@ -199,3 +206,4 @@ def get_default_response_schema(data=None):
             )
         )
     }
+

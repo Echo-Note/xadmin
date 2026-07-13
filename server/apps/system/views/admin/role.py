@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : server
-# filename : role
-# author : ly_13
-# date : 6/19/2023
+"""角色管理视图。"""
 
 from django_filters import rest_framework as filters
 
@@ -17,16 +12,21 @@ logger = get_logger(__name__)
 
 
 class RoleFilter(BaseFilterSet):
+    """角色过滤器。"""
+
     name = filters.CharFilter(field_name='name', lookup_expr='icontains')
     code = filters.CharFilter(field_name='code', lookup_expr='icontains')
 
     class Meta:
+        """过滤器元数据。"""
+
         model = UserRole
         fields = ['name', 'code', 'is_active', 'description']
 
 
 class RoleViewSet(BaseModelSet, ImportExportDataAction):
-    """角色"""
+    """角色视图集。"""
+
     queryset = UserRole.objects.all()
     serializer_class = RoleSerializer
     list_serializer_class = ListRoleSerializer

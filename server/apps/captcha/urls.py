@@ -1,3 +1,4 @@
+"""验证码应用的 URL 路由配置。"""
 from django.urls import re_path
 
 from apps.captcha import views

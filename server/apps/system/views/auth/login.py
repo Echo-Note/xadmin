@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : login
-# author : ly_13
-# date : 8/8/2024
+"""用户登录视图。"""
 
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -13,6 +8,8 @@ from drf_spectacular.plumbing import build_object_type, build_basic_type
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiRequest
 from rest_framework.exceptions import APIException
+from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -27,7 +24,16 @@ from apps.system.utils.auth import get_username_password, get_token_lifetime, ch
     save_login_log, verify_sms_email_code, check_different_city_login_if_need
 
 
-def login_failed(request, username):
+def login_failed(request: Request, username: str) -> Response:
+    """处理登录失败，记录失败次数并返回错误信息。
+
+    Args:
+        request: HTTP 请求对象。
+        username: 登录用户名。
+
+    Returns:
+        包含错误信息的 ApiResponse（通过 raise APIException 实现）。
+    """
     ipaddr = get_request_ip(request)
     login_block_util = LoginBlockUtil(username, ipaddr)
     login_ip_block = LoginIpBlockUtil(ipaddr)
@@ -39,18 +45,26 @@ def login_failed(request, username):
     times_remainder = login_block_util.get_remainder_times()
     if times_remainder > 0:
         detail = _(
-            "The username or password you entered is incorrect, "
-            "please enter it again. "
-            "You can also try {times_try} times "
-            "(The account will be temporarily locked for {block_time} minutes)"
+            'The username or password you entered is incorrect, '
+            'please enter it again. '
+            'You can also try {times_try} times '
+            '(The account will be temporarily locked for {block_time} minutes)'
         ).format(times_try=times_remainder, block_time=settings.SECURITY_LOGIN_LIMIT_TIME)
     else:
-        detail = _("The account has been locked (please contact admin to unlock it or try"
-                   " again after {} minutes)").format(settings.SECURITY_LOGIN_LIMIT_TIME)
+        detail = _('The account has been locked (please contact admin to unlock it or try'
+                   ' again after {} minutes)').format(settings.SECURITY_LOGIN_LIMIT_TIME)
     raise APIException(detail)
 
 
-def login_success(request, user_obj, login_type=UserLoginLog.LoginTypeChoices.USERNAME):
+def login_success(request: Request, user_obj: UserInfo,
+                   login_type: UserLoginLog.LoginTypeChoices = UserLoginLog.LoginTypeChoices.USERNAME) -> None:
+    """处理登录成功，清理失败计数并记录登录日志。
+
+    Args:
+        request: HTTP 请求对象。
+        user_obj: 登录成功的用户对象。
+        login_type: 登录方式。
+    """
     ipaddr = get_request_ip(request)
     login_block_util = LoginBlockUtil(user_obj.username, ipaddr)
     login_ip_block = LoginIpBlockUtil(ipaddr)
@@ -62,7 +76,8 @@ def login_success(request, user_obj, login_type=UserLoginLog.LoginTypeChoices.US
 
 
 class BasicLoginAPIView(TokenObtainPairView):
-    """用户登录"""
+    """用户名密码登录视图。"""
+
     throttle_classes = [LoginThrottle]
 
     @extend_schema(
@@ -91,10 +106,10 @@ class BasicLoginAPIView(TokenObtainPairView):
             }
         )
     )
-    def post(self, request, *args, **kwargs):
-        """用户名密码登录"""
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        """用户名密码登录，支持验证码和加密传输。"""
         if not settings.SECURITY_LOGIN_ACCESS_ENABLED:
-            return ApiResponse(code=1001, detail=_("Login forbidden"))
+            return ApiResponse(code=1001, detail=_('Login forbidden'))
 
         ipaddr = get_request_ip(request)
         client_id, token = check_token_and_captcha(request, settings.SECURITY_LOGIN_TEMP_TOKEN_ENABLED,
@@ -131,8 +146,8 @@ class BasicLoginAPIView(TokenObtainPairView):
             }
         )
     )
-    def get(self, request, *args, **kwargs):
-        """获取登录配置信息"""
+    def get(self, request: Request, *args, **kwargs) -> Response:
+        """获取登录相关配置信息。"""
         config = {
             'access': settings.SECURITY_LOGIN_ACCESS_ENABLED,
             'captcha': settings.SECURITY_LOGIN_CAPTCHA_ENABLED,
@@ -146,7 +161,8 @@ class BasicLoginAPIView(TokenObtainPairView):
 
 
 class VerifyCodeLoginAPIView(TokenObtainPairView):
-    """用户验证码登录"""
+    """验证码登录视图。"""
+
     throttle_classes = [LoginThrottle]
 
     @extend_schema(
@@ -173,10 +189,10 @@ class VerifyCodeLoginAPIView(TokenObtainPairView):
             }
         )
     )
-    def post(self, request, *args, **kwargs):
-        """验证码登录"""
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        """通过短信/邮箱验证码登录。"""
         if not settings.SECURITY_LOGIN_ACCESS_ENABLED:
-            return ApiResponse(code=1001, detail=_("Login forbidden"))
+            return ApiResponse(code=1001, detail=_('Login forbidden'))
         ipaddr = get_request_ip(request)
         query_key, target, verify_token = verify_sms_email_code(request, LoginBlockUtil)
         check_is_block(target, ipaddr)

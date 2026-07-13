@@ -4,6 +4,8 @@
 # filename : country
 # author : ly_13
 # date : 8/6/2024
+"""国家与电话区号工具模块。"""
+
 import gettext
 
 import phonenumbers
@@ -12,7 +14,12 @@ from django.utils.translation import gettext_lazy as _
 from phonenumbers import PhoneMetadata
 
 
-def get_country_phone_codes():
+def get_country_phone_codes() -> list[tuple[str, int]]:
+    """获取所有支持区域的国家代码与电话区号列表。
+
+    Returns:
+        元组列表，每项为 (区域代码, 电话区号)。
+    """
     phone_codes = []
     for region_code in phonenumbers.SUPPORTED_REGIONS:
         phone_metadata = PhoneMetadata.metadata_for_region(region_code)
@@ -21,7 +28,15 @@ def get_country_phone_codes():
     return phone_codes
 
 
-def get_country(region_code):
+def get_country(region_code: str) -> pycountry.db.Country | None:
+    """根据两位区域代码查询国家对象。
+
+    Args:
+        region_code: ISO 3166-1 alpha-2 国家代码。
+
+    Returns:
+        国家对象，未找到时返回 None。
+    """
     country = pycountry.countries.get(alpha_2=region_code)
     if country:
         return country
@@ -29,13 +44,21 @@ def get_country(region_code):
         return None
 
 
-def get_country_phone_choices(locales=None):
+def get_country_phone_choices(locales: str | None = None) -> list[dict[str, str]]:
+    """生成国家电话区号选项列表，用于前端下拉选择。
+
+    Args:
+        locales: 可选的语言代码，用于本地化国家名称。
+
+    Returns:
+        选项字典列表，每项包含 name、phone_code、flag、code 字段。
+    """
     codes = get_country_phone_codes()
     choices = []
     german = None
     if locales:
         german = gettext.translation(
-            "iso3166-1", pycountry.LOCALES_DIR, languages=[locales]
+            'iso3166-1', pycountry.LOCALES_DIR, languages=[locales]
         )
     for code, phone in codes:
         country = get_country(code)
@@ -62,4 +85,4 @@ def get_country_phone_choices(locales=None):
 
 
 COUNTRY_CALLING_CODES = get_country_phone_choices()
-COUNTRY_CALLING_CODES_ZH = get_country_phone_choices("zh")
+COUNTRY_CALLING_CODES_ZH = get_country_phone_choices('zh')

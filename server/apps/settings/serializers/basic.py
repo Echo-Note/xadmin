@@ -4,6 +4,8 @@
 # filename : basic
 # author : ly_13
 # date : 8/1/2024
+"""基本设置序列化器定义。"""
+
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
@@ -11,6 +13,8 @@ from apps.system.signal import invalid_user_cache_signal
 
 
 class BasicSettingSerializer(serializers.Serializer):
+    """基本设置序列化器，包含站点 URL、水印、权限等基础配置。"""
+
     SITE_URL = serializers.URLField(
         required=False, label=_("Site URL"),
         help_text=_(
@@ -40,11 +44,13 @@ class BasicSettingSerializer(serializers.Serializer):
     )
 
     @staticmethod
-    def validate_SITE_URL(s):
+    def validate_SITE_URL(s: str) -> str:
+        """校验站点 URL，为空时返回默认地址。"""
         if not s:
             return 'http://127.0.0.1'
         return s.strip('/')
 
-    def post_save(self):
+    def post_save(self) -> None:
+        """保存后若字段权限或数据权限变更，则清除用户缓存。"""
         if set(getattr(self, '_change_fields', [])) & {'PERMISSION_FIELD_ENABLED', 'PERMISSION_DATA_ENABLED'}:
             invalid_user_cache_signal.send(sender=self, user_pk='*')

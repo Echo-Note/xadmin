@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 #
+"""DRF 元数据扩展模块，提供带过滤与排序字段信息的 SimpleMetadata 扩展实现。"""
+
+
 from __future__ import unicode_literals
 
 import datetime
 from collections import OrderedDict
+from typing import Any
 
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
@@ -15,7 +19,7 @@ from rest_framework.request import clone_request
 
 
 class SimpleMetadataWithFilters(SimpleMetadata):
-    """Override SimpleMetadata, adding info about filters"""
+    """扩展 SimpleMetadata，增加过滤器与排序字段信息。"""
 
     methods = {"PUT", "POST", "GET", "PATCH"}
     attrs = [
@@ -24,10 +28,15 @@ class SimpleMetadataWithFilters(SimpleMetadata):
         "max_value", "write_only"
     ]
 
-    def determine_actions(self, request, view):
-        """
-        For generic class based views we return information about
-        the fields that are accepted for 'PUT' and 'POST' methods.
+    def determine_actions(self, request: Any, view: Any) -> dict:
+        """对于基于类的通用视图，返回 PUT 和 POST 方法所接受字段的信息。
+
+        Args:
+            request: DRF 请求对象。
+            view: 视图实例。
+
+        Returns:
+            以 HTTP 方法为键、字段信息为值的字典。
         """
         actions = {}
         view.raw_action = getattr(view, "action", None)
@@ -54,9 +63,14 @@ class SimpleMetadataWithFilters(SimpleMetadata):
                 view.request = request
         return actions
 
-    def get_field_type(self, field):
-        """
-        Given a field, return a string representing the type of the field.
+    def get_field_type(self, field: Any) -> str:
+        """根据序列化器字段返回表示字段类型的字符串。
+
+        Args:
+            field: 序列化器字段实例。
+
+        Returns:
+            字段类型标识字符串。
         """
         tp = getattr(field, 'input_type', None)
         if tp:
@@ -79,7 +93,13 @@ class SimpleMetadataWithFilters(SimpleMetadata):
         return tp
 
     @staticmethod
-    def set_choices_field(field, field_info):
+    def set_choices_field(field: Any, field_info: dict) -> None:
+        """为字段信息字典填充选项列表。
+
+        Args:
+            field: 序列化器字段实例。
+            field_info: 待填充的字段信息字典。
+        """
         field_info["choices"] = [
             {
                 "value": choice_value,
@@ -88,10 +108,14 @@ class SimpleMetadataWithFilters(SimpleMetadata):
             for choice_value, choice_label in dict(field.choices).items()
         ]
 
-    def get_field_info(self, field):
-        """
-        Given an instance of a serializer field, return a dictionary
-        of metadata about it.
+    def get_field_info(self, field: Any) -> OrderedDict:
+        """根据序列化器字段实例返回其元数据字典。
+
+        Args:
+            field: 序列化器字段实例。
+
+        Returns:
+            包含字段元数据的有序字典。
         """
         field_info = OrderedDict()
         field_info["type"] = self.get_field_type(field)
@@ -122,7 +146,16 @@ class SimpleMetadataWithFilters(SimpleMetadata):
         return field_info
 
     @staticmethod
-    def get_filters_fields(request, view):
+    def get_filters_fields(request: Any, view: Any) -> list:
+        """获取视图支持的过滤字段列表。
+
+        Args:
+            request: DRF 请求对象。
+            view: 视图实例。
+
+        Returns:
+            过滤字段名列表。
+        """
         fields = []
         if hasattr(view, "get_filter_fields"):
             fields = view.get_filter_fields(request)
@@ -147,7 +180,16 @@ class SimpleMetadataWithFilters(SimpleMetadata):
         return fields
 
     @staticmethod
-    def get_ordering_fields(request, view):
+    def get_ordering_fields(request: Any, view: Any) -> list:
+        """获取视图支持的排序字段列表。
+
+        Args:
+            request: DRF 请求对象。
+            view: 视图实例。
+
+        Returns:
+            排序字段名列表。
+        """
         fields = []
         if hasattr(view, "get_ordering_fields"):
             fields = view.get_ordering_fields(request)
@@ -155,7 +197,16 @@ class SimpleMetadataWithFilters(SimpleMetadata):
             fields = view.ordering_fields
         return fields
 
-    def determine_metadata(self, request, view):
+    def determine_metadata(self, request: Any, view: Any) -> dict:
+        """生成包含过滤与排序标记的完整元数据。
+
+        Args:
+            request: DRF 请求对象。
+            view: 视图实例。
+
+        Returns:
+            包含 actions、过滤与排序信息的元数据字典。
+        """
         metadata = super(SimpleMetadataWithFilters, self).determine_metadata(
             request, view
         )

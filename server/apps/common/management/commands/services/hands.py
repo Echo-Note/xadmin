@@ -1,3 +1,6 @@
+"""服务管理辅助函数模块，提供端口检测、数据库连接、迁移、静态文件收集等启动前置操作。"""
+
+
 import os
 import sys
 import time
@@ -37,7 +40,8 @@ LOG_DIR = os.path.join(APPS_DIR, 'data', 'logs')
 TMP_DIR = os.path.join(APPS_DIR, 'tmp')
 CELERY_WORKER_COUNT = CONFIG.CELERY_WORKER_COUNT or 10
 
-def check_port_is_used():
+def check_port_is_used() -> None:
+    """检测 HTTP 监听端口是否被占用，占用则重试后退出。"""
     for i in range(5):
         if not test_ip_connectivity(HTTP_HOST, HTTP_PORT):
             return
@@ -48,7 +52,8 @@ def check_port_is_used():
     sys.exit(10)
 
 
-def check_database_connection():
+def check_database_connection() -> None:
+    """检测数据库连接是否正常，失败则重试后退出。"""
     for i in range(60):
         logger.info(f"Check database connection: {i}")
         try:
@@ -65,7 +70,8 @@ def check_database_connection():
     sys.exit(10)
 
 
-def perform_db_migrate():
+def perform_db_migrate() -> None:
+    """执行数据库迁移操作，失败则退出。"""
     logger.info("Check database structure change ...")
     logger.info("Migrate model change to database ...")
     try:
@@ -75,7 +81,8 @@ def perform_db_migrate():
         sys.exit(11)
 
 
-def collect_static():
+def collect_static() -> None:
+    """收集静态文件到指定目录。"""
     logger.info("Collect static files")
     try:
         management.call_command('collectstatic', '--no-input', '-c', verbosity=0, interactive=False)
@@ -84,7 +91,8 @@ def collect_static():
         pass
 
 
-def compile_i18n_file():
+def compile_i18n_file() -> None:
+    """编译国际化消息文件。"""
     # django_mo_file = os.path.join(PROJECT_DIR, 'locale', 'zh', 'LC_MESSAGES', 'django.mo')
     # if os.path.exists(django_mo_file):
     #     return
@@ -93,7 +101,12 @@ def compile_i18n_file():
     logger.info("Compile i18n files done")
 
 
-def download_ip_db(force=False):
+def download_ip_db(force: bool = False) -> None:
+    """下载 IP 数据库文件。
+
+    Args:
+        force: 是否强制重新下载，默认为 False。
+    """
     db_path_url_mapper = {
         ('system', 'GeoLite2-City.mmdb'): 'https://jms-pkg.oss-cn-beijing.aliyuncs.com/ip/GeoLite2-City.mmdb',
         ('system', 'ipipfree.ipdb'): 'https://jms-pkg.oss-cn-beijing.aliyuncs.com/ip/ipipfree.ipdb'
@@ -107,14 +120,16 @@ def download_ip_db(force=False):
         download_file(src, path)
 
 
-def expire_caches():
+def expire_caches() -> None:
+    """清除配置相关的缓存。"""
     try:
         management.call_command('expire_caches', 'config_*')
     except:
         pass
 
 
-def check_settings():
+def check_settings() -> None:
+    """检测 settings 表是否可访问，失败则重试后退出。"""
     for i in range(60):
         try:
             Setting.objects.exists()
@@ -127,14 +142,16 @@ def check_settings():
     sys.exit(10)
 
 
-def celery_prepare():
+def celery_prepare() -> None:
+    """Celery 启动前置准备：检测数据库连接、settings、编译 i18n、下载 IP 库。"""
     check_database_connection()
     check_settings()
     compile_i18n_file()
     download_ip_db()
 
 
-def server_prepare():
+def server_prepare() -> None:
+    """服务启动前置准备：检测数据库、收集静态文件、编译 i18n、检测端口、迁移、清缓存、下载 IP 库。"""
     check_database_connection()
     collect_static()
     compile_i18n_file()

@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : userinfo
-# author : ly_13
-# date : 8/10/2024
+"""用户个人信息序列化器。"""
 
 
 from django.utils.translation import gettext_lazy as _
@@ -21,7 +16,11 @@ logger = get_logger(__name__)
 
 
 class UserInfoSerializer(BaseModelSerializer):
+    """用户个人信息序列化器。"""
+
     class Meta:
+        """序列化器元数据。"""
+
         model = UserInfo
         write_fields = ['username', 'nickname', 'gender']
         fields = write_fields + ['email', 'last_login', 'pk', 'phone', 'avatar', 'roles', 'date_joined', 'dept']
@@ -31,23 +30,42 @@ class UserInfoSerializer(BaseModelSerializer):
     roles = serializers.SerializerMethodField()
 
     @extend_schema_field(serializers.ListField)
-    def get_roles(self, obj):
+    def get_roles(self, obj: UserInfo) -> list[str]:
+        """获取用户的角色名称列表。
+
+        Args:
+            obj: UserInfo 模型实例。
+
+        Returns:
+            角色名称列表。
+        """
         return list(obj.roles.values_list('name', flat=True))
 
 
 class ChangePasswordSerializer(serializers.Serializer):
+    """修改密码序列化器。"""
+
     old_password = serializers.CharField(
-        min_length=5, max_length=128, required=True, write_only=True, label=_("Old password")
+        min_length=5, max_length=128, required=True, write_only=True, label=_('Old password')
     )
     sure_password = serializers.CharField(
-        min_length=5, max_length=128, required=True, write_only=True, label=_("Confirm password")
+        min_length=5, max_length=128, required=True, write_only=True, label=_('Confirm password')
     )
 
-    def update(self, instance, validated_data):
+    def update(self, instance: UserInfo, validated_data: dict) -> UserInfo:
+        """验证旧密码并设置新密码。
+
+        Args:
+            instance: 待更新的 UserInfo 实例。
+            validated_data: 已验证的数据字典。
+
+        Returns:
+            更新后的 UserInfo 实例。
+        """
         sure_password = AESCipherV2(instance.username).decrypt(validated_data.get('sure_password'))
         old_password = AESCipherV2(instance.username).decrypt(validated_data.get('old_password'))
         if not instance.check_password(old_password):
-            raise serializers.ValidationError(_("Old password verification failed"))
+            raise serializers.ValidationError(_('Old password verification failed'))
         if not check_password_rules(sure_password, instance.is_superuser):
             raise serializers.ValidationError(_('Password does not match security rules'))
 

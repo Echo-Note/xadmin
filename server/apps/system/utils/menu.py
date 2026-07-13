@@ -1,10 +1,7 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : menu
-# author : ly_13
-# date : 10/29/2024
+"""菜单权限工具函数。"""
+
 from django.contrib.auth.models import Group, Permission
+from django.db.models import Model
 from django.utils.module_loading import import_string
 from rest_framework.routers import SimpleRouter
 from rest_framework.viewsets import GenericViewSet
@@ -19,7 +16,15 @@ no_detail_router = NoDetailRouter(False)
 logger = get_logger(__file__)
 
 
-def get_long_str(li):
+def get_long_str(li: list[str]) -> str:
+    """获取字符串列表的公共前缀。
+
+    Args:
+        li: 字符串列表。
+
+    Returns:
+        公共前缀字符串。
+    """
     result = ''
     for i in zip(*li):
         if len(set(i)) == 1:
@@ -29,7 +34,15 @@ def get_long_str(li):
     return result
 
 
-def get_related_models(model):
+def get_related_models(model: type[Model]) -> set[str]:
+    """获取模型及其关联模型的标签集合。
+
+    Args:
+        model: Django 模型类。
+
+    Returns:
+        关联模型标签的集合。
+    """
     related_models = {model._meta.label_lower}
     for field in model._meta._get_fields(reverse=False):
         if field.is_relation and field.related_model and not issubclass(field.related_model, (Group, Permission)) \
@@ -38,7 +51,16 @@ def get_related_models(model):
     return related_models
 
 
-def get_view_permissions(view_string, code_suffix=''):
+def get_view_permissions(view_string: str, code_suffix: str = '') -> list[dict]:
+    """根据视图路径字符串获取权限列表。
+
+    Args:
+        view_string: 视图的全路径字符串。
+        code_suffix: 权限码后缀。
+
+    Returns:
+        权限字典列表。
+    """
     permissions = []
 
     url_paths = [url for url in get_all_url_dict('') if url.get('view') == view_string]

@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : route
-# author : ly_13
-# date : 8/16/2024
+"""路由序列化器。"""
 
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
@@ -17,35 +12,51 @@ logger = get_logger(__name__)
 
 
 class RouteMetaSerializer(ModelSerializer):
+    """路由元信息序列化器，用于前端菜单渲染。"""
+
     class Meta:
+        """序列化器元数据。"""
+
         model = MenuMeta
         fields = [
             'title', 'icon', 'showParent', 'showLink', 'extraIcon', 'keepAlive', 'frameSrc', 'frameLoading',
             'transition', 'hiddenTag', 'dynamicLevel', 'fixedTag'
         ]
 
-    showParent = serializers.BooleanField(source='is_show_parent', read_only=True, label=_("Show parent menu"))
-    showLink = serializers.BooleanField(source='is_show_menu', read_only=True, label=_("Show menu"))
-    extraIcon = serializers.CharField(source='r_svg_name', read_only=True, label=_("Right icon"))
-    keepAlive = serializers.BooleanField(source='is_keepalive', read_only=True, label=_("Keepalive"))
-    frameSrc = serializers.CharField(source='frame_url', read_only=True, label=_("Iframe URL"))
-    frameLoading = serializers.BooleanField(source='frame_loading', read_only=True, label=_("Iframe loading"))
+    showParent = serializers.BooleanField(source='is_show_parent', read_only=True, label=_('Show parent menu'))
+    showLink = serializers.BooleanField(source='is_show_menu', read_only=True, label=_('Show menu'))
+    extraIcon = serializers.CharField(source='r_svg_name', read_only=True, label=_('Right icon'))
+    keepAlive = serializers.BooleanField(source='is_keepalive', read_only=True, label=_('Keepalive'))
+    frameSrc = serializers.CharField(source='frame_url', read_only=True, label=_('Iframe URL'))
+    frameLoading = serializers.BooleanField(source='frame_loading', read_only=True, label=_('Iframe loading'))
 
     transition = serializers.SerializerMethodField()
 
-    def get_transition(self, obj):
+    def get_transition(self, obj: MenuMeta) -> dict:
+        """获取菜单进出动画配置。
+
+        Args:
+            obj: MenuMeta 模型实例。
+
+        Returns:
+            包含进入和离开动画名称的字典。
+        """
         return {
             'enterTransition': obj.transition_enter,
             'leaveTransition': obj.transition_leave,
         }
 
-    hiddenTag = serializers.BooleanField(source='is_hidden_tag', read_only=True, label=_("Hidden tag"))
-    fixedTag = serializers.BooleanField(source='fixed_tag', read_only=True, label=_("Fixed tag"))
-    dynamicLevel = serializers.IntegerField(source='dynamic_level', read_only=True, label=_("Dynamic level"))
+    hiddenTag = serializers.BooleanField(source='is_hidden_tag', read_only=True, label=_('Hidden tag'))
+    fixedTag = serializers.BooleanField(source='fixed_tag', read_only=True, label=_('Fixed tag'))
+    dynamicLevel = serializers.IntegerField(source='dynamic_level', read_only=True, label=_('Dynamic level'))
 
 
 class RouteSerializer(BaseModelSerializer):
+    """路由序列化器，用于前端路由渲染。"""
+
     class Meta:
+        """序列化器元数据。"""
+
         model = Menu
         fields = ['pk', 'name', 'rank', 'path', 'component', 'meta', 'parent']
         extra_kwargs = {
@@ -53,4 +64,4 @@ class RouteSerializer(BaseModelSerializer):
             'parent': {'attrs': ['pk', 'name'], 'allow_null': True, 'required': False},
         }
 
-    meta = RouteMetaSerializer(label=_("Menu meta"))  # 用于前端菜单渲染
+    meta = RouteMetaSerializer(label=_('Menu meta'))  # 用于前端菜单渲染

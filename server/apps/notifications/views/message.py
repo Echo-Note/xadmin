@@ -4,12 +4,15 @@
 # filename : message
 # author : ly_13
 # date : 9/15/2024
+"""消息通知视图集定义。"""
 
 from django_filters import rest_framework as filters
 from drf_spectacular.plumbing import build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiRequest
 from rest_framework.decorators import action
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from apps.common.core.filter import BaseFilterSet, PkMultipleFilter
 from apps.common.core.modelset import BaseModelSet, ListDeleteModelSet
@@ -21,16 +24,21 @@ from apps.notifications.serializers.message import NoticeMessageSerializer, Noti
 
 
 class NoticeMessageFilter(BaseFilterSet):
+    """通知消息过滤器。"""
+
     message = filters.CharFilter(field_name='message', lookup_expr='icontains')
     title = filters.CharFilter(field_name='title', lookup_expr='icontains')
 
     class Meta:
+        """元数据配置。"""
+
         model = MessageContent
         fields = ['pk', 'title', 'message', 'notice_type', 'level', 'publish']
 
 
 class NoticeMessageViewSet(BaseModelSet):
-    """消息通知"""
+    """消息通知视图集。"""
+
     queryset = MessageContent.objects.all()
     serializer_class = NoticeMessageSerializer
 
@@ -47,8 +55,8 @@ class NoticeMessageViewSet(BaseModelSet):
         responses=get_default_response_schema()
     )
     @action(methods=['patch'], detail=True)
-    def publish(self, request, *args, **kwargs):
-        """修改{cls}状态"""
+    def publish(self, request: Request, *args, **kwargs) -> Response:
+        """修改消息发布状态。"""
         instance: MessageContent = self.get_object()
         instance.publish = request.data.get('publish')
         instance.modifier = request.user
@@ -56,13 +64,15 @@ class NoticeMessageViewSet(BaseModelSet):
         return ApiResponse()
 
     @action(methods=['post'], detail=False)
-    def announcement(self, request, *args, **kwargs):
-        """添加{cls}公告"""
+    def announcement(self, request: Request, *args, **kwargs) -> Response:
+        """添加系统公告。"""
         self.serializer_class = AnnouncementSerializer
         return super().create(request, *args, **kwargs)
 
 
 class NoticeUserReadMessageFilter(BaseFilterSet):
+    """已读消息过滤器。"""
+
     message = filters.CharFilter(field_name='notice__message', lookup_expr='icontains', label='Message')
     title = filters.CharFilter(field_name='notice__title', lookup_expr='icontains')
     username = filters.CharFilter(field_name='owner__username')
@@ -72,12 +82,15 @@ class NoticeUserReadMessageFilter(BaseFilterSet):
     owner_id = PkMultipleFilter(input_type='api-search-user')
 
     class Meta:
+        """元数据配置。"""
+
         model = MessageUserRead
         fields = ['notice_id', 'title', 'username', 'owner_id', 'notice_type', 'unread', 'level', 'message']
 
 
 class NoticeUserReadMessageViewSet(ListDeleteModelSet):
-    """已读消息公告"""
+    """已读消息公告视图集。"""
+
     queryset = MessageUserRead.objects.all()
     serializer_class = NoticeUserReadMessageSerializer
     choices_models = [MessageContent]
@@ -94,8 +107,8 @@ class NoticeUserReadMessageViewSet(ListDeleteModelSet):
         responses=get_default_response_schema()
     )
     @action(methods=['patch'], detail=True)
-    def state(self, request, *args, **kwargs):
-        """修改{cls}状态"""
+    def state(self, request: Request, *args, **kwargs) -> Response:
+        """修改已读消息状态。"""
         instance = self.get_object()
         if instance.notice.notice_type in MessageContent.get_user_choices():
             instance.unread = request.data.get('unread', True)

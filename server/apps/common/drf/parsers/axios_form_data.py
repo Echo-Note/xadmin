@@ -4,7 +4,11 @@
 # filename : form_data
 # author : ly_13
 # date : 6/25/2024
+"""Axios form-data 解析器模块，将扁平的点分键值表单数据还原为嵌套字典/列表结构。"""
+
+
 import re
+from typing import Any
 
 from django.conf import settings
 from django.http import QueryDict
@@ -15,7 +19,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework.parsers import BaseParser, DataAndFiles
 
 
-def format_data(data: QueryDict | dict):
+def format_data(data: QueryDict | dict) -> dict:
     """
     axios 配置如下：
 
@@ -100,7 +104,7 @@ class AxiosMultiPartParser(BaseParser):
     """
     media_type = 'multipart/form-data'
 
-    def parse(self, stream, media_type=None, parser_context=None):
+    def parse(self, stream: Any, media_type: str | None = None, parser_context: dict | None = None) -> DataAndFiles:
         """
         Parses the incoming bytestream as a multipart encoded form,
         and returns a DataAndFiles object.

@@ -4,12 +4,15 @@
 # filename : middleware
 # author : ly_13
 # date : 6/27/2023
+"""API 日志中间件，记录请求响应信息及操作日志。"""
 
 import json
 import time
+from typing import Any
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.http import HttpRequest, HttpResponse
 from django.utils.deprecation import MiddlewareMixin
 from rest_framework.utils import encoders
 
@@ -22,8 +25,14 @@ logger = get_logger(__name__)
 
 
 class ApiLoggingMiddleware(MiddlewareMixin):
+    """API 操作日志中间件，记录请求开始/结束信息并持久化操作日志。"""
 
-    def __init__(self, get_response=None):
+    def __init__(self, get_response: Any = None) -> None:
+        """初始化中间件，读取日志相关配置。
+
+        Args:
+            get_response: Django 请求处理链中的下一个回调。
+        """
         super().__init__(get_response)
         self.enable = getattr(settings, 'API_LOG_ENABLE', None) or False
         self.methods = getattr(settings, 'API_LOG_METHODS', None) or set()
@@ -31,13 +40,27 @@ class ApiLoggingMiddleware(MiddlewareMixin):
         self.operation_log_id = '__operation_log_id'
 
     @classmethod
-    def __handle_request(cls, request):
+    def __handle_request(cls, request: HttpRequest) -> None:
+        """处理请求开始阶段，记录请求 IP、请求数据及开始时间。
+
+        Args:
+            request: HTTP 请求对象。
+        """
         request.request_ip = get_request_ip(request)
         request.request_data = get_request_data(request)
         request.request_start_time = time.time()
         logger.debug(f"request start. {request.method} {request.path} {getattr(request, 'request_data', {})}")
 
-    def __handle_response(self, request, response):
+    def __handle_response(self, request: HttpRequest, response: HttpResponse) -> bool:
+        """处理响应阶段，计算执行耗时并更新操作日志记录。
+
+        Args:
+            request: HTTP 请求对象。
+            response: HTTP 响应对象。
+
+        Returns:
+            是否成功记录操作日志。
+        """
         request_start_time = getattr(request, 'request_start_time', None)
         exec_time = time.time() - request_start_time
         if exec_time > 1:
@@ -46,7 +69,7 @@ class ApiLoggingMiddleware(MiddlewareMixin):
         # 判断有无log_id属性，使用All记录时，会出现此情况
         operation_log_id = getattr(request, self.operation_log_id, None)
         if operation_log_id is None:
-            return
+            return False
 
         body = getattr(request, 'request_data', {})
         # 请求含有password则用*替换掉(暂时先用于所有接口的password请求参数)
@@ -59,7 +82,7 @@ class ApiLoggingMiddleware(MiddlewareMixin):
                 content = json.loads(response.content.decode().replace('\\', ''))
                 response.data = content if isinstance(content, dict) else {}
         except Exception:
-            return
+            return False
         user = get_request_user(request)
         request_module = getattr(request, 'request_module', '')
         if hasattr(response, 'renderer_context'):
@@ -98,7 +121,15 @@ class ApiLoggingMiddleware(MiddlewareMixin):
         logger.debug(f"request end. {request.method} {request.path} {getattr(request, 'request_data', {})} log:{info}")
         return True
 
-    def process_view(self, request, view_func, view_args, view_kwargs):
+    def process_view(self, request: HttpRequest, view_func: Any, view_args: list, view_kwargs: dict) -> None:
+        """在视图执行前判断是否需要记录操作日志，并预创建日志记录。
+
+        Args:
+            request: HTTP 请求对象。
+            view_func: 即将执行的视图函数。
+            view_args: 位置参数列表。
+            view_kwargs: 关键字参数字典。
+        """
         if hasattr(view_func, 'cls') and hasattr(view_func.cls, 'queryset'):
             if self.enable:
                 if self.methods == 'ALL' or request.method in self.methods:
@@ -117,16 +148,25 @@ class ApiLoggingMiddleware(MiddlewareMixin):
 
         return
 
-    def process_request(self, request):
+    def process_request(self, request: HttpRequest) -> None:
+        """请求预处理，记录请求信息（健康检查接口除外）。
+
+        Args:
+            request: HTTP 请求对象。
+        """
         if request.path == '/api/common/api/health':
             return
         self.__handle_request(request)
 
-    def process_response(self, request, response):
-        """
-        :param request:
-        :param response:
-        :return:
+    def process_response(self, request: HttpRequest, response: HttpResponse) -> HttpResponse:
+        """响应后处理，记录响应信息及操作日志（健康检查接口除外）。
+
+        Args:
+            request: HTTP 请求对象。
+            response: HTTP 响应对象。
+
+        Returns:
+            传入的响应对象。
         """
         if request.path == '/api/common/api/health':
             return response

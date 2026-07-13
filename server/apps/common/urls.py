@@ -4,6 +4,7 @@
 # filename : urls
 # author : ly_13
 # date : 6/6/2023
+"""common 应用的路由配置。"""
 from django.urls import re_path
 
 from apps.common.api.common import ResourcesIDCacheAPIView, CountryListAPIView, HealthCheckAPIView

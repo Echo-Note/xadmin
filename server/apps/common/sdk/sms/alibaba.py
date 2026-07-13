@@ -4,11 +4,13 @@
 # filename : alibaba
 # author : ly_13
 # date : 8/6/2024
+"""阿里云短信客户端。"""
 import json
 
 from Tea.exceptions import TeaException
 from alibabacloud_dysmsapi20170525 import models as dysmsapi_20170525_models
 from alibabacloud_dysmsapi20170525.client import Client as Dysmsapi20170525Client
+from alibabacloud_dysmsapi20170525.models import SendSmsResponse
 from alibabacloud_tea_openapi import models as open_api_models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
@@ -21,16 +23,25 @@ logger = get_logger(__name__)
 
 
 class AlibabaSMS(BaseSMSClient):
+    """阿里云短信客户端实现。"""
+
     SIGN_AND_TMPL_SETTING_FIELD_PREFIX = 'ALIBABA'
 
     @classmethod
-    def new_from_settings(cls):
+    def new_from_settings(cls) -> 'AlibabaSMS':
+        """从 Django 配置创建阿里云短信客户端实例。"""
         return cls(
             access_key_id=settings.ALIBABA_ACCESS_KEY_ID,
             access_key_secret=settings.ALIBABA_ACCESS_KEY_SECRET
         )
 
-    def __init__(self, access_key_id: str, access_key_secret: str):
+    def __init__(self, access_key_id: str, access_key_secret: str) -> None:
+        """初始化阿里云短信客户端。
+
+        Args:
+            access_key_id: 阿里云 AccessKey ID。
+            access_key_secret: 阿里云 AccessKey Secret。
+        """
         config = open_api_models.Config(
             # 您的AccessKey ID,
             access_key_id=access_key_id,
@@ -41,7 +52,21 @@ class AlibabaSMS(BaseSMSClient):
         config.endpoint = 'dysmsapi.aliyuncs.com'
         self.client = Dysmsapi20170525Client(config)
 
-    def send_sms(self, phone_numbers: list, sign_name: str, template_code: str, template_param: dict, **kwargs):
+    def send_sms(
+        self, phone_numbers: list, sign_name: str, template_code: str, template_param: dict, **kwargs
+    ) -> SendSmsResponse:
+        """发送阿里云短信。
+
+        Args:
+            phone_numbers: 手机号列表。
+            sign_name: 短信签名。
+            template_code: 短信模板代码。
+            template_param: 模板参数。
+            kwargs: 其他参数。
+
+        Returns:
+            阿里云短信发送响应。
+        """
         phone_numbers_str = ','.join(phone_numbers)
         send_sms_request = dysmsapi_20170525_models.SendSmsRequest(
             phone_numbers=phone_numbers_str, sign_name=sign_name,
@@ -65,3 +90,4 @@ class AlibabaSMS(BaseSMSClient):
 
 
 client = AlibabaSMS
+

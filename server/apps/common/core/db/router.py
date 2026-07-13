@@ -4,14 +4,18 @@
 # filename : router
 # author : ly_13
 # date : 12/18/2023
+"""数据库路由器，控制模型在多数据库环境下的读写与迁移路由。"""
+from typing import type
 
-# https://docs.djangoproject.com/zh-hans/5.0/topics/db/multi-db/#automatic-database-routing
+from django.db.models import Model
+
+
 class DBRouter:
     """
     A router to control all database operations on models
     """
 
-    def db_for_read(self, model, **hints):
+    def db_for_read(self, model: type[Model], **hints: object) -> str | None:
         """
         建议用于读取“模型”类型对象的数据库。
         如果数据库操作可以提供有助于选择数据库的任何附加信息，它将在 hints 中提供。这里 below 提供了有效提示的详细信息。
@@ -21,7 +25,7 @@ class DBRouter:
         #     return "auth_db"
         return None
 
-    def db_for_write(self, model, **hints):
+    def db_for_write(self, model: type[Model], **hints: object) -> str | None:
         """
         建议用于写入模型类型对象的数据库。
         如果数据库操作可以提供有助于选择数据库的任何附加信息，它将在 hints 中提供。这里 below 提供了有效提示的详细信息。
@@ -31,7 +35,7 @@ class DBRouter:
         #     return "auth_db"
         return None
 
-    def allow_relation(self, obj1, obj2, **hints):
+    def allow_relation(self, obj1: Model, obj2: Model, **hints: object) -> bool | None:
         """
         如果允许 obj1 和 obj2 之间的关系，返回 True 。如果阻止关系，返回 False ，或如果路由没意见，则返回 None。
         这纯粹是一种验证操作，由外键和多对多操作决定是否应该允许关系。
@@ -39,7 +43,7 @@ class DBRouter:
         """
         return None
 
-    def allow_migrate(self, db, app_label, model_name=None, **hints):
+    def allow_migrate(self, db: str, app_label: str, model_name: str | None = None, **hints: object) -> bool | None:
         """
         决定是否允许迁移操作在别名为 db 的数据库上运行。如果操作运行，那么返回 True ，如果没有运行则返回 False ，或路由没有意见则返回 None 。
         app_label 参数是要迁移的应用程序的标签。

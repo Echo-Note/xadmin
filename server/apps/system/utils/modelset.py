@@ -1,14 +1,12 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : modelset
-# author : ly_13
-# date : 12/24/2023
+"""视图集 Mixin 工具类。"""
+
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.plumbing import build_object_type, build_basic_type, build_array_type
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiRequest
 from rest_framework.decorators import action
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from apps.common.core.config import SysConfig, UserConfig
 from apps.common.core.filter import get_filter_queryset
@@ -18,6 +16,7 @@ from apps.system.models import UserRole, DataPermission, SystemConfig
 
 
 class ChangeRolePermissionAction(object):
+    """角色数据权限分配 Action Mixin。"""
 
     @extend_schema(
         request=OpenApiRequest(
@@ -33,8 +32,8 @@ class ChangeRolePermissionAction(object):
         responses=get_default_response_schema()
     )
     @action(methods=['post'], detail=True)
-    def empower(self, request, *args, **kwargs):
-        """给{cls}分配角色-数据权限"""
+    def empower(self, request: Request, *args, **kwargs) -> Response:
+        """给对象分配角色和数据权限。"""
         instance = self.get_object()
         roles = request.data.get('roles')
         rules = request.data.get('rules')
@@ -58,11 +57,12 @@ class ChangeRolePermissionAction(object):
 
 
 class InvalidConfigCacheAction(object):
+    """配置缓存失效 Action Mixin。"""
 
     @extend_schema(request=None, responses=get_default_response_schema())
     @action(methods=['post'], detail=True)
-    def invalid(self, request, *args, **kwargs):
-        """使{cls}缓存失效"""
+    def invalid(self, request: Request, *args, **kwargs) -> Response:
+        """使配置缓存失效。"""
         instance = self.get_object()
 
         if isinstance(instance, SystemConfig):

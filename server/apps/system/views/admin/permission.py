@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : server
-# filename : permission
-# author : ly_13
-# date : 6/16/2023
+"""数据权限管理视图。"""
 
 from django_filters import rest_framework as filters
 
@@ -17,16 +12,21 @@ logger = get_logger(__name__)
 
 
 class DataPermissionFilter(BaseFilterSet):
+    """数据权限过滤器。"""
+
     pk = filters.UUIDFilter(field_name='id')
     name = filters.CharFilter(field_name='name', lookup_expr='icontains')
 
     class Meta:
+        """过滤器元数据。"""
+
         model = DataPermission
         fields = ['pk', 'name', 'mode_type', 'is_active', 'description']
 
 
 class DataPermissionViewSet(BaseModelSet, ImportExportDataAction):
-    """数据权限"""
+    """数据权限视图集。"""
+
     queryset = DataPermission.objects.all()
     serializer_class = DataPermissionSerializer
     ordering_fields = ['created_time']

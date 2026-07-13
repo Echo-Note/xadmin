@@ -1,17 +1,28 @@
+"""Celery Worker 服务基类模块。"""
+
+
 from .base import BaseService
 from ..hands import *
 
 
 class CeleryBaseService(BaseService):
+    """Celery Worker 分布式任务队列服务基类。"""
 
-    def __init__(self, queue, **kwargs):
+    def __init__(self, queue: str, **kwargs) -> None:
+        """初始化 Celery 服务实例。
+
+        Args:
+            queue: Celery 队列名称。
+            **kwargs: 传递给父类的额外参数。
+        """
         super().__init__(**kwargs)
         self.queue = queue
         self.num = CELERY_WORKER_COUNT
         self.autoscale = settings.CELERY_WORKER_AUTOSCALE
 
     @property
-    def cmd(self):
+    def cmd(self) -> list:
+        """返回启动 Celery Worker 的命令列表。"""
         print('\n- Start Celery as Distributed Task Queue: {}'.format(self.queue.capitalize()))
         os.environ.setdefault('LC_ALL', 'C.UTF-8')
         os.environ.setdefault('PYTHONOPTIMIZE', '1')
@@ -38,5 +49,6 @@ class CeleryBaseService(BaseService):
         return cmd
 
     @property
-    def cwd(self):
+    def cwd(self) -> str:
+        """返回服务工作目录。"""
         return APPS_DIR

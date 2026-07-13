@@ -1,5 +1,9 @@
+"""服务管理工具类模块，提供服务进程启动、停止、重启、监控及守护进程管理。"""
+
+
 import signal
 import threading
+from typing import Any
 
 import daemon
 from daemon import pidfile
@@ -9,8 +13,17 @@ from .services.base import BaseService
 
 
 class ServicesUtil(object):
+    """服务管理工具类，封装多服务的启动、停止、重启、监控与守护进程逻辑。"""
 
-    def __init__(self, services, run_daemon=False, force_stop=False, stop_daemon=False):
+    def __init__(self, services: list, run_daemon: bool = False, force_stop: bool = False, stop_daemon: bool = False) -> None:
+        """初始化服务工具实例。
+
+        Args:
+            services: 服务对象列表。
+            run_daemon: 是否以守护进程模式运行。
+            force_stop: 是否强制停止服务。
+            stop_daemon: 是否停止守护进程。
+        """
         self._services = services
         self.run_daemon = run_daemon
         self.force_stop = force_stop
@@ -19,12 +32,14 @@ class ServicesUtil(object):
         self.check_interval = 30
         self.files_preserve_map = {}
 
-    def restart(self):
+    def restart(self) -> None:
+        """重启所有服务：先停止再启动并监控。"""
         self.stop()
         time.sleep(5)
         self.start_and_watch()
 
-    def start_and_watch(self):
+    def start_and_watch(self) -> None:
+        """启动服务并进入监控循环，守护进程模式下在守护上下文中监控。"""
         print(time.ctime())
         print(f'server now start')
         self.start()
@@ -35,7 +50,8 @@ class ServicesUtil(object):
         else:
             self.watch()
 
-    def start(self):
+    def start(self) -> None:
+        """启动所有服务，根据服务类型执行对应的前置准备。"""
         check_db_status = False
         if 'gunicorn' in [service.name for service in self._services]:
             server_prepare()
@@ -49,7 +65,8 @@ class ServicesUtil(object):
 
         time.sleep(1)
 
-    def stop(self):
+    def stop(self) -> None:
+        """停止所有服务，必要时停止守护进程。"""
         for service in self._services:
             service: BaseService
             service.stop(force=self.force_stop)
@@ -58,7 +75,8 @@ class ServicesUtil(object):
             self._stop_daemon()
 
     # -- watch --
-    def watch(self):
+    def watch(self) -> None:
+        """监控服务运行状态，直到退出事件触发或服务异常退出。"""
         while not self.EXIT_EVENT.is_set():
             try:
                 _exit = self._watch()
@@ -70,7 +88,12 @@ class ServicesUtil(object):
                 break
         self.clean_up()
 
-    def _watch(self):
+    def _watch(self) -> bool:
+        """单次监控检查，若任一服务退出则设置退出事件。
+
+        Returns:
+            是否有服务退出。
+        """
         for service in self._services:
             service: BaseService
             service.watch()
@@ -81,28 +104,33 @@ class ServicesUtil(object):
 
     # -- end watch --
 
-    def clean_up(self):
+    def clean_up(self) -> None:
+        """清理资源：设置退出事件并停止所有服务。"""
         if not self.EXIT_EVENT.is_set():
             self.EXIT_EVENT.set()
         self.stop()
 
-    def show_status(self):
+    def show_status(self) -> None:
+        """打印所有服务的运行状态。"""
         for service in self._services:
             service: BaseService
             service.show_status()
 
     # -- daemon --
-    def _stop_daemon(self):
+    def _stop_daemon(self) -> None:
+        """停止守护进程并移除 PID 文件。"""
         if self.daemon_pid and self.daemon_is_running:
             os.kill(self.daemon_pid, 15)
         self.remove_daemon_pid()
 
-    def remove_daemon_pid(self):
+    def remove_daemon_pid(self) -> None:
+        """删除守护进程 PID 文件（若存在）。"""
         if os.path.isfile(self.daemon_pid_filepath):
             os.unlink(self.daemon_pid_filepath)
 
     @property
-    def daemon_pid(self):
+    def daemon_pid(self) -> int:
+        """读取守护进程 PID，PID 文件不存在或无效时返回 0。"""
         if not os.path.isfile(self.daemon_pid_filepath):
             return 0
         with open(self.daemon_pid_filepath) as f:
@@ -113,7 +141,8 @@ class ServicesUtil(object):
         return pid
 
     @property
-    def daemon_is_running(self):
+    def daemon_is_running(self) -> bool:
+        """判断守护进程是否正在运行。"""
         try:
             os.kill(self.daemon_pid, 0)
         except (OSError, ProcessLookupError):
@@ -122,15 +151,18 @@ class ServicesUtil(object):
             return True
 
     @property
-    def daemon_pid_filepath(self):
+    def daemon_pid_filepath(self) -> str:
+        """返回守护进程 PID 文件路径。"""
         return os.path.join(TMP_DIR, 'server.pid')
 
     @property
-    def daemon_log_filepath(self):
+    def daemon_log_filepath(self) -> str:
+        """返回守护进程日志文件路径。"""
         return os.path.join(LOG_DIR, 'server.log')
 
     @property
-    def daemon_context(self):
+    def daemon_context(self) -> Any:
+        """构建并返回守护进程上下文对象。"""
         daemon_log_file = open(self.daemon_log_filepath, 'a')
         context = daemon.DaemonContext(
             pidfile=pidfile.TimeoutPIDLockFile(self.daemon_pid_filepath),

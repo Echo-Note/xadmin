@@ -1,30 +1,39 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : load_init_json
-# author : ly_13
-# date : 12/25/2023
+"""加载初始化 JSON 数据的管理命令。"""
+
 import os.path
 
 from django.conf import settings
 from django.core.management.commands.loaddata import Command as LoadCommand
 from django.db import DEFAULT_DB_ALIAS
 from django.db.models.signals import ModelSignal
+from django.core.management.base import CommandParser
 
 from apps.settings.models import Setting
 from apps.system.models import *
 
 
 class Command(LoadCommand):
+    """加载初始化 JSON 数据的 Django 管理命令。"""
+
     help = 'load init json data'
     model_names = [MenuMeta, Menu, SystemConfig, DataPermission, UserRole, FieldPermission, ModelLabelField, DeptInfo,
                    Setting]
     missing_args_message = None
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
+        """重写父类参数，不添加额外参数。
+
+        Args:
+            parser: 命令行参数解析器。
+        """
         pass
 
-    def handle(self, *args, **options):
+    def handle(self, *args, **options) -> None:
+        """执行加载命令，导入初始化 fixture 数据。
+
+        加载前会检查是否已有用户，若没有则自动创建默认管理员。
+        所有模型信号在加载期间被临时禁用。
+        """
         ModelSignal.send = lambda *args, **kwargs: []  # 忽略任何信号
 
         # 加载 fixture 前检查是否已有用户，没有则自动创建默认管理员

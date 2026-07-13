@@ -1,6 +1,7 @@
+"""通知应用的 Django Admin 注册。"""
+
 from django.contrib import admin
 
-# Register your models here.
 from apps.notifications.models import *
 
 admin.site.register(MessageContent)

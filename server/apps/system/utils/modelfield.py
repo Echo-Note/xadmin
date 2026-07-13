@@ -1,9 +1,5 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : modelfield
-# author : ly_13
-# date : 10/24/2024
+"""模型字段标签同步工具函数。"""
+
 from django.apps import apps
 from django.conf import settings
 from django.db import transaction
@@ -20,11 +16,21 @@ from apps.system.models import ModelLabelField
 logger = get_logger(__name__)
 
 
-def get_sub_serializer_fields():
+def get_sub_serializer_fields() -> None:
+    """同步所有序列化器对应的模型字段标签到数据库。
+
+    遍历 BaseModelSerializer 的所有子类，为每个模型及其字段创建或更新
+    ModelLabelField 记录（角色权限类型），并清理过期数据。
+    """
     cls_list = []
     activate(settings.LANGUAGE_CODE)
 
-    def get_all_subclass(base_cls):
+    def get_all_subclass(base_cls: type) -> None:
+        """递归获取基类的所有子类。
+
+        Args:
+            base_cls: 基类。
+        """
         if base_cls.__subclasses__():
             for cls in base_cls.__subclasses__():
                 cls_list.append(cls)
@@ -59,7 +65,12 @@ def get_sub_serializer_fields():
         PrintLogFormat(f"Sync Role permission end").info(f"deleted success, deleted:{deleted} row_count {_rows_count}")
 
 
-def get_app_model_fields():
+def get_app_model_fields() -> None:
+    """同步所有应用模型的字段标签到数据库（数据权限类型）。
+
+    为每个配置了数据权限的应用模型及其字段创建或更新 ModelLabelField 记录，
+    并清理过期数据。
+    """
     delete = False
     now = timezone.now()
     field_type = ModelLabelField.FieldChoices.DATA
@@ -101,16 +112,22 @@ def get_app_model_fields():
 
 
 @transaction.atomic
-def sync_model_field():
-    """
-    用于执行迁移命令的时候，同步字段数据到数据库
-    """
+def sync_model_field() -> None:
+    """同步所有模型字段标签到数据库，在事务中执行。"""
     activate(settings.LANGUAGE_CODE)
     get_app_model_fields()
     get_sub_serializer_fields()
 
 
-def get_field_lookup_info(fields):
+def get_field_lookup_info(fields: list[str]) -> list[dict]:
+    """获取字段查询操作符的标签信息。
+
+    Args:
+        fields: 查询操作符名称列表。
+
+    Returns:
+        包含操作符值和标签的字典列表。
+    """
     field_info = {
         "exact": _("Exact match, the field value must be exactly the same as the given value."),
         "iexact": _("Case-insensitive exact match."),

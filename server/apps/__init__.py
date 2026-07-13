@@ -5,3 +5,4 @@
 # @Email   : wadxf@live.com
 # @File    : __init__.py.py
 # @Update  : 2026/7/13 15:23 更新描述
+"""xadmin 应用包，包含所有业务子应用。"""

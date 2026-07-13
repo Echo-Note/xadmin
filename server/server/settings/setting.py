@@ -4,6 +4,7 @@
 # filename : setting
 # author : ly_13
 # date : 10/18/2024
+"""业务设置模块，从 CONFIG 读取安全、验证码、邮件、短信等配置。"""
 import os
 
 from ..const import PROJECT_DIR, CONFIG

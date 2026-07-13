@@ -4,6 +4,8 @@
 # filename : security
 # author : ly_13
 # date : 8/1/2024
+"""安全设置序列化器定义，包含密码规则、登录限制、验证码等配置。"""
+
 from django.db.models import TextChoices
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
@@ -13,6 +15,8 @@ from apps.common.utils.ip import is_ip_address, is_ip_network, is_ip_segment
 
 
 class SecurityPasswordRuleSerializer(serializers.Serializer):
+    """密码规则设置序列化器。"""
+
     SECURITY_PASSWORD_MIN_LENGTH = serializers.IntegerField(
         min_value=6, max_value=30, required=True,
         label=_("Minimum length (User)")
@@ -47,7 +51,12 @@ ip_group_help_text = _(
 )
 
 
-def ip_group_child_validator(ip_group_child):
+def ip_group_child_validator(ip_group_child: str) -> None:
+    """校验 IP 地址格式是否合法。
+
+    Args:
+        ip_group_child: 待校验的 IP 地址或网段。
+    """
     is_valid = ip_group_child == '*' \
                or is_ip_address(ip_group_child) \
                or is_ip_network(ip_group_child) \
@@ -58,6 +67,8 @@ def ip_group_child_validator(ip_group_child):
 
 
 class SecurityLoginLimitSerializer(serializers.Serializer):
+    """登录限制设置序列化器。"""
+
     SECURITY_CHECK_DIFFERENT_CITY_LOGIN = serializers.BooleanField(
         required=False, label=_('Suspicious Login Verification'),
         help_text=_(
@@ -97,6 +108,8 @@ class SecurityLoginLimitSerializer(serializers.Serializer):
 
 
 class SecurityLoginAuthSerializer(serializers.Serializer):
+    """登录认证设置序列化器。"""
+
     SECURITY_LOGIN_ACCESS_ENABLED = serializers.BooleanField(
         required=False, default=True, label=_("Login enabled"),
         help_text=_("Enable login for user")
@@ -134,6 +147,8 @@ class SecurityLoginAuthSerializer(serializers.Serializer):
 
 
 class SecurityRegisterAuthSerializer(serializers.Serializer):
+    """注册认证设置序列化器。"""
+
     SECURITY_REGISTER_ACCESS_ENABLED = serializers.BooleanField(
         required=False, default=True, label=_("Register enable"),
         help_text=_("Enable register for user")
@@ -170,6 +185,8 @@ class SecurityRegisterAuthSerializer(serializers.Serializer):
 
 
 class SecurityResetPasswordAuthSerializer(serializers.Serializer):
+    """重置密码认证设置序列化器。"""
+
     SECURITY_RESET_PASSWORD_ACCESS_ENABLED = serializers.BooleanField(
         required=False, default=True, label=_("Reset password enable"),
         help_text=_("Enable reset password for user")
@@ -201,6 +218,8 @@ class SecurityResetPasswordAuthSerializer(serializers.Serializer):
 
 
 class SecurityBindEmailAuthSerializer(serializers.Serializer):
+    """绑定邮箱认证设置序列化器。"""
+
     SECURITY_BIND_EMAIL_ACCESS_ENABLED = serializers.BooleanField(
         required=False, default=True, label=_("Bind email enable"),
         help_text=_("Enable bind email for user")
@@ -222,6 +241,8 @@ class SecurityBindEmailAuthSerializer(serializers.Serializer):
 
 
 class SecurityBindPhoneAuthSerializer(serializers.Serializer):
+    """绑定手机认证设置序列化器。"""
+
     SECURITY_BIND_EMAIL_ACCESS_ENABLED = serializers.BooleanField(
         required=False, default=True, label=_("Bind phone enable"),
         help_text=_("Enable bind phone for user")
@@ -243,12 +264,16 @@ class SecurityBindPhoneAuthSerializer(serializers.Serializer):
 
 
 class SecurityBlockIPSerializer(serializers.Serializer):
+    """IP 封锁列表序列化器。"""
+
     pk = serializers.CharField(required=False, label=_("ID"))
     ip = serializers.CharField(max_length=1024, required=False, allow_blank=True, label=_("Block IP"))
     created_time = serializers.DateTimeField(label=_("Created time"))
 
 
 class SecurityVerifyCodeSerializer(serializers.Serializer):
+    """验证码设置序列化器。"""
+
     VERIFY_CODE_TTL = serializers.IntegerField(
         min_value=5, max_value=60 * 60 * 10,
         label=_("Verify code TTL (second)"),
@@ -280,11 +305,17 @@ class SecurityVerifyCodeSerializer(serializers.Serializer):
 
 
 class SecurityCaptchaCodeSerializer(serializers.Serializer):
+    """图片验证码设置序列化器。"""
+
     class ChallengeChoices(TextChoices):
+        """验证码生成方式枚举。"""
+
         RANDOM_CHAR = 'apps.captcha.helpers.random_char_challenge', _('Random char')
         MATH_CHALLENGE = 'apps.captcha.helpers.math_challenge', _('Math challenge')
 
     class NoiseFunctionsChoices(TextChoices):
+        """噪声函数枚举。"""
+
         FUNCTION_NULL = 'apps.captcha.helpers.noise_null', _('Noise function null')
         FUNCTION_ARCS = 'apps.captcha.helpers.noise_arcs', _('Noise function arcs')
         FUNCTION_DOTS = 'apps.captcha.helpers.noise_dots', _('Noise function dots')

@@ -4,9 +4,11 @@
 # filename : tasks
 # author : ly_13
 # date : 7/30/2024
+"""common 应用 Celery 异步任务。"""
 import datetime
 import os
 from io import BytesIO
+from typing import Any
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
@@ -31,7 +33,7 @@ logger = get_task_logger(__name__)
 
 
 @shared_task(verbose_name=_("Send email"))
-def send_mail_async(*args, **kwargs):
+def send_mail_async(*args: Any, **kwargs: Any) -> int | None:
     """ Using celery to send email async
 
     You can use it as django send_mail function
@@ -63,7 +65,10 @@ def send_mail_async(*args, **kwargs):
 
 
 @shared_task(verbose_name=_("Send email attachment"))
-def send_mail_attachment_async(subject, message, recipient_list, attachment_list=None):
+def send_mail_attachment_async(
+    subject: str, message: str, recipient_list: list, attachment_list: list | None = None
+) -> int | None:
+    """异步发送带附件的邮件。"""
     if attachment_list is None:
         attachment_list = []
     from_email = settings.EMAIL_FROM or settings.EMAIL_HOST_USER
@@ -87,7 +92,8 @@ def send_mail_attachment_async(subject, message, recipient_list, attachment_list
 @shared_task(verbose_name=_('Periodic delete monitor'))
 @register_as_period_task(interval=3600)
 @after_app_ready_start
-def auto_clean_monitor_logs():
+def auto_clean_monitor_logs() -> None:
+    """定期删除 30 天前的监控记录。"""
     old_times = timezone.now() - datetime.timedelta(days=30)
     Monitor.objects.filter(created_time__lt=old_times).delete()
 
@@ -97,7 +103,8 @@ def auto_clean_monitor_logs():
     description=_("At system startup, clean up celery tasks that no longer exist")
 )
 @after_app_ready_start
-def clean_celery_periodic_tasks():
+def clean_celery_periodic_tasks() -> None:
+    """系统启动时清理不存在的 Celery 定时任务。"""
     logger.info('Start clean celery periodic tasks.')
     register_tasks = PeriodicTask.objects.all()
     for task in register_tasks:
@@ -124,7 +131,8 @@ def clean_celery_periodic_tasks():
     )
 )
 @after_app_ready_start
-def create_or_update_registered_periodic_tasks():
+def create_or_update_registered_periodic_tasks() -> None:
+    """系统启动时创建或更新已注册的定时任务。"""
     from .celery.decorator import get_register_period_tasks
     for task in get_register_period_tasks():
         create_or_update_celery_periodic_tasks(task)
@@ -138,12 +146,14 @@ def create_or_update_registered_periodic_tasks():
     )
 )
 @register_as_period_task(interval=60)
-def check_server_performance_period():
+def check_server_performance_period() -> None:
+    """定期检查服务器性能并发布告警。"""
     ServerPerformanceCheckUtil().check_and_publish()
 
 
 @shared_task(verbose_name=_("Run background task view set"))
-def background_task_view_set_job(view: str, meta: dict, data: str, action_map: dict):
+def background_task_view_set_job(view: str, meta: dict, data: str, action_map: dict) -> dict:
+    """后台执行视图集任务（如导入数据、批量删除）。"""
     cache = CacheList(f"view_task_{meta.get("task_id").split("_")[0]}", timeout=3600 * 24)
     task_info = {
         "start_time": local_now_display(),
@@ -183,3 +193,4 @@ def background_task_view_set_job(view: str, meta: dict, data: str, action_map: d
                     BatchDeleteDataMessage(getattr(request, "user"), task_info).publish()
 
     return task_info
+

@@ -4,6 +4,7 @@
 # filename : libs
 # author : ly_13
 # date : 11/14/2024
+"""第三方库配置模块，包含 DRF、JWT、CORS、Celery 等配置。"""
 from datetime import timedelta
 
 from .base import SECRET_KEY, CACHES, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, CELERY_BROKER_CACHE_ID

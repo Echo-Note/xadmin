@@ -1,7 +1,10 @@
+"""通知应用的信号处理器，处理消息创建后的缓存清理与推送。"""
+
 import inspect
 from importlib import import_module
 
 from django.apps import AppConfig
+from django.db.models import Model
 from django.db.models.signals import post_save, post_migrate, m2m_changed
 from django.dispatch import receiver
 from django.utils.functional import LazyObject
@@ -17,7 +20,10 @@ logger = get_logger(__name__)
 
 
 class NewSiteMsgSubPub(LazyObject):
-    def _setup(self):
+    """新站内信的 Redis 发布订阅封装。"""
+
+    def _setup(self) -> None:
+        """初始化 Redis 发布订阅频道。"""
         self._wrapped = RedisPubSub('notifications.SiteMessageCome')
 
 
@@ -25,7 +31,8 @@ new_site_msg_chan = NewSiteMsgSubPub()
 
 
 @receiver(post_migrate, dispatch_uid='notifications.signal_handlers.create_system_messages')
-def create_system_messages(app_config: AppConfig, **kwargs):
+def create_system_messages(app_config: AppConfig, **kwargs) -> None:
+    """数据库迁移后自动创建系统消息订阅记录。"""
     try:
         notifications_module = import_module('.notifications', app_config.module.__package__)
 
@@ -69,7 +76,13 @@ def create_system_messages(app_config: AppConfig, **kwargs):
 #     cache_response.invalid_cache(f'UserSiteMessageViewSet_list_{pk}_*')
 
 
-def invalid_notify_caches(instance, pk_set):
+def invalid_notify_caches(instance: MessageContent, pk_set: list) -> None:
+    """根据通知类型清理对应用户的消息缓存并推送。
+
+    Args:
+        instance: 消息内容实例。
+        pk_set: 关联对象主键集合。
+    """
     pks = []
     if instance.notice_type == MessageContent.NoticeChoices.USER:
         pks = pk_set
@@ -85,7 +98,8 @@ def invalid_notify_caches(instance, pk_set):
 
 
 @receiver(post_save, sender=MessageContent)
-def clean_notify_cache_handler_post_save(sender, instance, **kwargs):
+def clean_notify_cache_handler_post_save(sender: type[MessageContent], instance: MessageContent, **kwargs) -> None:
+    """消息保存后根据通知类型清理缓存并推送站内信。"""
     pk_set = None
     if instance.notice_type == MessageContent.NoticeChoices.NOTICE:
         # invalid_notify_cache('*')
@@ -103,7 +117,8 @@ def clean_notify_cache_handler_post_save(sender, instance, **kwargs):
 
 
 @receiver(m2m_changed)
-def clean_m2m_notify_cache_handler(sender, instance, **kwargs):
+def clean_m2m_notify_cache_handler(sender: type[Model], instance: Model, **kwargs) -> None:
+    """多对多关系变更后清理消息缓存。"""
     if kwargs.get('action') in ['post_add', 'pre_remove']:
         # if issubclass(sender, MessageUserRead):
         #     for pk in kwargs.get('pk_set', []):
@@ -111,7 +126,6 @@ def clean_m2m_notify_cache_handler(sender, instance, **kwargs):
 
         if isinstance(instance, MessageContent):
             invalid_notify_caches(instance, kwargs.get('pk_set', []))
-
 # @receiver([post_save, pre_delete])
 # def clean_notify_cache_handler(sender, instance, **kwargs):
 #     if issubclass(sender, MessageUserRead):

@@ -4,13 +4,26 @@
 # filename : utils
 # author : ly_13
 # date : 7/25/2024
+"""字段工具函数。"""
+from collections.abc import Callable
 from functools import wraps
 
 from django.db.models.fields.files import FieldFile
+from django.http import HttpRequest
 from rest_framework.fields import Field as RFField
 
 
-def get_file_absolute_uri(value: FieldFile, request=None, use_url=True):
+def get_file_absolute_uri(value: FieldFile, request: HttpRequest | None = None, use_url: bool = True) -> str | None:
+    """获取文件的绝对 URI 或文件名。
+
+    Args:
+        value: 文件字段对象。
+        request: HTTP 请求对象，用于构建绝对 URI。
+        use_url: 是否返回 URL，False 时返回文件名。
+
+    Returns:
+        文件绝对 URI 或文件名，文件为空时返回 None。
+    """
     if not value:
         return None
 
@@ -26,9 +39,14 @@ def get_file_absolute_uri(value: FieldFile, request=None, use_url=True):
     return value.name
 
 
-def input_wrapper(func):
-    """
-    增加 input_type 参数，用于前端识别
+def input_wrapper(func: Callable) -> Callable:
+    """为序列化器字段增加 input_type 参数，用于前端识别。
+
+    Args:
+        func: 字段类构造函数。
+
+    Returns:
+        包装后的字段构造函数。
     """
 
     @wraps(func)
@@ -41,3 +59,4 @@ def input_wrapper(func):
         return Field(*args, **kwargs)
 
     return wrapper
+

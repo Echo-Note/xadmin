@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 #
+"""通用装饰器工具集。"""
 import asyncio
 import functools
 import inspect
 import os
 import threading
 import time
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from functools import wraps
+from typing import Any
 
 from django.db import transaction
 
@@ -17,12 +20,13 @@ from apps.common.utils import get_logger
 logger = get_logger(__name__)
 
 
-def on_transaction_commit(func):
-    """
-    如果不调用on_commit, 对象创建时添加多对多字段值失败
+def on_transaction_commit(func: Callable) -> Callable:
+    """事务提交后执行函数的装饰器。
+
+    如果不调用 on_commit，对象创建时添加多对多字段值会失败。
     """
 
-    def inner(*args, **kwargs):
+    def inner(*args: Any, **kwargs: Any) -> None:
         transaction.on_commit(lambda: func(*args, **kwargs))
 
     return inner
@@ -31,33 +35,45 @@ def on_transaction_commit(func):
 class Singleton(object):
     """ 单例类 """
 
-    def __init__(self, cls):
-        self._cls = cls
-        self._instance = {}
+    def __init__(self, cls: type) -> None:
+        """初始化单例包装器。
 
-    def __call__(self):
+        Args:
+            cls: 需要包装为单例的类。
+        """
+        self._cls = cls
+        self._instance: dict = {}
+
+    def __call__(self) -> Any:
+        """返回单例实例，首次调用时创建。"""
         if self._cls not in self._instance:
             self._instance[self._cls] = self._cls()
         return self._instance[self._cls]
 
 
-def default_suffix_key(*args, **kwargs):
+def default_suffix_key(*args: Any, **kwargs: Any) -> str:
+    """默认缓存键后缀生成函数。"""
     return 'default'
 
 
 class EventLoopThread(threading.Thread):
-    def __init__(self, *args, **kwargs):
+    """运行 asyncio 事件循环的守护线程。"""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """初始化事件循环线程。"""
         super().__init__(*args, **kwargs)
         self._loop = asyncio.new_event_loop()
 
     def run(self) -> None:
+        """运行事件循环。"""
         asyncio.set_event_loop(self._loop)
         try:
             self._loop.run_forever()
         except Exception as e:
             logger.error("Event loop stopped with err: {} ".format(e))
 
-    def get_loop(self):
+    def get_loop(self) -> asyncio.AbstractEventLoop:
+        """获取事件循环实例。"""
         return self._loop
 
 
@@ -68,16 +84,22 @@ executor = ThreadPoolExecutor(
     max_workers=10,
     thread_name_prefix='debouncer'
 )
-_loop_debouncer_func_task_cache = {}
-_loop_debouncer_func_args_cache = {}
-_loop_debouncer_func_task_time_cache = {}
+_loop_debouncer_func_task_cache: dict = {}
+_loop_debouncer_func_args_cache: dict = {}
+_loop_debouncer_func_task_time_cache: dict = {}
 
 
-def get_loop():
+def get_loop() -> asyncio.AbstractEventLoop:
+    """获取全局事件循环实例。"""
     return _loop_thread.get_loop()
 
 
-def cancel_or_remove_debouncer_task(cache_key):
+def cancel_or_remove_debouncer_task(cache_key: str) -> None:
+    """取消或移除防抖任务。
+
+    Args:
+        cache_key: 防抖任务缓存键。
+    """
     task = _loop_debouncer_func_task_cache.get(cache_key, None)
     if not task:
         return
@@ -87,7 +109,16 @@ def cancel_or_remove_debouncer_task(cache_key):
         task.cancel()
 
 
-def run_debouncer_func(cache_key, ttl, func, *args, **kwargs):
+def run_debouncer_func(cache_key: str, ttl: float, func: Callable, *args: Any, **kwargs: Any) -> None:
+    """执行防抖函数，在 ttl 秒内只执行最后一次。
+
+    Args:
+        cache_key: 防抖任务缓存键。
+        ttl: 防抖时间窗口（秒）。
+        func: 需要防抖执行的函数。
+        args: 函数位置参数。
+        kwargs: 函数关键字参数。
+    """
     cancel_or_remove_debouncer_task(cache_key)
     run_func_partial = functools.partial(_run_func, cache_key, func)
 
@@ -112,7 +143,20 @@ def run_debouncer_func(cache_key, ttl, func, *args, **kwargs):
 
 
 class Debouncer(object):
-    def __init__(self, callback, check, delay, loop=None, executor=None):
+    """防抖执行器，延迟执行回调函数。"""
+
+    def __init__(self, callback: Callable, check: Callable, delay: float,
+                 loop: asyncio.AbstractEventLoop | None = None,
+                 executor: ThreadPoolExecutor | None = None) -> None:
+        """初始化防抖执行器。
+
+        Args:
+            callback: 延迟执行的回调函数。
+            check: 执行前检查函数，返回 True 时执行回调。
+            delay: 延迟时间（秒）。
+            loop: asyncio 事件循环。
+            executor: 线程池执行器。
+        """
         self.callback = callback
         self.check = check
         self.delay = delay
@@ -121,14 +165,23 @@ class Debouncer(object):
             self.loop = asyncio.get_event_loop()
         self.executor = executor
 
-    async def __call__(self, *args, **kwargs):
+    async def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        """延迟执行回调。"""
         await asyncio.sleep(self.delay)
         ok = await self._run_sync_to_async(self.check)
         if ok:
             callback_func = functools.partial(self.callback, *args, **kwargs)
             return await self._run_sync_to_async(callback_func)
 
-    async def _run_sync_to_async(self, func):
+    async def _run_sync_to_async(self, func: Callable) -> Any:
+        """将同步函数转为异步执行。
+
+        Args:
+            func: 需要执行的函数，可为协程函数。
+
+        Returns:
+            函数执行结果。
+        """
         if asyncio.iscoroutinefunction(func):
             return await func()
         return await self.loop.run_in_executor(self.executor, func)
@@ -139,7 +192,15 @@ ignore_err_exceptions = (
 )
 
 
-def _run_func(key, func, *args, **kwargs):
+def _run_func(key: str, func: Callable, *args: Any, **kwargs: Any) -> None:
+    """在新数据库连接中执行函数并处理异常。
+
+    Args:
+        key: 防抖任务缓存键。
+        func: 需要执行的函数。
+        args: 函数位置参数。
+        kwargs: 函数关键字参数。
+    """
     try:
         with open_db_connection() as conn:
             # 保证执行时使用的是新的 connection 数据库连接
@@ -159,22 +220,25 @@ def _run_func(key, func, *args, **kwargs):
     _loop_debouncer_func_task_time_cache.pop(key, None)
 
 
-def delay_run(ttl=5, key=None):
-    """
-    延迟执行函数, 在 ttl 秒内, 只执行最后一次
-    :param ttl:
-    :param key: 是否合并参数, 一个 callback
-    :return:
+def delay_run(ttl: float = 5, key: Callable | None = None) -> Callable:
+    """延迟执行函数装饰器，在 ttl 秒内只执行最后一次。
+
+    Args:
+        ttl: 防抖时间窗口（秒）。
+        key: 缓存键后缀生成回调。
+
+    Returns:
+        装饰器函数。
     """
 
-    def inner(func):
+    def inner(func: Callable) -> Callable:
         suffix_key_func = key if key else default_suffix_key
         sigs = inspect.signature(func)
         if len(sigs.parameters) != 0:
             raise ValueError('Merge delay run must not arguments: %s' % func.__name__)
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             func_name = f'{func.__module__}_{func.__name__}'
             key_suffix = suffix_key_func(*args)
             cache_key = f'DELAY_RUN_{func_name}_{key_suffix}'
@@ -185,15 +249,18 @@ def delay_run(ttl=5, key=None):
     return inner
 
 
-def merge_delay_run(ttl=5, key=None):
-    """
-    延迟执行函数, 在 ttl 秒内, 只执行最后一次, 并且合并参数
-    :param ttl:
-    :param key: 是否合并参数, 一个 callback
-    :return:
+def merge_delay_run(ttl: float = 5, key: Callable | None = None) -> Callable:
+    """延迟执行函数装饰器，在 ttl 秒内只执行最后一次，并且合并参数。
+
+    Args:
+        ttl: 防抖时间窗口（秒）。
+        key: 缓存键后缀生成回调。
+
+    Returns:
+        装饰器函数。
     """
 
-    def delay(func, *args, **kwargs):
+    def delay(func: Callable, *args: Any, **kwargs: Any) -> None:
         # 每次调用 delay 时可以指定本次调用的 ttl
         current_ttl = kwargs.pop('ttl', ttl)
         suffix_key_func = key if key else default_suffix_key
@@ -213,13 +280,24 @@ def merge_delay_run(ttl=5, key=None):
         _loop_debouncer_func_args_cache[cache_key] = cache_kwargs
         run_debouncer_func(cache_key, current_ttl, func, *args, **cache_kwargs)
 
-    def apply(func, sync=False, *args, **kwargs):
+    def apply(func: Callable, sync: bool = False, *args: Any, **kwargs: Any) -> Any:
+        """同步或延迟执行函数。
+
+        Args:
+            func: 需要执行的函数。
+            sync: 是否同步执行。
+            args: 函数位置参数。
+            kwargs: 函数关键字参数。
+
+        Returns:
+            函数执行结果（同步模式下）。
+        """
         if sync:
             return func(*args, **kwargs)
         else:
-            return delay(func, *args, **kwargs)
+            delay(func, *args, **kwargs)
 
-    def inner(func):
+    def inner(func: Callable) -> Callable:
         sigs = inspect.signature(func)
         if len(sigs.parameters) != 1:
             raise ValueError('func must have one arguments: %s' % func.__name__)
@@ -230,7 +308,7 @@ def merge_delay_run(ttl=5, key=None):
         func.apply = functools.partial(apply, func)
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             return func(*args, **kwargs)
 
         return wrapper
@@ -239,18 +317,21 @@ def merge_delay_run(ttl=5, key=None):
 
 
 @delay_run(ttl=5)
-def test_delay_run():
+def test_delay_run() -> None:
+    """延迟执行测试函数。"""
     print("Hello,  now is %s" % time.time())
 
 
 @merge_delay_run(ttl=5, key=lambda users=(): users[0][0])
-def test_merge_delay_run(users=()):
+def test_merge_delay_run(users: tuple = ()) -> None:
+    """合并延迟执行测试函数。"""
     name = ','.join(users)
     time.sleep(2)
     print("Hello, %s, now is %s" % (name, time.time()))
 
 
-def do_test():
+def do_test() -> None:
+    """防抖功能测试入口函数。"""
     s = time.time()
     print("start : %s" % time.time())
     for i in range(100):
@@ -264,15 +345,20 @@ def do_test():
     print("end : %s, using: %s" % (end, using))
 
 
-def cached_method(ttl=20):
-    """
-    内存缓存，ttl为缓存时间，-1 表示缓存时间永久
-    """
-    _cache = {}
+def cached_method(ttl: float = 20) -> Callable:
+    """内存缓存装饰器，ttl 为缓存时间，-1 表示缓存时间永久。
 
-    def decorator(func):
+    Args:
+        ttl: 缓存有效期（秒），-1 表示永久。
+
+    Returns:
+        装饰器函数。
+    """
+    _cache: dict = {}
+
+    def decorator(func: Callable) -> Callable:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             key = (func, args, tuple(sorted(kwargs.items())))
             # 检查缓存是否存在且未过期
             if key in _cache and (ttl == -1 or time.time() - _cache[key]['timestamp'] < ttl):
@@ -286,3 +372,4 @@ def cached_method(ttl=20):
         return wrapper
 
     return decorator
+

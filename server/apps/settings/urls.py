@@ -4,6 +4,8 @@
 # filename : urls
 # author : ly_13
 # date : 6/6/2023
+"""设置应用 URL 路由配置。"""
+
 from rest_framework.routers import SimpleRouter
 
 from apps.common.core.routers import NoDetailRouter

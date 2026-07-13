@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : dept
-# author : ly_13
-# date : 7/22/2024
+"""部门搜索视图。"""
 
 from django_filters import rest_framework as filters
 
@@ -18,16 +13,24 @@ logger = get_logger(__name__)
 
 
 class SearchDeptFilter(BaseFilterSet):
+    """部门搜索过滤器。"""
+
     pk = filters.UUIDFilter(field_name='id')
     name = filters.CharFilter(field_name='name', lookup_expr='icontains')
 
     class Meta:
+        """过滤器元数据。"""
+
         model = DeptInfo
         fields = ['name', 'is_active', 'code', 'description']
 
 
 class SearchDeptSerializer(DeptSerializer):
+    """部门搜索序列化器。"""
+
     class Meta:
+        """序列化器元数据。"""
+
         model = DeptInfo
         fields = ['name', 'pk', 'code', 'parent', 'is_active', 'user_count', 'auto_bind', 'description', 'created_time']
         table_fields = ['name', 'code', 'is_active', 'user_count', 'auto_bind', 'description', 'created_time', 'pk']
@@ -35,7 +38,8 @@ class SearchDeptSerializer(DeptSerializer):
 
 
 class SearchDeptViewSet(OnlyListModelSet):
-    """部门搜索"""
+    """部门搜索视图集。"""
+
     queryset = DeptInfo.objects.all()
     serializer_class = SearchDeptSerializer
     pagination_class = DynamicPageNumber(1000)

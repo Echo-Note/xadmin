@@ -1,3 +1,4 @@
+"""清理过期验证码的管理命令。"""
 import sys
 
 from django.core.management.base import BaseCommand
@@ -5,9 +6,12 @@ from django.utils import timezone
 
 
 class Command(BaseCommand):
+    """清理过期的验证码 hashkey。"""
+
     help = "Clean up expired captcha hashkeys."
 
-    def handle(self, **options):
+    def handle(self, **options) -> None:
+        """执行清理过期验证码的逻辑。"""
         from apps.captcha.models import CaptchaStore
 
         verbose = int(options.get("verbosity"))

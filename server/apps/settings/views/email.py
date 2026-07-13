@@ -4,11 +4,15 @@
 # filename : email
 # author : ly_13
 # date : 7/31/2024
+"""邮件服务设置视图集定义。"""
+
 from smtplib import SMTPSenderRefused
 
 from django.conf import settings
 from django.core.mail import get_connection, send_mail
 from django.utils.translation import gettext_lazy as _
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from apps.common.core.response import ApiResponse
 from apps.common.utils import get_logger
@@ -19,12 +23,13 @@ logger = get_logger(__name__)
 
 
 class EmailServerSettingViewSet(BaseSettingViewSet):
-    """邮件服务"""
+    """邮件服务设置视图集。"""
+
     serializer_class = EmailSettingSerializer
     category = "email"
 
-    def create(self, request, *args, **kwargs):
-        """测试{cls}"""
+    def create(self, request: Request, *args, **kwargs) -> Response:
+        """测试邮件服务连通性。"""
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
 

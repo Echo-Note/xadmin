@@ -1,13 +1,11 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : rule
-# author : ly_13
-# date : 8/10/2024
+"""密码规则视图。"""
+
 from drf_spectacular.plumbing import build_object_type, build_basic_type, build_array_type
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework.generics import GenericAPIView
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from apps.common.core.response import ApiResponse
 from apps.common.swagger.utils import get_default_response_schema
@@ -15,7 +13,8 @@ from apps.settings.utils.password import get_password_check_rules
 
 
 class PasswordRulesAPIView(GenericAPIView):
-    """密码规则配置信息"""
+    """密码规则配置视图。"""
+
     permission_classes = []
 
     @extend_schema(
@@ -36,6 +35,6 @@ class PasswordRulesAPIView(GenericAPIView):
             }
         )
     )
-    def get(self, request):
-        """获取密码规则配置"""
-        return ApiResponse(data={"password_rules": get_password_check_rules(request.user)})
+    def get(self, request: Request) -> Response:
+        """获取密码规则配置信息。"""
+        return ApiResponse(data={'password_rules': get_password_check_rules(request.user)})

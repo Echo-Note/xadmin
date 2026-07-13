@@ -1,12 +1,12 @@
+"""演示应用的 URL 路由配置。"""
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 # project : server
 # filename : urls
 # author : ly_13
 # date : 6/6/2023
-from rest_framework.routers import SimpleRouter
-
 from demo.views import BookViewSet
+from rest_framework.routers import SimpleRouter
 
 app_name = 'demo'
 

@@ -1,9 +1,5 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : logout
-# author : ly_13
-# date : 8/8/2024
+"""用户登出视图。"""
+
 import hashlib
 import time
 
@@ -12,6 +8,8 @@ from drf_spectacular.plumbing import build_object_type, build_basic_type
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiRequest
 from rest_framework.generics import GenericAPIView
+from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.common.cache.storage import BlackAccessTokenCache
@@ -20,14 +18,14 @@ from apps.common.swagger.utils import get_default_response_schema
 
 
 class LogoutAPIView(GenericAPIView):
-    """用户登出"""
+    """用户登出视图。"""
 
     @extend_schema(
         request=OpenApiRequest(build_object_type(properties={'refresh': build_basic_type(OpenApiTypes.STR)})),
         responses=get_default_response_schema()
     )
-    def post(self, request):
-        """用户登出"""
+    def post(self, request: Request) -> Response:
+        """用户登出，将 access token 和 refresh token 加入黑名单。"""
         auth = request.auth
         if not auth:
             return ApiResponse()

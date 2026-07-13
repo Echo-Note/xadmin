@@ -1,15 +1,13 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : reset
-# author : ly_13
-# date : 8/10/2024
+"""重置密码视图。"""
+
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.plumbing import build_object_type, build_basic_type
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiRequest
 from rest_framework.generics import GenericAPIView
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from apps.common.base.utils import AESCipherV2
 from apps.common.core.response import ApiResponse
@@ -23,7 +21,8 @@ from apps.system.utils.auth import verify_sms_email_code
 
 
 class ResetPasswordAPIView(GenericAPIView):
-    """重置密码"""
+    """重置密码视图。"""
+
     permission_classes = []
     authentication_classes = []
     throttle_classes = [ResetPasswordThrottle]
@@ -39,8 +38,8 @@ class ResetPasswordAPIView(GenericAPIView):
         ),
         responses=get_default_response_schema()
     )
-    def post(self, request, *args, **kwargs):
-        """重置密码"""
+    def post(self, request: Request, *args, **kwargs) -> Response:
+        """通过短信/邮箱验证码重置密码。"""
         query_key, target, verify_token = verify_sms_email_code(request, ResetBlockUtil)
         password = request.data.get('password')
         if not password:

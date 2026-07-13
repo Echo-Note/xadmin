@@ -4,12 +4,13 @@
 # filename : modelset
 # author : ly_13
 # date : 6/2/2023
+"""视图集模块，提供缓存、上传、排序、批量操作及增删改查等通用视图混入。"""
 import itertools
 import json
 import math
 import uuid
 from hashlib import md5
-from typing import Callable
+from typing import Any, Callable
 
 from django.conf import settings
 from django.db import transaction
@@ -24,6 +25,8 @@ from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.fields import CharField
 from rest_framework.parsers import MultiPartParser
+from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework.utils import encoders
 from rest_framework.viewsets import GenericViewSet
 
@@ -42,7 +45,16 @@ from apps.common.utils import get_logger
 logger = get_logger(__name__)
 
 
-def get_upload_input_type_suffix(value, default):
+def get_upload_input_type_suffix(value: Any, default: str) -> str:
+    """判断字段是否为上传文件类型并返回对应后缀。
+
+    Args:
+        value: 序列化器字段对象。
+        default: 默认输入类型。
+
+    Returns:
+        上传文件时返回 ``_file``，否则返回空字符串。
+    """
     if hasattr(value, 'child_relation'):
         value = value.child_relation
     try:
@@ -55,7 +67,16 @@ def get_upload_input_type_suffix(value, default):
     return ''
 
 
-def get_format_intput_type(value, default=''):
+def get_format_intput_type(value: Any, default: str = '') -> str:
+    """根据字段的 input_type 属性组装前端输入类型字符串。
+
+    Args:
+        value: 序列化器字段对象。
+        default: 默认输入类型。
+
+    Returns:
+        组装后的输入类型字符串，为空时返回 default。
+    """
     input_type_prefix = ''
     input_type = default
     input_type_suffix = get_upload_input_type_suffix(value, default)
@@ -72,7 +93,20 @@ def get_format_intput_type(value, default=''):
     return default
 
 
-def run_view_by_celery_task(view, request, kwargs, data, batch_length=100):
+def run_view_by_celery_task(view: Any, request: Request, kwargs: dict, data: list,
+                            batch_length: int = 100) -> Response | None:
+    """通过 Celery 异步执行视图任务，批量提交数据。
+
+    Args:
+        view: 视图对象。
+        request: DRF 请求对象。
+        kwargs: 视图关键字参数。
+        data: 待处理的数据列表。
+        batch_length: 每批数据量大小。
+
+    Returns:
+        异步任务提交成功时返回 ``ApiResponse``，需要同步执行时返回 None。
+    """
     task = kwargs.get("task", request.query_params.get('task', 'true').lower() in ['true', '1', 'yes'])  # 默认为任务异步导入
     if task:
         view_str = f"{view.__class__.__module__}.{view.__class__.__name__}"
@@ -106,12 +140,33 @@ def run_view_by_celery_task(view, request, kwargs, data, batch_length=100):
 
 
 class CacheDetailResponseMixin(object):
-    def get_cache_key(self, view_instance, view_method, request, args, kwargs):
+    """详情视图缓存混入，提供基于用户和视图的缓存键生成及失效。"""
+
+    def get_cache_key(self, view_instance: Any, view_method: Callable, request: Request,
+                      args: tuple, kwargs: dict) -> str:
+        """生成详情视图的缓存键。
+
+        Args:
+            view_instance: 视图实例。
+            view_method: 视图方法。
+            request: DRF 请求对象。
+            args: 位置参数。
+            kwargs: 关键字参数。
+
+        Returns:
+            缓存键字符串。
+        """
         func_name = f'{view_instance.__class__.__name__}_{view_method.__name__}'
         return f"{func_name}_{request.user.pk}"
 
     @classmethod
-    def invalid_cache(cls, pk, methods=None):
+    def invalid_cache(cls, pk: Any, methods: list | None = None) -> None:
+        """使指定主键的缓存失效。
+
+        Args:
+            pk: 主键值。
+            methods: 需要失效的方法名列表，默认为 ['retrieve', 'get']。
+        """
         if methods is None:
             methods = ['retrieve', 'get']
         for method in methods:
@@ -119,12 +174,33 @@ class CacheDetailResponseMixin(object):
 
 
 class CacheListResponseMixin(object):
-    def get_cache_key(self, view_instance, view_method, request, args, kwargs):
+    """列表视图缓存混入，提供基于用户和查询参数的缓存键生成及失效。"""
+
+    def get_cache_key(self, view_instance: Any, view_method: Callable, request: Request,
+                      args: tuple, kwargs: dict) -> str:
+        """生成列表视图的缓存键，包含查询参数的哈希值。
+
+        Args:
+            view_instance: 视图实例。
+            view_method: 视图方法。
+            request: DRF 请求对象。
+            args: 位置参数。
+            kwargs: 关键字参数。
+
+        Returns:
+            缓存键字符串。
+        """
         func_name = f'{view_instance.__class__.__name__}_{view_method.__name__}'
         return f"{func_name}_{request.user.pk}_{md5(json.dumps(request.query_params, sort_keys=True).encode('utf-8')).hexdigest()}"
 
     @classmethod
-    def invalid_cache(cls, pk, methods=None):
+    def invalid_cache(cls, pk: Any, methods: list | None = None) -> None:
+        """使指定主键的列表缓存失效。
+
+        Args:
+            pk: 主键值。
+            methods: 需要失效的方法名列表，默认为 ['list']。
+        """
         if methods is None:
             methods = ['list']
         for method in methods:
@@ -132,11 +208,14 @@ class CacheListResponseMixin(object):
 
 
 class UploadFileAction(object):
+    """文件上传视图混入，提供头像/图片上传接口。"""
+
     FILE_UPLOAD_TYPE = ['png', 'jpeg', 'jpg', 'gif']
     FILE_UPLOAD_FIELD = 'avatar'
     FILE_UPLOAD_SIZE = settings.FILE_UPLOAD_SIZE
 
-    def get_upload_size(self):
+    def get_upload_size(self) -> Any:
+        """获取图片上传大小限制配置。"""
         return SysConfig.PICTURE_UPLOAD_SIZE
 
     @extend_schema(
@@ -146,7 +225,7 @@ class UploadFileAction(object):
         responses=get_default_response_schema()
     )
     @action(methods=['post'], detail=True, parser_classes=(MultiPartParser,))
-    def upload(self, request, *args, **kwargs):
+    def upload(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """上传头像"""
         self.FILE_UPLOAD_SIZE = self.get_upload_size()
         files = request.FILES.getlist('file', [])
@@ -169,6 +248,8 @@ class UploadFileAction(object):
 
 
 class RankAction(object):
+    """排序视图混入，提供批量排序接口。"""
+
     filter_queryset: Callable
     get_queryset: Callable
 
@@ -177,7 +258,7 @@ class RankAction(object):
         responses=get_default_response_schema()
     )
     @action(methods=['post'], detail=False, url_path='rank')
-    def rank(self, request, *args, **kwargs):
+    def rank(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """{cls}排序"""
         rank = 1
         for pk in request.data:
@@ -187,7 +268,9 @@ class RankAction(object):
 
 
 class ChoicesAction(object):
-    choices_models: []
+    """字段选项视图混入，提供获取模型字段 choices 的接口。"""
+
+    choices_models: list
 
     @extend_schema(
         responses=get_default_response_schema(
@@ -208,7 +291,7 @@ class ChoicesAction(object):
         )
     )
     @action(methods=['get'], detail=False, url_path='choices')
-    def choices_dict(self, request, *args, **kwargs):
+    def choices_dict(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """获取{cls}的字段选择"""
         result = {}
         models = getattr(self, 'choices_models', None)
@@ -223,6 +306,8 @@ class ChoicesAction(object):
 
 
 class SearchFieldsAction(object):
+    """搜索字段视图混入，提供获取查询字段定义的接口。"""
+
     filterset_class: Callable
 
     @extend_schema(
@@ -252,7 +337,7 @@ class SearchFieldsAction(object):
         )
     )
     @action(methods=['get'], detail=False, url_path='search-fields')
-    def search_fields(self, request, *args, **kwargs):
+    def search_fields(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """获取{cls}的查询字段"""
         results = []
         try:
@@ -314,6 +399,8 @@ class SearchFieldsAction(object):
 
 
 class SearchColumnsAction(object):
+    """展示字段视图混入，提供获取表格列定义的接口。"""
+
     filterset_class: Callable
 
     @extend_schema(
@@ -349,7 +436,7 @@ class SearchColumnsAction(object):
         )
     )
     @action(methods=['get'], detail=False, url_path='search-columns')
-    def search_columns(self, request, *args, **kwargs):
+    def search_columns(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """获取{cls}的展示字段"""
         results = []
 
@@ -365,7 +452,16 @@ class SearchColumnsAction(object):
         #         pass
         #     return tp
 
-        def get_input_type(value, info):
+        def get_input_type(value: Any, info: dict) -> str:
+            """根据字段对象和信息字典推断输入类型。
+
+            Args:
+                value: 序列化器字段对象。
+                info: 字段信息字典。
+
+            Returns:
+                输入类型字符串。
+            """
             if hasattr(value, 'child_relation') and isinstance(value.child_relation, BasePrimaryKeyRelatedField):
                 info['multiple'] = True
                 setattr(value.child_relation, 'is_column', True)
@@ -424,29 +520,57 @@ class SearchColumnsAction(object):
 
 
 class BaseViewSet(object):
+    """基础视图集，提供通用的查询、分页、序列化器选择逻辑。"""
+
     action: Callable
     extra_filter_class = []
 
-    def perform_destroy(self, instance):
+    def perform_destroy(self, instance: Any) -> Any:
+        """执行实例删除操作。
+
+        Args:
+            instance: 待删除的模型实例。
+
+        Returns:
+            删除操作的返回值。
+        """
         return instance.delete()
 
-    def filter_queryset(self, queryset):
+    def filter_queryset(self, queryset: Any) -> Any:
+        """根据配置的过滤器后端过滤查询集。
+
+        Args:
+            queryset: 原始查询集。
+
+        Returns:
+            过滤后的查询集。
+        """
         for backend in set(set(self.filter_backends) | set(self.extra_filter_class or [])):
             queryset = backend().filter_queryset(self.request, queryset, self)
         return queryset
 
-    def get_queryset(self):
+    def get_queryset(self) -> Any:
+        """获取查询集，优先返回 values_queryset（若存在）。"""
         if getattr(self, 'values_queryset', None):
             return self.values_queryset
         return super().get_queryset()
 
-    def paginate_queryset(self, queryset):
+    def paginate_queryset(self, queryset: Any) -> Any:
+        """对查询集进行分页，文件导出时跳过分页。
+
+        Args:
+            queryset: 原始查询集。
+
+        Returns:
+            分页后的数据，文件导出时返回 None。
+        """
         # 文件导出的时候，忽略 paginate_queryset
         if self.request.query_params.get('type') in ['csv', 'xlsx'] and self.request.path_info.endswith('export-data'):
             return None
         return super().paginate_queryset(queryset)
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> Any:
+        """根据当前 action 动态选择序列化器类。"""
         action_serializer_name = f"{self.action}_serializer_class"
         action_serializer_class = getattr(self, action_serializer_name, None)
         if action_serializer_class:
@@ -455,6 +579,8 @@ class BaseViewSet(object):
 
 
 class BatchDestroyAction(object):
+    """批量删除视图混入，提供按主键列表批量删除的接口。"""
+
     filter_queryset: Callable
     get_queryset: Callable
     perform_destroy: Callable
@@ -464,7 +590,7 @@ class BatchDestroyAction(object):
         responses=get_default_response_schema()
     )
     @action(methods=['post'], detail=False, url_path='batch-destroy')
-    def batch_destroy(self, request, *args, **kwargs):
+    def batch_destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """批量删除{cls}"""
 
         # response = run_view_by_celery_task(self, request, kwargs, request.data, batch_length=30)
@@ -484,28 +610,36 @@ class BatchDestroyAction(object):
 
 
 class CreateAction(mixins.CreateModelMixin):
-    def create(self, request, *args, **kwargs):
+    """创建视图混入，封装创建接口返回为 ``ApiResponse``。"""
+
+    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """添加{cls}数据"""
         data = super().create(request, *args, **kwargs).data
         return ApiResponse(data=data)
 
 
 class DetailAction(mixins.RetrieveModelMixin):
-    def retrieve(self, request, *args, **kwargs):
+    """详情视图混入，封装详情接口返回为 ``ApiResponse``。"""
+
+    def retrieve(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """获取{cls}的详情"""
         data = super().retrieve(request, *args, **kwargs).data
         return ApiResponse(data=data)
 
 
 class ListAction(mixins.ListModelMixin):
-    def list(self, request, *args, **kwargs):
+    """列表视图混入，封装列表接口返回为 ``ApiResponse``。"""
+
+    def list(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """获取{cls}的列表"""
         data = super().list(request, *args, **kwargs).data
         return ApiResponse(data=data)
 
 
 class DestroyAction(mixins.DestroyModelMixin):
-    def destroy(self, request, *args, **kwargs):
+    """删除视图混入，封装删除接口返回为 ``ApiResponse``。"""
+
+    def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """删除{cls}数据"""
         instance = self.get_object()
         self.perform_destroy(instance)
@@ -513,18 +647,22 @@ class DestroyAction(mixins.DestroyModelMixin):
 
 
 class UpdateAction(mixins.UpdateModelMixin):
-    def update(self, request, *args, **kwargs):
+    """更新视图混入，封装更新接口返回为 ``ApiResponse``。"""
+
+    def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """整体更新{cls}信息"""
         data = super().update(request, *args, **kwargs).data
         return ApiResponse(data=data)
 
-    def partial_update(self, request, *args, **kwargs):
+    def partial_update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """部分更新{cls}信息"""
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
 
 
 class OnlyExportDataAction(ListAction):
+    """仅导出数据视图混入，提供 Excel/CSV 导出接口。"""
+
     @extend_schema(
         parameters=[
             OpenApiParameter(name='type', required=True, enum=['xlsx', 'csv']),
@@ -534,7 +672,7 @@ class OnlyExportDataAction(ListAction):
         }
     )
     @action(methods=['get'], detail=False, url_path='export-data')
-    def export_data(self, request, *args, **kwargs):
+    def export_data(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """导出{cls}数据"""
         self.format_kwarg = request.query_params.get('type', 'xlsx')
         request.no_cache = True  # 防止自定义缓存数据
@@ -545,6 +683,8 @@ class OnlyExportDataAction(ListAction):
 
 
 class ImportExportDataAction(CreateAction, UpdateAction, OnlyExportDataAction):
+    """导入导出数据视图混入，提供数据导入及导出功能。"""
+
     filter_queryset: Callable
     get_queryset: Callable
     get_serializer: Callable
@@ -562,7 +702,7 @@ class ImportExportDataAction(CreateAction, UpdateAction, OnlyExportDataAction):
     )
     @action(methods=['post'], detail=False, url_path='import-data')
     @transaction.atomic
-    def import_data(self, request, *args, **kwargs):
+    def import_data(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """导入{cls}数据"""
 
         task = kwargs.get("task", request.query_params.get('task', 'true').lower() in ['true', '1', 'yes'])  # 默认为任务异步导入
@@ -616,24 +756,34 @@ class ImportExportDataAction(CreateAction, UpdateAction, OnlyExportDataAction):
 
 
 class DetailUpdateModelSet(BaseViewSet, UpdateAction, DetailAction, GenericViewSet):
+    """仅支持详情和更新的视图集。"""
+
     pass
 
 
 class OnlyListModelSet(BaseViewSet, ListAction, SearchFieldsAction, SearchColumnsAction, GenericViewSet):
+    """仅支持列表查询及搜索字段查询的视图集。"""
+
     pass
 
 
-# 全部 ViewSet 包含增删改查 
+# 全部 ViewSet 包含增删改查
 class BaseModelSet(BaseViewSet, CreateAction, DestroyAction, UpdateAction, ListAction, DetailAction, SearchFieldsAction,
                    SearchColumnsAction, BatchDestroyAction, GenericViewSet):
+    """全部功能视图集，包含增删改查及搜索字段等。"""
+
     pass
 
 
 # 只允许读和删除，不允许创建和修改
 class ListDeleteModelSet(BaseViewSet, DestroyAction, ListAction, DetailAction, SearchFieldsAction, SearchColumnsAction,
                          BatchDestroyAction, GenericViewSet):
+    """仅支持读和删除的视图集。"""
+
     pass
 
 
 class NoDetailModelSet(BaseViewSet, UpdateAction, DetailAction, SearchColumnsAction, GenericViewSet):
+    """无详情路由的视图集，支持更新和搜索列。"""
+
     pass

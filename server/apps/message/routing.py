@@ -1,3 +1,4 @@
+"""消息应用的 WebSocket 路由配置。"""
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 # project : server

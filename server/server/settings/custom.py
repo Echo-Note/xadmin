@@ -4,6 +4,7 @@
 # filename : custom
 # author : ly_13
 # date : 11/14/2024
+"""自定义权限与日志相关配置模块。"""
 
 from ..const import CONFIG
 

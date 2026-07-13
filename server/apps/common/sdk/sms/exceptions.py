@@ -4,32 +4,52 @@
 # filename : exceptions
 # author : ly_13
 # date : 8/6/2024
+"""短信验证码相关异常。"""
 
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import APIException
 
 
 class CodeExpired(APIException):
+    """验证码已过期异常。"""
+
     default_code = 'verify_code_expired'
     default_detail = _('The verification code has expired. Please resend it')
 
 
 class CodeError(APIException):
+    """验证码错误异常。"""
+
     default_code = 'verify_code_error'
     default_detail = _('The verification code is incorrect')
 
 
 class CodeSendTooFrequently(APIException):
+    """验证码发送过于频繁异常。"""
+
     default_code = 'code_send_too_frequently'
     default_detail = _('Please wait {} seconds before sending')
 
-    def __init__(self, ttl):
+    def __init__(self, ttl: int) -> None:
+        """初始化发送频繁异常。
+
+        Args:
+            ttl: 需等待的秒数。
+        """
         super().__init__(detail=self.default_detail.format(ttl))
 
 
 class CodeSendOverRate(APIException):
+    """验证码发送超限异常。"""
+
     default_code = 'code_send_over_rate'
     default_detail = _('Please wait {} seconds before sending')
 
-    def __init__(self, ttl):
+    def __init__(self, ttl: int) -> None:
+        """初始化发送超限异常。
+
+        Args:
+            ttl: 需等待的秒数。
+        """
         super().__init__(detail=self.default_detail.format(ttl))
+

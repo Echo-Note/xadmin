@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : role
-# author : ly_13
-# date : 7/22/2024
+"""角色搜索视图。"""
 
 from django_filters import rest_framework as filters
 
@@ -17,23 +12,32 @@ logger = get_logger(__name__)
 
 
 class SearchRoleFilter(BaseFilterSet):
+    """角色搜索过滤器。"""
+
     name = filters.CharFilter(field_name='name', lookup_expr='icontains')
     code = filters.CharFilter(field_name='code', lookup_expr='icontains')
 
     class Meta:
+        """过滤器元数据。"""
+
         model = UserRole
         fields = ['name', 'code', 'is_active', 'description']
 
 
 class SearchRoleSerializer(RoleSerializer):
+    """角色搜索序列化器。"""
+
     class Meta:
+        """序列化器元数据。"""
+
         model = UserRole
         fields = ['pk', 'name', 'code', 'is_active', 'description', 'updated_time']
         read_only_fields = [x.name for x in UserRole._meta.fields]
 
 
 class SearchRoleViewSet(OnlyListModelSet):
-    """角色搜索"""
+    """角色搜索视图集。"""
+
     queryset = UserRole.objects.all()
     serializer_class = SearchRoleSerializer
     ordering_fields = ['updated_time', 'name', 'created_time']

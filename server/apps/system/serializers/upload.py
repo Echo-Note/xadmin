@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : upload
-# author : ly_13
-# date : 8/10/2024
+"""上传文件序列化器。"""
 
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
@@ -19,24 +14,53 @@ logger = get_logger(__name__)
 
 
 class UploadFileSerializer(BaseModelSerializer):
+    """上传文件序列化器。"""
+
     class Meta:
+        """序列化器元数据。"""
+
         model = UploadFile
         fields = ['pk', 'filename', 'filesize', 'mime_type', 'md5sum', 'file_url', 'access_url', 'is_tmp', 'is_upload']
-        read_only_fields = ["pk", "is_upload"]
+        read_only_fields = ['pk', 'is_upload']
         table_fields = ['pk', 'filename', 'filesize', 'mime_type', 'access_url', 'is_tmp', 'is_upload', 'md5sum']
 
-    access_url = serializers.SerializerMethodField(label=_("Access URL"))
+    access_url = serializers.SerializerMethodField(label=_('Access URL'))
 
     @extend_schema_field(serializers.CharField)
-    def get_access_url(self, obj):
+    def get_access_url(self, obj: UploadFile) -> str:
+        """获取文件的访问 URL。
+
+        Args:
+            obj: UploadFile 模型实例。
+
+        Returns:
+            文件的外部访问 URL。
+        """
         return obj.file_url if obj.file_url else get_file_absolute_uri(obj.filepath, self.context.get('request', None))
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict) -> UploadFile:
+        """创建上传文件记录，确保外部 URL 不为空。
+
+        Args:
+            validated_data: 已验证的数据字典。
+
+        Returns:
+            创建的 UploadFile 实例。
+        """
         if not validated_data.get('file_url'):
-            raise ValidationError(_("Internet url cannot be null"))
+            raise ValidationError(_('Internet url cannot be null'))
         return super().create(validated_data)
 
-    def update(self, instance, validated_data):
+    def update(self, instance: UploadFile, validated_data: dict) -> UploadFile:
+        """更新上传文件记录，确保外部 URL 不为空。
+
+        Args:
+            instance: 待更新的 UploadFile 实例。
+            validated_data: 已验证的数据字典。
+
+        Returns:
+            更新后的 UploadFile 实例。
+        """
         if not validated_data.get('file_url') and not instance.is_upload:
             raise ValidationError('Internet url cannot be null')
         return super().update(instance, validated_data)

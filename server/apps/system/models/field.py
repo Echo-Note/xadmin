@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : field
-# author : ly_13
-# date : 8/10/2024
+"""模型字段标签模型。"""
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -12,7 +7,11 @@ from apps.common.core.models import DbAuditModel, DbUuidModel
 
 
 class ModelLabelField(DbAuditModel, DbUuidModel):
+    """模型字段标签模型，用于定义数据权限规则中可引用的字段。"""
+
     class KeyChoices(models.TextChoices):
+        """字段值类型选择。"""
+
         TEXT = 'value.text', _('Text')
         JSON = 'value.json', _('Json')
         ALL = 'value.all', _('All data')
@@ -29,20 +28,25 @@ class ModelLabelField(DbAuditModel, DbUuidModel):
         TABLE_DEPT = 'value.table.dept.ids', _('Select department ID')
 
     class FieldChoices(models.IntegerChoices):
-        ROLE = 0, _("Role permission")
-        DATA = 1, _("Data permission")
+        """字段类型选择：角色权限或数据权限。"""
 
-    field_type = models.SmallIntegerField(choices=FieldChoices, default=FieldChoices.DATA, verbose_name=_("Field type"))
+        ROLE = 0, _('Role permission')
+        DATA = 1, _('Data permission')
+
+    field_type = models.SmallIntegerField(choices=FieldChoices, default=FieldChoices.DATA, verbose_name=_('Field type'))
     parent = models.ForeignKey('system.ModelLabelField', on_delete=models.CASCADE, null=True, blank=True,
-                               verbose_name=_("Parent node"))
-    name = models.CharField(verbose_name=_("Model/Field name"), max_length=128)
-    label = models.CharField(verbose_name=_("Model/Field label"), max_length=128)
+                               verbose_name=_('Parent node'))
+    name = models.CharField(verbose_name=_('Model/Field name'), max_length=128)
+    label = models.CharField(verbose_name=_('Model/Field label'), max_length=128)
 
     class Meta:
+        """模型字段标签元数据。"""
+
         ordering = ('-created_time',)
         unique_together = ('name', 'parent')
-        verbose_name = _("Model label field")
+        verbose_name = _('Model label field')
         verbose_name_plural = verbose_name
 
-    def __str__(self):
-        return f"{self.label}({self.name})"
+    def __str__(self) -> str:
+        """返回字段标签和名称的字符串表示。"""
+        return f'{self.label}({self.name})'

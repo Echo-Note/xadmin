@@ -4,3 +4,4 @@
 # filename : __init__.py
 # author : ly_13
 # date : 7/31/2024
+"""设置应用工具包。"""

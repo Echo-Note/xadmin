@@ -4,6 +4,7 @@
 # filename : message
 # author : ly_13
 # date : 9/15/2024
+"""消息内容模型定义。"""
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -12,7 +13,11 @@ from apps.common.core.models import DbAuditModel, AutoCleanFileMixin
 
 
 class MessageContent(AutoCleanFileMixin, DbAuditModel):
+    """消息内容模型，存储通知消息内容及关联的用户、部门、角色。"""
+
     class NoticeChoices(models.IntegerChoices):
+        """通知类型枚举。"""
+
         SYSTEM = 0, _("System notification")
         NOTICE = 1, _("System announcement")
         USER = 2, _("User notification")
@@ -20,6 +25,8 @@ class MessageContent(AutoCleanFileMixin, DbAuditModel):
         ROLE = 4, _("Role notification")
 
     class LevelChoices(models.TextChoices):
+        """通知级别枚举。"""
+
         DEFAULT = 'info', _("Ordinary notices")
         PRIMARY = 'primary', _("General notices")
         SUCCESS = 'success', _("Success notices")
@@ -43,27 +50,36 @@ class MessageContent(AutoCleanFileMixin, DbAuditModel):
 
     @classmethod
     def get_user_choices(cls):
+        """返回与用户直接相关的通知类型列表。"""
         return [cls.NoticeChoices.USER, cls.NoticeChoices.SYSTEM]
 
     @classmethod
     def get_notice_choices(cls):
+        """返回与公告、部门、角色相关的通知类型列表。"""
         return [cls.NoticeChoices.NOTICE, cls.NoticeChoices.DEPT, cls.NoticeChoices.ROLE]
 
     class Meta:
+        """元数据配置。"""
+
         verbose_name = _("Message content")
         verbose_name_plural = verbose_name
         ordering = ('-created_time',)
 
     def __str__(self):
+        """返回消息标题与类型显示名。"""
         return f"{self.title}-{self.get_notice_type_display()}"
 
 
 class MessageUserRead(DbAuditModel):
+    """用户消息已读记录模型。"""
+
     owner = models.ForeignKey("system.UserInfo", on_delete=models.CASCADE, verbose_name=_("User"))
     notice = models.ForeignKey(MessageContent, on_delete=models.CASCADE, verbose_name=_("Notice"))
     unread = models.BooleanField(verbose_name=_("Unread"), default=True, blank=False, db_index=True)
 
     class Meta:
+        """元数据配置。"""
+
         ordering = ('-created_time',)
         verbose_name = _("User read message")
         verbose_name_plural = verbose_name

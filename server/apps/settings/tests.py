@@ -1,1 +1,1 @@
-# Create your tests here.
+"""设置应用测试模块。"""

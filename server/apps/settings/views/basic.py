@@ -4,6 +4,7 @@
 # filename : basic
 # author : ly_13
 # date : 7/31/2024
+"""基本设置视图集定义。"""
 
 from apps.common.utils import get_logger
 from apps.settings.serializers.basic import BasicSettingSerializer
@@ -13,6 +14,7 @@ logger = get_logger(__name__)
 
 
 class BasicSettingViewSet(BaseSettingViewSet):
-    """基本设置"""
+    """基本设置视图集。"""
+
     serializer_class = BasicSettingSerializer
     category = "basic"

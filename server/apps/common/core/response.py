@@ -4,7 +4,10 @@
 # filename : response
 # author : ly_13
 # date : 6/2/2023
+"""统一 API 响应封装，提供标准化的响应数据结构。"""
+
 import datetime
+from typing import Any
 
 from django.utils.translation import gettext_lazy as _
 from rest_framework.response import Response
@@ -13,11 +16,33 @@ from server.utils import get_current_request
 
 
 class ApiResponse(Response):
-    def __init__(self, code=1000, detail=None, data=None, status=None, headers=None, content_type=None, **kwargs):
+    """统一 API 响应类，封装业务状态码、详情、数据等标准字段。"""
+
+    def __init__(
+        self,
+        code: int = 1000,
+        detail: str | None = None,
+        data: Any = None,
+        status: int | None = None,
+        headers: dict | None = None,
+        content_type: str | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """初始化统一响应对象。
+
+        Args:
+            code: 业务状态码，默认 1000 表示成功。
+            detail: 响应详情描述，为空时根据 code 自动填充成功/失败提示。
+            data: 响应业务数据。
+            status: HTTP 状态码。
+            headers: 响应头信息。
+            content_type: 响应内容类型。
+            **kwargs: 其他需要追加到响应体中的扩展字段。
+        """
         dic = {
             'code': code,
-            'detail': detail if detail else (_("Operation successful") if code == 1000 else _("Operation failed")),
-            'requestId': str(getattr(get_current_request(), 'request_uuid', "")),
+            'detail': detail if detail else (_('Operation successful') if code == 1000 else _('Operation failed')),
+            'requestId': str(getattr(get_current_request(), 'request_uuid', '')),
             'timestamp': str(datetime.datetime.now()),
         }
         if data is not None:

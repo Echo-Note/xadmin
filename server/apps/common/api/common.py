@@ -4,6 +4,7 @@
 # filename : common
 # author : ly_13
 # date : 6/7/2024
+"""common 应用 API 视图。"""
 import time
 import uuid
 
@@ -14,6 +15,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiRequest, OpenApiResponse
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
+from rest_framework.request import Request
 from rest_framework.response import Response
 
 from apps.common.cache.storage import CommonResourceIDsCache
@@ -36,7 +38,7 @@ class ResourcesIDCacheAPIView(GenericAPIView):
         ),
         responses=get_default_response_schema({'spm': build_basic_type(OpenApiTypes.STR)})
     )
-    def post(self, request, *args, **kwargs):
+    def post(self, request: Request, *args, **kwargs) -> Response:
         """添加临时资源数据"""
         spm = str(uuid.uuid4())
         resources = request.data.get('resources')
@@ -65,7 +67,7 @@ class CountryListAPIView(GenericAPIView):
             }
         )
     )
-    def get(self, request, *args, **kwargs):
+    def get(self, request: Request, *args, **kwargs) -> Response:
         """获取城市手机号列表"""
         current_lang = translation.get_language()
         if current_lang == 'zh-hans':
@@ -79,7 +81,8 @@ class HealthCheckAPIView(GenericAPIView):
     permission_classes = (AllowAny,)
 
     @staticmethod
-    def get_db_status():
+    def get_db_status() -> tuple[bool, float | str]:
+        """检测数据库连接状态及响应耗时。"""
         t1 = time.time()
         try:
             ok = Monitor.objects.first() is not None
@@ -89,7 +92,8 @@ class HealthCheckAPIView(GenericAPIView):
             return False, str(e)
 
     @staticmethod
-    def get_redis_status():
+    def get_redis_status() -> tuple[bool, float | str]:
+        """检测 Redis 缓存读写状态及响应耗时。"""
         key = 'HEALTH_CHECK'
 
         t1 = time.time()
@@ -121,7 +125,7 @@ class HealthCheckAPIView(GenericAPIView):
             )
         }
     )
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         """获取服务健康状态"""
         redis_status, redis_time = self.get_redis_status()
         db_status, db_time = self.get_db_status()

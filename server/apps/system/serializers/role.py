@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# project : xadmin-server
-# filename : role
-# author : ly_13
-# date : 8/10/2024
+"""角色序列化器。"""
 
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
@@ -19,21 +14,29 @@ logger = get_logger(__name__)
 
 
 class FieldPermissionSerializer(BaseModelSerializer):
+    """字段权限序列化器。"""
+
     class Meta:
+        """序列化器元数据。"""
+
         model = FieldPermission
         fields = ['pk', 'role', 'menu', 'field']
         read_only_fields = ['pk']
 
 
 class RoleSerializer(BaseModelSerializer):
+    """角色序列化器，包含菜单权限和字段权限管理。"""
+
     class Meta:
+        """序列化器元数据。"""
+
         model = UserRole
         fields = ['pk', 'name', 'code', 'is_active', 'description', 'menu', 'updated_time', 'field', 'fields']
         table_fields = ['pk', 'name', 'code', 'is_active', 'description', 'updated_time']
         read_only_fields = ['pk']
         extra_kwargs = {
             'menu': {
-                'attrs': ['pk', 'name'], 'many': True, 'input_type': "input"
+                'attrs': ['pk', 'name'], 'many': True, 'input_type': 'input'
             }
         }
 
@@ -42,11 +45,19 @@ class RoleSerializer(BaseModelSerializer):
     #                                   input_type="input")
 
     # field和fields 设置两个相同的label，可以进行文件导入导出
-    field = serializers.SerializerMethodField(read_only=True, label=_("Fields"))
-    fields = serializers.DictField(write_only=True, label=_("Fields"))
+    field = serializers.SerializerMethodField(read_only=True, label=_('Fields'))
+    fields = serializers.DictField(write_only=True, label=_('Fields'))
 
     @extend_schema_field(OpenApiTypes.OBJECT)
-    def get_field(self, obj):
+    def get_field(self, obj: UserRole) -> dict:
+        """获取角色的字段权限映射。
+
+        Args:
+            obj: UserRole 模型实例。
+
+        Returns:
+            菜单 ID 到字段列表的映射字典。
+        """
         results = FieldPermissionSerializer(FieldPermission.objects.filter(role=obj), many=True,
                                             ignore_field_permission=True).data
         data = {}
@@ -54,14 +65,29 @@ class RoleSerializer(BaseModelSerializer):
             data[str(res.get('menu'))] = res.get('field', [])
         return data
 
-    def save_fields(self, fields, instance):
+    def save_fields(self, fields: dict, instance: UserRole) -> None:
+        """保存角色的字段权限。
+
+        Args:
+            fields: 菜单 ID 到字段列表的映射字典。
+            instance: UserRole 模型实例。
+        """
         for k, v in fields.items():
             serializer = FieldPermissionSerializer(data={'role': instance.pk, 'menu': k, 'field': v},
                                                    ignore_field_permission=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-    def update(self, instance, validated_data):
+    def update(self, instance: UserRole, validated_data: dict) -> UserRole:
+        """更新角色，同时更新字段权限。
+
+        Args:
+            instance: 待更新的 UserRole 实例。
+            validated_data: 已验证的数据字典。
+
+        Returns:
+            更新后的 UserRole 实例。
+        """
         fields = validated_data.pop('fields', None)
         with transaction.atomic():
             instance = super().update(instance, validated_data)
@@ -70,7 +96,15 @@ class RoleSerializer(BaseModelSerializer):
                 self.save_fields(fields, instance)
         return instance
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict) -> UserRole:
+        """创建角色，同时创建字段权限。
+
+        Args:
+            validated_data: 已验证的数据字典。
+
+        Returns:
+            创建的 UserRole 实例。
+        """
         fields = validated_data.pop('fields')
         with transaction.atomic():
             instance = super().create(validated_data)
@@ -79,7 +113,11 @@ class RoleSerializer(BaseModelSerializer):
 
 
 class ListRoleSerializer(RoleSerializer):
+    """角色列表序列化器。"""
+
     class Meta:
+        """序列化器元数据。"""
+
         model = UserRole
         fields = ['pk', 'name', 'is_active', 'code', 'menu', 'description', 'updated_time', 'field', 'fields']
         read_only_fields = [x.name for x in UserRole._meta.fields]
@@ -88,5 +126,13 @@ class ListRoleSerializer(RoleSerializer):
     menu = serializers.SerializerMethodField(read_only=True)
 
     @extend_schema_field(serializers.ListField)
-    def get_menu(self, instance):
+    def get_menu(self, instance: UserRole) -> list:
+        """获取角色的菜单列表（列表视图返回空列表）。
+
+        Args:
+            instance: UserRole 模型实例。
+
+        Returns:
+            空列表。
+        """
         return []

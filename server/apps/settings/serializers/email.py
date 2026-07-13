@@ -4,11 +4,15 @@
 # filename : email
 # author : ly_13
 # date : 8/1/2024
+"""邮件设置序列化器定义。"""
+
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 
 class EmailSettingSerializer(serializers.Serializer):
+    """邮件服务设置序列化器，包含 SMTP 服务器连接及认证配置。"""
+
     EMAIL_ENABLED = serializers.BooleanField(
         default=False, label=_('Email'), help_text=_('Enable Email Service (Email)')
     )

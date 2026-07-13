@@ -1,13 +1,17 @@
-from django.core.management.base import BaseCommand
+"""创建验证码池的管理命令。"""
+from django.core.management.base import BaseCommand, CommandParser
 from django.db import transaction
 
 from apps.captcha.models import CaptchaStore
 
 
 class Command(BaseCommand):
+    """创建一批随机验证码并加入池中。"""
+
     help = "Create a pool of random captchas."
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
+        """添加命令行参数。"""
         parser.add_argument(
             "--pool-size",
             type=int,
@@ -22,7 +26,8 @@ class Command(BaseCommand):
         )
 
     @transaction.atomic
-    def handle(self, **options):
+    def handle(self, **options) -> None:
+        """执行创建验证码池的逻辑。"""
         verbose = int(options.get("verbosity"))
         count = options.get("pool_size")
         CaptchaStore.create_pool(count)

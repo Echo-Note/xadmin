@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 #
+"""项目级常量定义模块，包含项目路径、版本号及全局配置实例。"""
 import os
 
 from .conf import ConfigManager
