@@ -1,0 +1,8 @@
+{
+  // VS Code 工作区设置
+  // 指定后端 Python 解释器为 xadmin-server/.venv
+  "python.defaultInterpreterPath": "${workspaceFolder}/xadmin-server/.venv/bin/python",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/xadmin-server"
+  ]
+}

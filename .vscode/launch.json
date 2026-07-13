@@ -13,6 +13,7 @@
       "name": "Django: xadmin-server",
       "type": "debugpy",
       "request": "launch",
+      "python": "${workspaceFolder}/xadmin-server/.venv/bin/python",
       "program": "${workspaceFolder}/xadmin-server/manage.py",
       "args": ["runserver", "0.0.0.0:8896", "--noreload"],
       // --noreload 避免 autoreload fork 子进程导致断点失效，调试时如需热重载可去掉该参数
