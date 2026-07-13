@@ -4,16 +4,25 @@
 
 ## 项目结构
 
-- `xadmin-server/` — 后端服务 (Django 5.2, Python 3.12, uv)
-- `xadmin-client/` — 前端应用 (Vue3, Vite, pnpm)
+- `server/` — 后端服务 (Django 5.2, Python 3.12, uv) [独立仓库](https://github.com/Echo-Note/xadmin-server)
+- `client/` — 前端应用 (Vue3, Vite, pnpm) [独立仓库](https://github.com/Echo-Note/xadmin-client)
+
+> `server/` 和 `client/` 是独立的 git 仓库，不纳入根仓库管理（已在 `.gitignore` 中忽略）。
 
 ## 快速开始
 
 ### 1. 克隆仓库
 
 ```bash
-git clone --recursive https://github.com/Echo-Note/xadmin.git
+# 克隆根仓库（含 VS Code 配置）
+git clone https://github.com/Echo-Note/xadmin.git
 cd xadmin
+
+# 克隆后端到 server 目录
+git clone https://github.com/Echo-Note/xadmin-server.git server
+
+# 克隆前端到 client 目录
+git clone https://github.com/Echo-Note/xadmin-client.git client
 ```
 
 ### 2. 配置 Docker 地址
@@ -41,7 +50,7 @@ DOCKER_HOST=ssh://user@172.16.30.120
 ### 3. 后端配置
 
 ```bash
-cd xadmin-server
+cd server
 
 # 安装依赖（含开发工具）
 uv sync --group dev
@@ -65,7 +74,7 @@ REDIS_HOST: 127.0.0.1
 ### 4. 前端配置
 
 ```bash
-cd xadmin-client
+cd client
 pnpm install
 ```
 
@@ -75,9 +84,9 @@ pnpm install
 
 | 配置 | 说明 |
 |------|------|
-| `Django: xadmin-server` | 后端断点调试（自动启动 Docker 前置服务） |
-| `Vue: xadmin-client (Chrome)` | 前端 Chrome 断点调试 |
-| `Vue: xadmin-client (Edge)` | 前端 Edge 断点调试 |
+| `Django: server` | 后端断点调试（自动启动 Docker 前置服务） |
+| `Vue: client (Chrome)` | 前端 Chrome 断点调试 |
+| `Vue: client (Edge)` | 前端 Edge 断点调试 |
 | `全栈调试: 前后端联调 (Chrome)` | 同时启动后端 + 前端 Chrome |
 | `全栈调试: 前后端联调 (Edge)` | 同时启动后端 + 前端 Edge |
 
@@ -110,12 +119,12 @@ F5 启动调试
 |------|------|----------|
 | `.env.example` | Docker 配置模板 | 是 |
 | `.env` | 本地 Docker 配置（每人不同） | 否（.gitignore 忽略） |
-| `xadmin-server/docker-compose.yml` | Docker Compose 服务定义 | 是 |
-| `xadmin-server/docker-compose.override.yml` | 开发环境端口映射覆盖 | 是 |
+| `server/docker-compose.yml` | Docker Compose 服务定义 | 是 |
+| `server/docker-compose.override.yml` | 开发环境端口映射覆盖 | 是 |
 
 ### 切换 Docker 服务器
 
-修改 `.env` 中的 `DOCKER_HOST`，同时更新 `xadmin-server/config.yml` 中的 `DB_HOST` 和 `REDIS_HOST` 为对应服务器 IP 即可。
+修改 `.env` 中的 `DOCKER_HOST`，同时更新 `server/config.yml` 中的 `DB_HOST` 和 `REDIS_HOST` 为对应服务器 IP 即可。
 
 ### 使用本地 Docker
 
@@ -125,5 +134,5 @@ F5 启动调试
 
 - [开发部署文档](https://docs.dvcloud.xin/)
 - [Docker 容器化部署](https://docs.dvcloud.xin/guide/installation-docker.html)
-- 后端详细说明: `xadmin-server/README.md`
-- 前端详细说明: `xadmin-client/README.md`
+- 后端详细说明: `server/README.md`
+- 前端详细说明: `client/README.md`

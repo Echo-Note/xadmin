@@ -5,11 +5,11 @@
     // 启动前端 Vite dev server (端口 8848)
     // 被 launch.json 中前端调试配置的 preLaunchTask 引用
     {
-      "label": "vite: dev (xadmin-client)",
+      "label": "vite: dev (client)",
       "type": "shell",
       "command": "pnpm dev",
       "options": {
-        "cwd": "${workspaceFolder}/xadmin-client"
+        "cwd": "${workspaceFolder}/client"
       },
       "isBackground": true,
       "problemMatcher": {
@@ -26,7 +26,7 @@
       "presentation": {
         "reveal": "always",
         "panel": "dedicated",
-        "group": "xadmin-client"
+        "group": "client"
       }
     },
     // 启动后端前置服务: postgresql + redis (docker compose)
@@ -36,17 +36,17 @@
     // --wait 等待 healthcheck 通过后再返回，确保后端启动时数据库已就绪
     // 被 launch.json 中 Django 调试配置的 preLaunchTask 引用
     {
-      "label": "docker: postgresql & redis (xadmin-server)",
+      "label": "docker: postgresql & redis (server)",
       "type": "shell",
       "command": "set -a; source ${workspaceFolder}/.env 2>/dev/null; set +a; docker compose up -d --wait postgresql redis",
       "options": {
-        "cwd": "${workspaceFolder}/xadmin-server"
+        "cwd": "${workspaceFolder}/server"
       },
       "problemMatcher": [],
       "presentation": {
         "reveal": "always",
         "panel": "shared",
-        "group": "xadmin-server"
+        "group": "server"
       }
     }
   ]

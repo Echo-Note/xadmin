@@ -9,3 +9,10 @@
 
 # 日志
 *.log
+
+# IDE
+.idea
+
+# 子项目（独立 git 仓库，不纳入根仓库管理）
+/server/
+/client/
