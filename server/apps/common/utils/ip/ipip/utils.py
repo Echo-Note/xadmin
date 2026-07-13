@@ -4,11 +4,12 @@
 
 import os
 
-import ipdb
 from django.conf import settings
 
+from ipdb.city import City
+
 __all__ = ['get_ip_city_by_ipip']
-ipip_db: ipdb.City | None = None
+ipip_db: City | None = None
 
 
 def init_ipip_db() -> None:
@@ -22,7 +23,7 @@ def init_ipip_db() -> None:
         ipip_db_path = os.path.join(os.path.dirname(__file__), 'ipipfree.ipdb')
     if not os.path.exists(ipip_db_path):
         raise FileNotFoundError('IP Database not found, please run `python manage.py download_ip_db`')
-    ipip_db = ipdb.City(ipip_db_path)
+    ipip_db = City(ipip_db_path)
 
 
 def get_ip_city_by_ipip(ip: str) -> dict[str, str] | None:
