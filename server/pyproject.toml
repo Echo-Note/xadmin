@@ -120,6 +120,19 @@ select = [
     "B",    # flake8-bugbear (常见 bug 模式)
     "UP",   # pyupgrade (语法升级提示)
     "C4",   # flake8-comprehensions (推导式优化)
+    # ---- docstring 完整性检查（公共模块/类/方法/函数是否缺少 docstring）----
+    "D100",  # 缺少模块级 docstring
+    "D101",  # 缺少公共类 docstring
+    "D102",  # 缺少公共方法 docstring
+    "D103",  # 缺少公共函数 docstring
+    "D104",  # 缺少包级 docstring
+    "D105",  # 缺少魔术方法 docstring
+    "D106",  # 缺少嵌套类 docstring
+    "D107",  # 缺少 __init__ docstring
+    # ---- 类型标注完整性检查（函数参数和返回值是否缺少类型标注）----
+    "ANN001",  # 函数参数缺少类型标注
+    "ANN201",  # 公共函数缺少返回类型标注
+    "ANN202",  # 私有函数缺少返回类型标注
 ]
 ignore = [
     "E501",  # 行长度由 formatter 统一管理
@@ -147,3 +160,5 @@ extraPaths = ["."]
 reportMissingTypeStubs = "none"
 # 隐式字符串拼接在 Django 代码中常见，不报错
 reportImplicitStringConcatenation = "none"
+# 函数参数缺少类型标注时告警（与 ruff ANN001 互补，强化类型标注完整性）
+reportMissingParameterType = "warning"

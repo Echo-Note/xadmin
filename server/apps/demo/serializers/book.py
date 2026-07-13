@@ -9,7 +9,7 @@ from rest_framework import serializers
 
 from apps.common.core.serializers import BaseModelSerializer, TabsColumn
 from apps.common.fields.utils import input_wrapper
-from demo import models
+from apps.demo import models
 
 
 class BookSerializer(BaseModelSerializer):
