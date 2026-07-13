@@ -27,6 +27,13 @@ class Command(LoadCommand):
     def handle(self, *args, **options):
         ModelSignal.send = lambda *args, **kwargs: []  # 忽略任何信号
 
+        # 加载 fixture 前检查是否已有用户，没有则自动创建默认管理员
+        # fixture 中 creator_id=1 引用首个用户，必须确保该用户存在
+        if not UserInfo.objects.exists():
+            _ = UserInfo.objects.create_superuser('xadmin', 'xadmin@dvcloud.xin', 'xAdminPwd!')
+            self.stdout.write(self.style.WARNING(
+                'Created default admin user (username: xadmin, password: xAdminPwd!), please change it immediately.'))
+
         fixture_labels = []
         file_root = os.path.join(settings.PROJECT_DIR, "loadjson")
         for model in self.model_names:
