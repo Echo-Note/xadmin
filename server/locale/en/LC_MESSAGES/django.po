@@ -1,0 +1,2098 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-31 11:29+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: common/celery/flower.py:41
+msgid ""
+"<h3>Celery flower service unavailable. Please contact the administrator</h3>"
+msgstr ""
+
+#: common/core/auth.py:25 common/core/filter.py:204 common/core/filter.py:212
+#: common/core/permission.py:121
+msgid "Unauthorized authentication"
+msgstr ""
+
+#: common/core/auth.py:38 system/utils/auth.py:110
+msgid "Token is invalid or expired"
+msgstr ""
+
+#: common/core/exception.py:35
+msgid "Your visit is too fast, please visit again later"
+msgstr ""
+
+#: common/core/exception.py:37
+msgid "Your visit is too fast, please visit again in {} seconds"
+msgstr ""
+
+#: common/core/exception.py:60
+msgid ""
+"The requested address is incorrect or the data permission is not allowed"
+msgstr ""
+
+#: common/core/exception.py:65
+msgid "Is referenced by other {} and cannot be deleted"
+msgstr ""
+
+#: common/core/fields.py:113
+msgid "This field is required."
+msgstr ""
+
+#: common/core/fields.py:114
+#, python-brace-format
+msgid "Invalid pk \"{pk_value}\" - object does not exist."
+msgstr ""
+
+#: common/core/fields.py:115
+#, python-brace-format
+msgid "Incorrect type. Expected pk value, received {data_type}."
+msgstr ""
+
+#: common/core/fields.py:116
+msgid "The query set is empty."
+msgstr ""
+
+#: common/core/models.py:22 common/core/models.py:29
+#: settings/serializers/security.py:246
+msgid "ID"
+msgstr ""
+
+#: common/core/models.py:100 common/models.py:18
+#: settings/serializers/security.py:248
+msgid "Created time"
+msgstr ""
+
+#: common/core/models.py:101
+msgid "Updated time"
+msgstr ""
+
+#: common/core/models.py:102
+msgid "Description"
+msgstr ""
+
+#: common/core/models.py:110
+msgid "Creator"
+msgstr ""
+
+#: common/core/models.py:112
+msgid "Modifier"
+msgstr ""
+
+#: common/core/models.py:114
+msgid "Data ownership department"
+msgstr ""
+
+#: common/core/modelset.py:91
+msgid "Task add success"
+msgstr ""
+
+#: common/core/modelset.py:146
+msgid "Image size cannot exceed {}"
+msgstr ""
+
+#: common/core/modelset.py:149
+msgid "Wrong image type, the type should be {}"
+msgstr ""
+
+#: common/core/modelset.py:172
+msgid "Sorting saved successfully"
+msgstr ""
+
+#: common/core/modelset.py:469
+msgid "Operation successful. Batch deleted {} data"
+msgstr ""
+
+#: common/core/modelset.py:594
+msgid "Operation successful. Import {} data"
+msgstr ""
+
+#: common/core/modelset.py:595 system/utils/auth.py:105
+#: system/utils/modelset.py:57 system/views/auth/register.py:69
+#: system/views/auth/reset.py:47 system/views/auth/verify_code.py:139
+msgid "Operation failed. Abnormal data"
+msgstr ""
+
+#: common/core/permission.py:119
+msgid "Permission denied"
+msgstr ""
+
+#: common/core/response.py:19 common/tasks.py:176 message/base.py:72
+msgid "Operation successful"
+msgstr ""
+
+#: common/core/response.py:19 common/tasks.py:176 message/base.py:72
+msgid "Operation failed"
+msgstr ""
+
+#: common/core/validators.py:14
+msgid "The phone number format is incorrect"
+msgstr ""
+
+#: common/drf/parsers/axios_form_data.py:129
+msgid "Multipart form parse error - {}"
+msgstr ""
+
+#: common/drf/parsers/base.py:21
+msgid "The file content overflowed (The maximum length `{}` bytes)"
+msgstr ""
+
+#: common/drf/parsers/base.py:206
+msgid "The resource does not support imports!"
+msgstr ""
+
+#: common/drf/parsers/base.py:227
+msgid "Parse file error: {}"
+msgstr ""
+
+#: common/drf/parsers/excel.py:14
+msgid "Invalid excel file {}"
+msgstr ""
+
+#: common/drf/renders/base.py:147
+msgid "Yes/No"
+msgstr ""
+
+#: common/drf/renders/base.py:150
+msgid "Text, max length {}"
+msgstr ""
+
+#: common/drf/renders/base.py:152
+msgid "Long text, no length limit"
+msgstr ""
+
+#: common/drf/renders/base.py:154
+msgid "Number, min {}, max {}"
+msgstr ""
+
+#: common/drf/renders/base.py:156
+msgid "Float, min {}, max {}"
+msgstr ""
+
+#: common/drf/renders/base.py:158
+msgid "Decimal, min {}, max {}, max_digits {}, decimal_places {}"
+msgstr ""
+
+#: common/drf/renders/base.py:163
+msgid "Datetime format {}"
+msgstr ""
+
+#: common/drf/renders/base.py:165
+#: system/templates/notify/msg_rest_password_success.html:9
+msgid "IP"
+msgstr ""
+
+#: common/drf/renders/base.py:169
+msgid ""
+"Choices, format name(value), name is optional for human read, value is "
+"requisite, options {}"
+msgstr ""
+
+#: common/drf/renders/base.py:172
+msgid "Choices, options {}"
+msgstr ""
+
+#: common/drf/renders/base.py:174
+msgid "Phone number, format +8612345678901"
+msgstr ""
+
+#: common/drf/renders/base.py:176
+msgid "Label, format [\"key:value\"]"
+msgstr ""
+
+#: common/drf/renders/base.py:178
+msgid ""
+"Object, format name(id), name is optional for human read, id is requisite"
+msgstr ""
+
+#: common/drf/renders/base.py:180
+msgid "Object, format id"
+msgstr ""
+
+#: common/drf/renders/base.py:184
+msgid ""
+"Objects, format [\"name(id)\", ...], name is optional for human read, id is "
+"requisite"
+msgstr ""
+
+#: common/drf/renders/base.py:186
+msgid ""
+"Labels, format [\"key:value\", ...], if label not exists, will create it"
+msgstr ""
+
+#: common/drf/renders/base.py:188
+msgid "Objects, format [\"id\", ...]"
+msgstr ""
+
+#: common/drf/renders/base.py:194
+msgid "JSON"
+msgstr ""
+
+#: common/drf/renders/base.py:196
+msgid "UUID4"
+msgstr ""
+
+#: common/drf/renders/base.py:301
+msgid ""
+"{} - The encryption password has not been set - please go to personal "
+"information -> file encryption password to set the encryption password"
+msgstr ""
+
+#: common/fields/char.py:59
+msgid "{} is not a valid value for AESCharField"
+msgstr ""
+
+#: common/models.py:13
+msgid "CPU Load"
+msgstr ""
+
+#: common/models.py:14
+msgid "CPU Percent"
+msgstr ""
+
+#: common/models.py:15
+msgid "Memory Used"
+msgstr ""
+
+#: common/models.py:16
+msgid "Disk Used"
+msgstr ""
+
+#: common/models.py:17
+msgid "Boot Time"
+msgstr ""
+
+#: common/models.py:21 common/notifications.py:15
+msgid "Monitor"
+msgstr ""
+
+#: common/notifications.py:16
+msgid "Server performance"
+msgstr ""
+
+#: common/notifications.py:22
+msgid "Server health check warning"
+msgstr ""
+
+#: common/notifications.py:54
+#, python-brace-format
+msgid "Disk used more than {max_threshold}%: => {value}"
+msgstr ""
+
+#: common/notifications.py:59
+#, python-brace-format
+msgid "Memory used more than {max_threshold}%: => {value}"
+msgstr ""
+
+#: common/notifications.py:64
+#, python-brace-format
+msgid "CPU load more than {max_threshold}: => {value}"
+msgstr ""
+
+#: common/notifications.py:69
+#, python-brace-format
+msgid "CPU percent more than {max_threshold}: => {value}"
+msgstr ""
+
+#: common/notifications.py:149 common/notifications.py:160
+msgid "Task Message"
+msgstr ""
+
+#: common/notifications.py:150
+msgid "Import data message"
+msgstr ""
+
+#: common/notifications.py:155
+msgid "Import {} data {} message"
+msgstr ""
+
+#: common/notifications.py:161
+msgid "Batch delete data message"
+msgstr ""
+
+#: common/notifications.py:166
+msgid "Batch delete {} data {} message"
+msgstr ""
+
+#: common/sdk/sms/alibaba.py:62
+msgid "Signature does not match"
+msgstr ""
+
+#: common/sdk/sms/endpoint.py:22
+msgid "Alibaba cloud"
+msgstr ""
+
+#: common/sdk/sms/endpoint.py:33
+msgid "SMS provider not support: {}"
+msgstr ""
+
+#: common/sdk/sms/endpoint.py:55
+msgid "SMS verification code signature or template invalid"
+msgstr ""
+
+#: common/sdk/sms/exceptions.py:14
+msgid "The verification code has expired. Please resend it"
+msgstr ""
+
+#: common/sdk/sms/exceptions.py:19
+msgid "The verification code is incorrect"
+msgstr ""
+
+#: common/sdk/sms/exceptions.py:24 common/sdk/sms/exceptions.py:32
+msgid "Please wait {} seconds before sending"
+msgstr ""
+
+#: common/swagger/views.py:38
+msgid "Incorrect username/password"
+msgstr ""
+
+#: common/swagger/views.py:47
+msgid "Please enter your account information to log in"
+msgstr ""
+
+#: common/tasks.py:33
+msgid "Send email"
+msgstr ""
+
+#: common/tasks.py:65
+msgid "Send email attachment"
+msgstr ""
+
+#: common/tasks.py:87
+msgid "Periodic delete monitor"
+msgstr ""
+
+#: common/tasks.py:96
+msgid "Clear celery periodic tasks"
+msgstr ""
+
+#: common/tasks.py:97
+msgid "At system startup, clean up celery tasks that no longer exist"
+msgstr ""
+
+#: common/tasks.py:119
+msgid "Create or update periodic tasks"
+msgstr ""
+
+#: common/tasks.py:121
+msgid ""
+"With version iterations, new tasks may be added, or task names and execution "
+"times may \n"
+"        be modified. Therefore, upon system startup, tasks will be "
+"registered or the parameters \n"
+"        of scheduled tasks will be updated"
+msgstr ""
+
+#: common/tasks.py:134
+msgid "Periodic check service performance"
+msgstr ""
+
+#: common/tasks.py:136
+msgid ""
+"Check every hour whether each component is offline and whether the CPU, "
+"memory, \n"
+"        and disk usage exceed the thresholds, and send an alert message to "
+"the administrator"
+msgstr ""
+
+#: common/tasks.py:145
+msgid "Run background task view set"
+msgstr ""
+
+#: common/templates/notify/msg_task.html:3
+#: system/templates/msg_verify_code.html:9
+#: system/templates/notify/msg_different_city.html:3
+msgid "Hello"
+msgstr ""
+
+#: common/templates/notify/msg_task.html:6
+msgid "Task name"
+msgstr ""
+
+#: common/templates/notify/msg_task.html:7
+msgid "Your Task is finished"
+msgstr ""
+
+#: common/templates/notify/msg_task.html:18
+msgid "Task Id"
+msgstr ""
+
+#: common/templates/notify/msg_task.html:19
+msgid "Task start date"
+msgstr ""
+
+#: common/templates/notify/msg_task.html:20
+msgid "Task end date"
+msgstr ""
+
+#: common/templates/notify/msg_task.html:21
+msgid "Task result"
+msgstr ""
+
+#: common/utils/country.py:48
+msgid "China"
+msgstr ""
+
+#: common/utils/ip/geoip/utils.py:33 common/utils/ip/geoip/utils.py:45
+#: common/utils/ip/geoip/utils.py:51 system/models/log.py:24
+#: system/models/user.py:20 system/utils/auth.py:82
+msgid "Unknown"
+msgstr ""
+
+#: common/utils/ip/geoip/utils.py:38 system/utils/auth.py:144
+msgid "LAN"
+msgstr ""
+
+#: common/utils/ip/geoip/utils.py:40
+msgid "Invalid ip"
+msgstr ""
+
+#: common/utils/ip/utils.py:98
+msgid "Invalid address"
+msgstr ""
+
+#: common/utils/media.py:54
+msgid "Directory indexes are not allowed here."
+msgstr ""
+
+#: common/utils/media.py:60
+#, python-format
+msgid "“%(path)s” does not exist"
+msgstr ""
+
+#: common/utils/verify_code.py:22
+msgid "Send SMS code"
+msgstr ""
+
+#: message/utils.py:98
+msgid "Wait for result timeout"
+msgstr ""
+
+#: notifications/apps.py:8
+msgid "App Notifications"
+msgstr ""
+
+#: notifications/backends/__init__.py:10 settings/serializers/email.py:13
+#: system/models/user.py:33
+msgid "Email"
+msgstr ""
+
+#: notifications/backends/__init__.py:11
+msgid "Site message"
+msgstr ""
+
+#: notifications/models/message.py:16
+msgid "System notification"
+msgstr ""
+
+#: notifications/models/message.py:17
+msgid "System announcement"
+msgstr ""
+
+#: notifications/models/message.py:18
+msgid "User notification"
+msgstr ""
+
+#: notifications/models/message.py:19
+msgid "Department notification"
+msgstr ""
+
+#: notifications/models/message.py:20
+msgid "Role notification"
+msgstr ""
+
+#: notifications/models/message.py:23
+msgid "Ordinary notices"
+msgstr ""
+
+#: notifications/models/message.py:24
+msgid "General notices"
+msgstr ""
+
+#: notifications/models/message.py:25
+msgid "Success notices"
+msgstr ""
+
+#: notifications/models/message.py:26
+msgid "Important notices"
+msgstr ""
+
+#: notifications/models/message.py:29
+msgid "The notified user"
+msgstr ""
+
+#: notifications/models/message.py:31
+msgid "The notified department"
+msgstr ""
+
+#: notifications/models/message.py:33
+msgid "The notified role"
+msgstr ""
+
+#: notifications/models/message.py:34
+msgid "Notice level"
+msgstr ""
+
+#: notifications/models/message.py:36 notifications/serializers/message.py:122
+msgid "Notice type"
+msgstr ""
+
+#: notifications/models/message.py:38
+msgid "Notice title"
+msgstr ""
+
+#: notifications/models/message.py:39 notifications/serializers/message.py:125
+msgid "Notice message"
+msgstr ""
+
+#: notifications/models/message.py:40
+msgid "Additional json data"
+msgstr ""
+
+#: notifications/models/message.py:41 notifications/serializers/message.py:40
+msgid "Uploaded attachments"
+msgstr ""
+
+#: notifications/models/message.py:42
+msgid "Publish"
+msgstr ""
+
+#: notifications/models/message.py:53
+msgid "Message content"
+msgstr ""
+
+#: notifications/models/message.py:62 notifications/models/notification.py:17
+#: notifications/models/notification.py:30
+#: notifications/serializers/notifications.py:20
+#: notifications/serializers/notifications.py:39 system/models/config.py:39
+msgid "User"
+msgstr ""
+
+#: notifications/models/message.py:63
+msgid "Notice"
+msgstr ""
+
+#: notifications/models/message.py:64 notifications/serializers/message.py:137
+msgid "Unread"
+msgstr ""
+
+#: notifications/models/message.py:68
+msgid "User read message"
+msgstr ""
+
+#: notifications/models/notification.py:15
+#: notifications/models/notification.py:29
+msgid "message type"
+msgstr ""
+
+#: notifications/models/notification.py:18
+#: notifications/models/notification.py:31
+msgid "receive backend"
+msgstr ""
+
+#: notifications/models/notification.py:21
+msgid "User message subscription"
+msgstr ""
+
+#: notifications/models/notification.py:25
+msgid "{} subscription"
+msgstr ""
+
+#: notifications/models/notification.py:34
+msgid "System message subscription"
+msgstr ""
+
+#: notifications/notifications.py:43
+msgid "Publish the station message"
+msgstr ""
+
+#: notifications/notifications.py:190
+msgid "Time"
+msgstr ""
+
+#: notifications/serializers/message.py:41 system/serializers/department.py:40
+msgid "User count"
+msgstr ""
+
+#: notifications/serializers/message.py:42
+msgid "Read user count"
+msgstr ""
+
+#: notifications/serializers/message.py:65
+msgid "Parameter error. System announcement cannot be created"
+msgstr ""
+
+#: notifications/serializers/message.py:75
+msgid "The notice role cannot be null"
+msgstr ""
+
+#: notifications/serializers/message.py:81
+msgid "The notice department cannot be null"
+msgstr ""
+
+#: notifications/serializers/message.py:87
+msgid "The notice user cannot be null"
+msgstr ""
+
+#: notifications/serializers/message.py:101
+msgid "The system notice cannot be update"
+msgstr ""
+
+#: notifications/serializers/message.py:110
+msgid "Parameter error"
+msgstr ""
+
+#: notifications/serializers/notifications.py:38
+msgid "Message Type"
+msgstr ""
+
+#: settings/models.py:15 settings/serializers/sms.py:54
+#: system/models/permission.py:17
+msgid "Name"
+msgstr ""
+
+#: settings/models.py:16
+msgid "Value"
+msgstr ""
+
+#: settings/models.py:17
+msgid "Category"
+msgstr ""
+
+#: settings/models.py:18
+msgid "Encrypted"
+msgstr ""
+
+#: settings/models.py:19 system/models/config.py:17
+#: system/models/department.py:29 system/models/menu.py:68
+#: system/models/permission.py:19 system/models/role.py:17
+msgid "Is active"
+msgstr ""
+
+#: settings/models.py:95
+msgid "System setting"
+msgstr ""
+
+#: settings/serializers/basic.py:15
+msgid "Site URL"
+msgstr ""
+
+#: settings/serializers/basic.py:17
+msgid ""
+"Site URL is the externally accessible address of the current product service "
+"and is usually used in links in system emails"
+msgstr ""
+
+#: settings/serializers/basic.py:23
+msgid "Front-end web watermark"
+msgstr ""
+
+#: settings/serializers/basic.py:24
+msgid "Enable watermark for front-end web"
+msgstr ""
+
+#: settings/serializers/basic.py:28 system/models/permission.py:38
+msgid "Field permission"
+msgstr ""
+
+#: settings/serializers/basic.py:29
+msgid "Field permissions are used to authorize access to data field display"
+msgstr ""
+
+#: settings/serializers/basic.py:33 system/models/department.py:24
+#: system/models/field.py:33 system/models/permission.py:25
+#: system/models/user.py:36
+msgid "Data permission"
+msgstr ""
+
+#: settings/serializers/basic.py:34
+msgid "Data permissions are used to authorize access to data"
+msgstr ""
+
+#: settings/serializers/basic.py:38
+msgid "Export max limit"
+msgstr ""
+
+#: settings/serializers/basic.py:39
+msgid "Limit the maximum number of rows of exported data"
+msgstr ""
+
+#: settings/serializers/email.py:13
+msgid "Enable Email Service (Email)"
+msgstr ""
+
+#: settings/serializers/email.py:15
+msgid "Host"
+msgstr ""
+
+#: settings/serializers/email.py:16
+msgid "Port"
+msgstr ""
+
+#: settings/serializers/email.py:18
+msgid "Account"
+msgstr ""
+
+#: settings/serializers/email.py:19
+msgid "The user to be used for email server authentication"
+msgstr ""
+
+#: settings/serializers/email.py:22 system/serializers/user.py:81
+msgid "Password"
+msgstr ""
+
+#: settings/serializers/email.py:24
+msgid ""
+"Password to use for the email server. It is used in conjunction with `User` "
+"when authenticating to the email server"
+msgstr ""
+
+#: settings/serializers/email.py:27
+msgid "Sender"
+msgstr ""
+
+#: settings/serializers/email.py:28
+msgid "Sender email address (default to using the `User`)"
+msgstr ""
+
+#: settings/serializers/email.py:32
+msgid "Subject prefix"
+msgstr ""
+
+#: settings/serializers/email.py:33
+msgid "The subject line prefix of the sent email"
+msgstr ""
+
+#: settings/serializers/email.py:36
+msgid "Use SSL"
+msgstr ""
+
+#: settings/serializers/email.py:38
+msgid ""
+"Whether to use an implicit TLS (secure) connection when talking to the SMTP "
+"server. In most email documentation this type of TLS connection is referred "
+"to as SSL. It is generally used on port 465"
+msgstr ""
+
+#: settings/serializers/email.py:41
+msgid "Use TLS"
+msgstr ""
+
+#: settings/serializers/email.py:43
+msgid ""
+"Whether to use a TLS (secure) connection when talking to the SMTP server. "
+"This is used for explicit TLS connections, generally on port 587"
+msgstr ""
+
+#: settings/serializers/email.py:47
+msgid "Recipient"
+msgstr ""
+
+#: settings/serializers/email.py:48
+msgid "The recipient is used for testing the email server's connectivity"
+msgstr ""
+
+#: settings/serializers/security.py:18
+msgid "Minimum length (User)"
+msgstr ""
+
+#: settings/serializers/security.py:22
+msgid "Minimum length (Admin)"
+msgstr ""
+
+#: settings/serializers/security.py:25 settings/serializers/security.py:270
+msgid "Uppercase"
+msgstr ""
+
+#: settings/serializers/security.py:28 settings/serializers/security.py:274
+msgid "Lowercase"
+msgstr ""
+
+#: settings/serializers/security.py:31 settings/serializers/security.py:278
+msgid "Digits"
+msgstr ""
+
+#: settings/serializers/security.py:34
+msgid "Special characters"
+msgstr ""
+
+#: settings/serializers/security.py:39
+msgid ""
+"If the user has failed to log in for a limited number of times, no login is "
+"allowed during this time interval."
+msgstr ""
+
+#: settings/serializers/security.py:44
+msgid ""
+"With * indicating a match all. Such as: 192.168.10.1, 192.168.1.0/24, "
+"10.1.1.1-10.1.1.20, 2001:db8:2de::e13, 2001:db8:1a:1110::/64 "
+msgstr ""
+
+#: settings/serializers/security.py:56
+msgid "IP address invalid: `{}`"
+msgstr ""
+
+#: settings/serializers/security.py:62
+msgid "Suspicious Login Verification"
+msgstr ""
+
+#: settings/serializers/security.py:64
+msgid ""
+"The system determines whether the login IP address belongs to a common login "
+"city. If the account is logged in from a common login city, the system sends "
+"a remote login reminder"
+msgstr ""
+
+#: settings/serializers/security.py:70
+msgid "User login failures count"
+msgstr ""
+
+#: settings/serializers/security.py:74
+msgid "User login failure period (minute)"
+msgstr ""
+
+#: settings/serializers/security.py:80
+msgid "IP login failures count"
+msgstr ""
+
+#: settings/serializers/security.py:84
+msgid "IP login failure period (minute)"
+msgstr ""
+
+#: settings/serializers/security.py:88
+msgid "Login IP whitelist"
+msgstr ""
+
+#: settings/serializers/security.py:93
+msgid "Login IP blacklist"
+msgstr ""
+
+#: settings/serializers/security.py:101
+msgid "Login enabled"
+msgstr ""
+
+#: settings/serializers/security.py:102
+msgid "Enable login for user"
+msgstr ""
+
+#: settings/serializers/security.py:106
+msgid "Login captcha"
+msgstr ""
+
+#: settings/serializers/security.py:107
+msgid "Enable captcha to prevent robot authentication"
+msgstr ""
+
+#: settings/serializers/security.py:111
+msgid "Login encrypted"
+msgstr ""
+
+#: settings/serializers/security.py:112 settings/serializers/security.py:148
+#: settings/serializers/security.py:184 settings/serializers/security.py:215
+#: settings/serializers/security.py:236
+msgid "Enable encryption to prevent information leakage"
+msgstr ""
+
+#: settings/serializers/security.py:116
+msgid "Login temp token"
+msgstr ""
+
+#: settings/serializers/security.py:117 settings/serializers/security.py:153
+#: settings/serializers/security.py:189 settings/serializers/security.py:220
+#: settings/serializers/security.py:241
+msgid "Enable temporary tokens to prevent attacks"
+msgstr ""
+
+#: settings/serializers/security.py:121
+msgid "Login by email"
+msgstr ""
+
+#: settings/serializers/security.py:122 settings/serializers/security.py:158
+#: settings/serializers/security.py:194
+msgid "Enable send email verify code to user"
+msgstr ""
+
+#: settings/serializers/security.py:126
+msgid "Login by sms"
+msgstr ""
+
+#: settings/serializers/security.py:127 settings/serializers/security.py:163
+#: settings/serializers/security.py:199
+msgid "Enable send sms verify code to user"
+msgstr ""
+
+#: settings/serializers/security.py:131
+msgid "Login by basic"
+msgstr ""
+
+#: settings/serializers/security.py:132
+msgid "Enable basic verify to user login"
+msgstr ""
+
+#: settings/serializers/security.py:138
+msgid "Register enable"
+msgstr ""
+
+#: settings/serializers/security.py:139
+msgid "Enable register for user"
+msgstr ""
+
+#: settings/serializers/security.py:142
+msgid "Register captcha"
+msgstr ""
+
+#: settings/serializers/security.py:143
+msgid "Enable captcha to prevent robot register"
+msgstr ""
+
+#: settings/serializers/security.py:147
+msgid "Register encrypted"
+msgstr ""
+
+#: settings/serializers/security.py:152
+msgid "Register temp token"
+msgstr ""
+
+#: settings/serializers/security.py:157
+msgid "Register by email"
+msgstr ""
+
+#: settings/serializers/security.py:162
+msgid "Register by sms"
+msgstr ""
+
+#: settings/serializers/security.py:167
+msgid "Register by basic"
+msgstr ""
+
+#: settings/serializers/security.py:168
+msgid "Enable basic verify to user register"
+msgstr ""
+
+#: settings/serializers/security.py:174
+msgid "Reset password enable"
+msgstr ""
+
+#: settings/serializers/security.py:175
+msgid "Enable reset password for user"
+msgstr ""
+
+#: settings/serializers/security.py:178
+msgid "Reset password captcha"
+msgstr ""
+
+#: settings/serializers/security.py:179 settings/serializers/security.py:210
+#: settings/serializers/security.py:231
+msgid "Enable captcha to prevent robot reset password"
+msgstr ""
+
+#: settings/serializers/security.py:183
+msgid "Reset password encrypted"
+msgstr ""
+
+#: settings/serializers/security.py:188
+msgid "Reset password temp token"
+msgstr ""
+
+#: settings/serializers/security.py:193
+msgid "Reset password by email"
+msgstr ""
+
+#: settings/serializers/security.py:198
+msgid "Reset password by sms"
+msgstr ""
+
+#: settings/serializers/security.py:205
+msgid "Bind email enable"
+msgstr ""
+
+#: settings/serializers/security.py:206
+msgid "Enable bind email for user"
+msgstr ""
+
+#: settings/serializers/security.py:209
+msgid "Bind email captcha"
+msgstr ""
+
+#: settings/serializers/security.py:214
+msgid "Bind email encrypted"
+msgstr ""
+
+#: settings/serializers/security.py:219
+msgid "Bind email temp token"
+msgstr ""
+
+#: settings/serializers/security.py:226
+msgid "Bind phone enable"
+msgstr ""
+
+#: settings/serializers/security.py:227
+msgid "Enable bind phone for user"
+msgstr ""
+
+#: settings/serializers/security.py:230
+msgid "Bind phone captcha"
+msgstr ""
+
+#: settings/serializers/security.py:235
+msgid "Bind phone encrypted"
+msgstr ""
+
+#: settings/serializers/security.py:240
+msgid "Bind phone temp token"
+msgstr ""
+
+#: settings/serializers/security.py:247
+msgid "Block IP"
+msgstr ""
+
+#: settings/serializers/security.py:254
+msgid "Verify code TTL (second)"
+msgstr ""
+
+#: settings/serializers/security.py:255
+msgid "Verify code expiration time"
+msgstr ""
+
+#: settings/serializers/security.py:260
+msgid "Verify code rate (second)"
+msgstr ""
+
+#: settings/serializers/security.py:261
+msgid "Verify code send rate limit"
+msgstr ""
+
+#: settings/serializers/security.py:265
+msgid "Code length"
+msgstr ""
+
+#: settings/serializers/security.py:266
+msgid "Length of the sent verification code"
+msgstr ""
+
+#: settings/serializers/security.py:284
+msgid "Random char"
+msgstr ""
+
+#: settings/serializers/security.py:285
+msgid "Math challenge"
+msgstr ""
+
+#: settings/serializers/security.py:288
+msgid "Noise function null"
+msgstr ""
+
+#: settings/serializers/security.py:289
+msgid "Noise function arcs"
+msgstr ""
+
+#: settings/serializers/security.py:290
+msgid "Noise function dots"
+msgstr ""
+
+#: settings/serializers/security.py:294
+msgid "Challenge generator"
+msgstr ""
+
+#: settings/serializers/security.py:295
+msgid "Image verification code generation mode"
+msgstr ""
+
+#: settings/serializers/security.py:298
+msgid "Captcha code length"
+msgstr ""
+
+#: settings/serializers/security.py:299
+msgid "Length of the captcha code"
+msgstr ""
+
+#: settings/serializers/security.py:303
+msgid "Captcha font size"
+msgstr ""
+
+#: settings/serializers/security.py:304
+msgid "Font size of the captcha code"
+msgstr ""
+
+#: settings/serializers/security.py:308
+msgid "Captcha timeout (minute)"
+msgstr ""
+
+#: settings/serializers/security.py:309
+msgid "Captcha code expiration time"
+msgstr ""
+
+#: settings/serializers/security.py:312
+msgid "Captcha background color"
+msgstr ""
+
+#: settings/serializers/security.py:313
+msgid "Captcha foreground color"
+msgstr ""
+
+#: settings/serializers/security.py:315
+msgid "Noise functions"
+msgstr ""
+
+#: settings/serializers/sms.py:18 settings/serializers/sms.py:25
+msgid "SMS"
+msgstr ""
+
+#: settings/serializers/sms.py:18
+msgid "Enable Short Message Service (SMS)"
+msgstr ""
+
+#: settings/serializers/sms.py:20
+msgid "Provider"
+msgstr ""
+
+#: settings/serializers/sms.py:21
+msgid "Short Message Service (SMS) provider or protocol"
+msgstr ""
+
+#: settings/serializers/sms.py:29 system/models/user.py:32
+msgid "Phone"
+msgstr ""
+
+#: settings/serializers/sms.py:29
+msgid "The phone is used for testing the SMS server's connectivity"
+msgstr ""
+
+#: settings/serializers/sms.py:49
+msgid "Signature"
+msgstr ""
+
+#: settings/serializers/sms.py:50
+msgid "Template code"
+msgstr ""
+
+#: settings/serializers/sms.py:55
+msgid "Label"
+msgstr ""
+
+#: settings/views/email.py:42
+msgid "Test smtp setting"
+msgstr ""
+
+#: settings/views/email.py:67
+msgid "Test mail sent to {}, please check"
+msgstr ""
+
+#: settings/views/sms.py:100
+msgid "test_phone is required"
+msgstr ""
+
+#: settings/views/sms.py:111
+msgid "Test success"
+msgstr ""
+
+#: system/models/abstract.py:14
+msgid "Or mode"
+msgstr ""
+
+#: system/models/abstract.py:15
+msgid "And mode"
+msgstr ""
+
+#: system/models/abstract.py:18
+msgid "Data permission mode"
+msgstr ""
+
+#: system/models/abstract.py:20
+msgid ""
+"Permission mode, and the mode indicates that the data needs to satisfy each "
+"rule in the rule list at the same time, or the mode satisfies any rule"
+msgstr ""
+
+#: system/models/config.py:16
+msgid "Config value"
+msgstr ""
+
+#: system/models/config.py:18
+msgid "API access"
+msgstr ""
+
+#: system/models/config.py:19
+msgid "Allows API interfaces to access this config"
+msgstr ""
+
+#: system/models/config.py:26 system/models/config.py:40
+msgid "Config name"
+msgstr ""
+
+#: system/models/config.py:27
+msgid "User inherit"
+msgstr ""
+
+#: system/models/config.py:28
+msgid "Allows users to inherit this config"
+msgstr ""
+
+#: system/models/config.py:31
+msgid "System config"
+msgstr ""
+
+#: system/models/config.py:43
+msgid "User config"
+msgstr ""
+
+#: system/models/department.py:19
+msgid "Department name"
+msgstr ""
+
+#: system/models/department.py:20
+msgid "Department code"
+msgstr ""
+
+#: system/models/department.py:21
+msgid "Superior department"
+msgstr ""
+
+#: system/models/department.py:23 system/models/field.py:32
+#: system/models/user.py:35
+msgid "Role permission"
+msgstr ""
+
+#: system/models/department.py:25 system/models/menu.py:65
+msgid "Rank"
+msgstr ""
+
+#: system/models/department.py:26
+msgid "Auto bind"
+msgstr ""
+
+#: system/models/department.py:28
+msgid ""
+"If the value of the registration parameter channel is consistent with the "
+"department code, the user is automatically bound to the department"
+msgstr ""
+
+#: system/models/department.py:49 system/models/user.py:37
+msgid "Department"
+msgstr ""
+
+#: system/models/field.py:16
+msgid "Text"
+msgstr ""
+
+#: system/models/field.py:17
+msgid "Json"
+msgstr ""
+
+#: system/models/field.py:18
+msgid "All data"
+msgstr ""
+
+#: system/models/field.py:19
+msgid "Datetime"
+msgstr ""
+
+#: system/models/field.py:20
+msgid "Datetime range selector"
+msgstr ""
+
+#: system/models/field.py:21
+msgid "Seconds to the current time"
+msgstr ""
+
+#: system/models/field.py:22
+msgid "My ID"
+msgstr ""
+
+#: system/models/field.py:23
+msgid "My department ID"
+msgstr ""
+
+#: system/models/field.py:24
+msgid "My department ID and data below the department"
+msgstr ""
+
+#: system/models/field.py:25
+msgid "Department ID and data below the department"
+msgstr ""
+
+#: system/models/field.py:26
+msgid "Select the user ID"
+msgstr ""
+
+#: system/models/field.py:27
+msgid "Select menu ID"
+msgstr ""
+
+#: system/models/field.py:28
+msgid "Select role ID"
+msgstr ""
+
+#: system/models/field.py:29
+msgid "Select department ID"
+msgstr ""
+
+#: system/models/field.py:35
+msgid "Field type"
+msgstr ""
+
+#: system/models/field.py:37
+msgid "Parent node"
+msgstr ""
+
+#: system/models/field.py:38
+msgid "Model/Field name"
+msgstr ""
+
+#: system/models/field.py:39
+msgid "Model/Field label"
+msgstr ""
+
+#: system/models/field.py:44
+msgid "Model label field"
+msgstr ""
+
+#: system/models/log.py:19
+msgid "Username and password"
+msgstr ""
+
+#: system/models/log.py:20
+msgid "SMS verification code"
+msgstr ""
+
+#: system/models/log.py:21
+msgid "Email verification code"
+msgstr ""
+
+#: system/models/log.py:22
+msgid "Wechat scan code"
+msgstr ""
+
+#: system/models/log.py:23
+msgid "Websocket"
+msgstr ""
+
+#: system/models/log.py:26
+msgid "Login status"
+msgstr ""
+
+#: system/models/log.py:27 system/models/log.py:59
+msgid "IpAddress"
+msgstr ""
+
+#: system/models/log.py:28 system/templates/notify/msg_different_city.html:11
+msgid "Login city"
+msgstr ""
+
+#: system/models/log.py:29 system/models/log.py:60
+#: system/templates/notify/msg_rest_password_success.html:10
+msgid "Browser"
+msgstr ""
+
+#: system/models/log.py:30 system/models/log.py:61
+msgid "System"
+msgstr ""
+
+#: system/models/log.py:31
+msgid "Agent"
+msgstr ""
+
+#: system/models/log.py:32
+msgid "Channel name"
+msgstr ""
+
+#: system/models/log.py:34
+msgid "Login type"
+msgstr ""
+
+#: system/models/log.py:37
+msgid "User login log"
+msgstr ""
+
+#: system/models/log.py:55
+msgid "Module"
+msgstr ""
+
+#: system/models/log.py:56
+msgid "URL path"
+msgstr ""
+
+#: system/models/log.py:57
+msgid "Request body"
+msgstr ""
+
+#: system/models/log.py:58
+msgid "Request method"
+msgstr ""
+
+#: system/models/log.py:62
+msgid "Response code"
+msgstr ""
+
+#: system/models/log.py:63
+msgid "Response result"
+msgstr ""
+
+#: system/models/log.py:64
+msgid "Status code"
+msgstr ""
+
+#: system/models/log.py:65
+msgid "Request ID"
+msgstr ""
+
+#: system/models/log.py:66
+msgid "Execution time"
+msgstr ""
+
+#: system/models/log.py:69
+msgid "Operation log"
+msgstr ""
+
+#: system/models/menu.py:15 system/views/search/menu.py:36
+msgid "Menu title"
+msgstr ""
+
+#: system/models/menu.py:16
+msgid "Left icon"
+msgstr ""
+
+#: system/models/menu.py:17 system/serializers/route.py:29
+msgid "Right icon"
+msgstr ""
+
+#: system/models/menu.py:18
+msgid "Additional icon to the right of menu name"
+msgstr ""
+
+#: system/models/menu.py:19 system/serializers/route.py:28
+msgid "Show menu"
+msgstr ""
+
+#: system/models/menu.py:20 system/serializers/route.py:27
+msgid "Show parent menu"
+msgstr ""
+
+#: system/models/menu.py:21 system/serializers/route.py:30
+msgid "Keepalive"
+msgstr ""
+
+#: system/models/menu.py:23
+msgid ""
+"When enabled, the entire state of the page is saved, and when refreshed, the "
+"state is cleared"
+msgstr ""
+
+#: system/models/menu.py:24 system/serializers/route.py:31
+msgid "Iframe URL"
+msgstr ""
+
+#: system/models/menu.py:25
+msgid "The embedded iframe link address"
+msgstr ""
+
+#: system/models/menu.py:26 system/serializers/route.py:32
+msgid "Iframe loading"
+msgstr ""
+
+#: system/models/menu.py:28
+msgid "Enter animation"
+msgstr ""
+
+#: system/models/menu.py:29
+msgid "Leave animation"
+msgstr ""
+
+#: system/models/menu.py:31 system/serializers/route.py:42
+msgid "Hidden tag"
+msgstr ""
+
+#: system/models/menu.py:32
+msgid ""
+"The current menu name or custom information is prohibited from being added "
+"to the TAB"
+msgstr ""
+
+#: system/models/menu.py:33 system/serializers/route.py:43
+msgid "Fixed tag"
+msgstr ""
+
+#: system/models/menu.py:34
+msgid "Whether the current menu name is fixed to the TAB and cannot be closed"
+msgstr ""
+
+#: system/models/menu.py:35 system/serializers/route.py:44
+msgid "Dynamic level"
+msgstr ""
+
+#: system/models/menu.py:36
+msgid "Maximum number of dynamic routes that can be opened"
+msgstr ""
+
+#: system/models/menu.py:39 system/models/menu.py:69
+#: system/serializers/menu.py:29 system/serializers/route.py:56
+msgid "Menu meta"
+msgstr ""
+
+#: system/models/menu.py:49
+msgid "Directory"
+msgstr ""
+
+#: system/models/menu.py:50 system/models/menu.py:84
+#: system/models/permission.py:20 system/models/permission.py:34
+#: system/models/role.py:18
+msgid "Menu"
+msgstr ""
+
+#: system/models/menu.py:51
+msgid "Permission"
+msgstr ""
+
+#: system/models/menu.py:54
+msgid "GET"
+msgstr ""
+
+#: system/models/menu.py:55
+msgid "POST"
+msgstr ""
+
+#: system/models/menu.py:56
+msgid "PUT"
+msgstr ""
+
+#: system/models/menu.py:57
+msgid "DELETE"
+msgstr ""
+
+#: system/models/menu.py:58
+msgid "PATCH"
+msgstr ""
+
+#: system/models/menu.py:60
+msgid "Parent menu"
+msgstr ""
+
+#: system/models/menu.py:63
+msgid "Menu type"
+msgstr ""
+
+#: system/models/menu.py:64
+msgid "Component name or permission code"
+msgstr ""
+
+#: system/models/menu.py:66
+msgid "Route path or api path"
+msgstr ""
+
+#: system/models/menu.py:67
+msgid "Component path"
+msgstr ""
+
+#: system/models/menu.py:70
+msgid "Model"
+msgstr ""
+
+#: system/models/menu.py:74
+msgid "Method"
+msgstr ""
+
+#: system/models/permission.py:18
+msgid "Rules"
+msgstr ""
+
+#: system/models/permission.py:21
+msgid "If a menu exists, it only applies to the selected menu permission"
+msgstr ""
+
+#: system/models/permission.py:33
+msgid "Role"
+msgstr ""
+
+#: system/models/permission.py:35
+msgid "Field"
+msgstr ""
+
+#: system/models/role.py:15
+msgid "Role name"
+msgstr ""
+
+#: system/models/role.py:16
+msgid "Role code"
+msgstr ""
+
+#: system/models/role.py:21
+msgid "User role"
+msgstr ""
+
+#: system/models/upload.py:17
+msgid "Filepath"
+msgstr ""
+
+#: system/models/upload.py:18
+msgid "Internet URL"
+msgstr ""
+
+#: system/models/upload.py:19
+msgid "Usually an address accessible to the outside Internet"
+msgstr ""
+
+#: system/models/upload.py:20
+msgid "Filename"
+msgstr ""
+
+#: system/models/upload.py:21
+msgid "Filesize"
+msgstr ""
+
+#: system/models/upload.py:22
+msgid "Mime type"
+msgstr ""
+
+#: system/models/upload.py:23
+msgid "File md5sum"
+msgstr ""
+
+#: system/models/upload.py:24
+msgid "Tmp file"
+msgstr ""
+
+#: system/models/upload.py:25
+msgid "Temporary files are automatically cleared by scheduled tasks"
+msgstr ""
+
+#: system/models/upload.py:26 system/models/upload.py:40
+msgid "Upload file"
+msgstr ""
+
+#: system/models/user.py:21
+msgid "Male"
+msgstr ""
+
+#: system/models/user.py:22
+msgid "Female"
+msgstr ""
+
+#: system/models/user.py:24
+msgid "Avatar"
+msgstr ""
+
+#: system/models/user.py:30
+msgid "Nickname"
+msgstr ""
+
+#: system/models/user.py:31
+msgid "Gender"
+msgstr ""
+
+#: system/models/user.py:41
+msgid "Userinfo"
+msgstr ""
+
+#: system/notifications.py:11 system/notifications.py:47
+msgid "Account Security"
+msgstr ""
+
+#: system/notifications.py:12 system/notifications.py:21
+msgid "Different city login reminder"
+msgstr ""
+
+#: system/notifications.py:48
+msgid "Reset password reminder"
+msgstr ""
+
+#: system/notifications.py:58
+msgid "Reset password success"
+msgstr ""
+
+#: system/serializers/config.py:30
+msgid "Config cache value"
+msgstr ""
+
+#: system/serializers/config.py:57
+msgid "Users"
+msgstr ""
+
+#: system/serializers/config.py:64
+msgid "User cannot be null"
+msgstr ""
+
+#: system/serializers/department.py:56
+msgid "The superior department cannot be its own subordinate department"
+msgstr ""
+
+#: system/serializers/log.py:52
+msgid "Online"
+msgstr ""
+
+#: system/serializers/permission.py:40
+msgid "The rule cannot be null"
+msgstr ""
+
+#: system/serializers/role.py:45 system/serializers/role.py:46
+msgid "Fields"
+msgstr ""
+
+#: system/serializers/upload.py:28
+msgid "Access URL"
+msgstr ""
+
+#: system/serializers/upload.py:36
+msgid "Internet url cannot be null"
+msgstr ""
+
+#: system/serializers/user.py:51
+msgid "Login blocked"
+msgstr ""
+
+#: system/serializers/user.py:53
+msgid "Online count"
+msgstr ""
+
+#: system/serializers/user.py:73 system/serializers/user.py:87
+#: system/serializers/userinfo.py:52 system/views/auth/register.py:75
+#: system/views/auth/reset.py:54
+msgid "Password does not match security rules"
+msgstr ""
+
+#: system/serializers/user.py:75
+msgid "Abnormal password field"
+msgstr ""
+
+#: system/serializers/userinfo.py:40
+msgid "Old password"
+msgstr ""
+
+#: system/serializers/userinfo.py:43
+msgid "Confirm password"
+msgstr ""
+
+#: system/serializers/userinfo.py:50
+msgid "Old password verification failed"
+msgstr ""
+
+#: system/templates/msg_verify_code.html:12
+#: system/views/auth/verify_code.py:105
+msgid "Verify code"
+msgstr ""
+
+#: system/templates/msg_verify_code.html:16
+msgid "The validity period of the verification code is"
+msgstr ""
+
+#: system/templates/msg_verify_code.html:16
+msgid "seconds"
+msgstr ""
+
+#: system/templates/msg_verify_code.html:19
+#: system/templates/notify/msg_rest_password_success.html:15
+msgid "If you have any questions, you can contact the administrator"
+msgstr ""
+
+#: system/templates/notify/msg_different_city.html:6
+msgid "Your account has remote login behavior, please pay attention"
+msgstr ""
+
+#: system/templates/notify/msg_different_city.html:9
+#: system/templates/notify/msg_rest_password_success.html:8
+msgid "Username"
+msgstr ""
+
+#: system/templates/notify/msg_different_city.html:10
+msgid "Login Date"
+msgstr ""
+
+#: system/templates/notify/msg_different_city.html:16
+msgid ""
+"If you suspect that the login behavior is abnormal, please modify the "
+"account password in time."
+msgstr ""
+
+#: system/templates/notify/msg_rest_password_success.html:2
+msgid "Dear"
+msgstr ""
+
+#: system/templates/notify/msg_rest_password_success.html:5
+msgid "Your password has just been successfully updated"
+msgstr ""
+
+#: system/templates/notify/msg_rest_password_success.html:14
+msgid ""
+"If the password update was not initiated by you, your account may have "
+"security issues"
+msgstr ""
+
+#: system/utils/auth.py:39
+msgid "Captcha validation failed. Please try again"
+msgstr ""
+
+#: system/utils/auth.py:45
+msgid "Temporary Token validation failed. Please try again"
+msgstr ""
+
+#: system/utils/auth.py:71
+msgid ""
+"The address has been locked (please contact admin to unlock it or try again "
+"after {} minutes)"
+msgstr ""
+
+#: system/utils/auth.py:75 system/utils/auth.py:132
+#: system/views/auth/login.py:48
+msgid ""
+"The account has been locked (please contact admin to unlock it or try again "
+"after {} minutes)"
+msgstr ""
+
+#: system/utils/auth.py:127
+#, python-brace-format
+msgid ""
+"{error} please enter it again. You can also try {times_try} times (The "
+"account will be temporarily locked for {block_time} minutes)"
+msgstr ""
+
+#: system/utils/modelfield.py:67
+msgid "All tables"
+msgstr ""
+
+#: system/utils/modelfield.py:69
+msgid "All fields"
+msgstr ""
+
+#: system/utils/modelfield.py:115
+msgid ""
+"Exact match, the field value must be exactly the same as the given value."
+msgstr ""
+
+#: system/utils/modelfield.py:116
+msgid "Case-insensitive exact match."
+msgstr ""
+
+#: system/utils/modelfield.py:117
+msgid "The field value must contain the given substring (case-sensitive)."
+msgstr ""
+
+#: system/utils/modelfield.py:119
+msgid ""
+"Case-insensitive containment, the field value must contain the given "
+"substring (case-insensitive)."
+msgstr ""
+
+#: system/utils/modelfield.py:120
+msgid "The field value must be within the given list, tuple, or queryset."
+msgstr ""
+
+#: system/utils/modelfield.py:121
+msgid "Greater than, the field value must be greater than the given value."
+msgstr ""
+
+#: system/utils/modelfield.py:122
+msgid ""
+"Greater than or equal to, the field value must be greater than or equal to "
+"the given value."
+msgstr ""
+
+#: system/utils/modelfield.py:123
+msgid "Less than, the field value must be less than the given value."
+msgstr ""
+
+#: system/utils/modelfield.py:124
+msgid ""
+"Less than or equal to, the field value must be less than or equal to the "
+"given value."
+msgstr ""
+
+#: system/utils/modelfield.py:125
+msgid "The field value must start with the given string (case-sensitive)."
+msgstr ""
+
+#: system/utils/modelfield.py:127
+msgid ""
+"Case-insensitive start with, the field value must start with the given "
+"string (case-insensitive)."
+msgstr ""
+
+#: system/utils/modelfield.py:128
+msgid "The field value must end with the given string (case-sensitive)."
+msgstr ""
+
+#: system/utils/modelfield.py:129
+msgid ""
+"Case-insensitive end with, the field value must end with the given string "
+"(case-insensitive)."
+msgstr ""
+
+#: system/utils/modelfield.py:130
+msgid ""
+"Within a range, the field value must be between the two given values "
+"(inclusive)."
+msgstr ""
+
+#: system/utils/modelfield.py:131
+msgid "Filters only the date part (ignores the time part)."
+msgstr ""
+
+#: system/utils/modelfield.py:132
+msgid "Filters by year."
+msgstr ""
+
+#: system/utils/modelfield.py:133
+msgid "Filters by ISO year (may not be the same as the Gregorian year)."
+msgstr ""
+
+#: system/utils/modelfield.py:134
+msgid "Filters by month."
+msgstr ""
+
+#: system/utils/modelfield.py:135
+msgid "Filters by day of the month."
+msgstr ""
+
+#: system/utils/modelfield.py:136
+msgid "Filters by week number of the year."
+msgstr ""
+
+#: system/utils/modelfield.py:137
+msgid "Filters by a specific day of the week (1 = Monday, 7 = Sunday)."
+msgstr ""
+
+#: system/utils/modelfield.py:138
+msgid "Filters by a specific day of the ISO week (1 = Monday, 7 = Sunday)."
+msgstr ""
+
+#: system/utils/modelfield.py:139
+msgid "Filters by quarter (1, 2, 3, 4)."
+msgstr ""
+
+#: system/utils/modelfield.py:140
+msgid "Filters only the time part (ignores the date part)."
+msgstr ""
+
+#: system/utils/modelfield.py:141
+msgid "Filters by hour."
+msgstr ""
+
+#: system/utils/modelfield.py:142
+msgid "Filters by minute."
+msgstr ""
+
+#: system/utils/modelfield.py:143
+msgid "Filters by second."
+msgstr ""
+
+#: system/utils/modelfield.py:144
+msgid "Checks if the field value is NULL, can be set to True or False."
+msgstr ""
+
+#: system/utils/modelfield.py:145
+msgid ""
+"The field value must match the given regular expression (case-sensitive)."
+msgstr ""
+
+#: system/utils/modelfield.py:146
+msgid ""
+"The field value must match the given regular expression (case-insensitive)."
+msgstr ""
+
+#: system/utils/modelfield.py:148
+msgid ""
+"The field value must be a subset of the given value, typically used with "
+"array or JSON fields."
+msgstr ""
+
+#: system/utils/modelfield.py:150
+msgid ""
+"The field value must contain at least one of the given keys, typically used "
+"with JSON fields."
+msgstr ""
+
+#: system/utils/modelfield.py:151
+msgid ""
+"The field value must contain all the given keys, typically used with JSON "
+"fields."
+msgstr ""
+
+#: system/utils/modelfield.py:152
+msgid ""
+"The field value must contain the given single key, typically used with JSON "
+"fields."
+msgstr ""
+
+#: system/views/admin/file.py:87
+msgid "upload file size cannot exceed {}"
+msgstr ""
+
+#: system/views/admin/file.py:90
+msgid "Wrong upload file type"
+msgstr ""
+
+#: system/views/admin/operationlog.py:21
+msgid "Error status"
+msgstr ""
+
+#: system/views/admin/user.py:53
+msgid "The super administrator disallows deletion"
+msgstr ""
+
+#: system/views/auth/login.py:42
+#, python-brace-format
+msgid ""
+"The username or password you entered is incorrect, please enter it again. "
+"You can also try {times_try} times (The account will be temporarily locked "
+"for {block_time} minutes)"
+msgstr ""
+
+#: system/views/auth/login.py:97 system/views/auth/login.py:179
+msgid "Login forbidden"
+msgstr ""
+
+#: system/views/auth/register.py:62
+msgid "Registration forbidden"
+msgstr ""
+
+#: system/views/auth/register.py:84
+msgid "The account already exists, please try another one"
+msgstr ""
+
+#: system/views/auth/reset.py:59
+msgid "Reset password success, return to login page"
+msgstr ""
+
+#: system/views/auth/verify_code.py:125
+msgid "Forbidden send verification code"
+msgstr ""
+
+#: system/views/auth/verify_code.py:174
+msgid "The verification code has been sent"
+msgstr ""
+
+#: system/views/auth/verify_code.py:226
+msgid "Phone already exist"
+msgstr ""
+
+#: system/views/auth/verify_code.py:228
+msgid "Email already exist"
+msgstr ""
+
+#: system/views/auth/verify_code.py:230
+msgid "Username already exist"
+msgstr ""
+
+#: system/views/auth/verify_code.py:241
+msgid "Phone does not exist"
+msgstr ""
+
+#: system/views/auth/verify_code.py:243
+msgid "Email does not exist"
+msgstr ""
+
+#: system/views/auth/verify_code.py:245
+msgid "Username does not exist"
+msgstr ""

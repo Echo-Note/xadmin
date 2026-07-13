@@ -1,0 +1,12 @@
+# 开发环境覆盖配置 (docker compose 会自动加载此文件)
+# 为 postgresql 和 redis 暴露端口到 Docker 主机，便于本地调试 Django 时直连数据库
+# Docker 主机地址通过根目录 .env 文件配置（参考 .env.example）
+# 生产环境部署时不会使用此文件（或可删除）
+services:
+  postgresql:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"

@@ -13,6 +13,8 @@
 # IDE
 .idea
 
-# 子项目（独立 git 仓库，不纳入根仓库管理）
-/server/
-/client/
+# Python 虚拟环境
+.venv/
+
+# Node.js 依赖
+node_modules/

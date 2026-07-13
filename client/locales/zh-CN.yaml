@@ -1,0 +1,631 @@
+commonLabels:
+  pk: ID
+  ordering: 排序
+  rank: 排序
+  status: 状态
+  is_active: 状态
+  description: 备注
+  selection: 勾选列
+  operation: 操作
+  created_time: 创建时间
+  updated_time: 更新时间
+  descending: 降序
+  ascending: 升序
+
+tableBar:
+  loose: 宽松
+  default: 默认
+  compact: 紧凑
+  refresh: 刷新
+  density: 密度
+  columnDisplay: 列展示
+  columnSettings: 列设置
+  fold: 折叠
+  unfold: 展开
+  fullscreen: 全屏
+  exitFullscreen: 退出全屏
+
+avatarUpload:
+  tips: 温馨提示：右键上方裁剪区可开启功能菜单
+  imageSize: 图像大小：{ x } x { y } 像素
+  fileSize: 文件大小：{ x } （{ y } 字节）
+
+tagInput:
+  placeholder: 按下 Enter 继续输入
+
+cropper:
+  upload: 上传
+  download: 下载
+  change: 圆形矩形裁剪
+  reset: 重置
+  up: 上移（可长按）
+  down: 下移（可长按）
+  left: 左移（可长按）
+  right: 右移（可长按）
+  zoomIn: 放大（可长按）
+  zoomOut: 缩小（可长按）
+  flipHorizontal: 水平翻转
+  flipVertical: 垂直翻转
+  anticlockwise: 逆时针旋转
+  clockwise: 顺时针旋转
+
+layout:
+  notice: 消息通知
+  announcement: 系统公告
+  settings: 项目配置
+  total: "共 { total } 项"
+  noData: 暂无结果
+  more: 更多
+  fold: 点击折叠
+  unfold: 点击展开
+  searchPlaceholder: 搜索菜单（中文模式下支持拼音搜索）
+  theme: 主题模式
+  menuLayout: 菜单布局
+  leftMode: 左侧菜单，亲切熟悉
+  topMode: 顶部菜单，简洁概览
+  mixedMode: 混合菜单，灵活多变
+  themeColor: 主题色
+  display: 界面显示
+  greyMode: 灰色模式
+  colorWeakMode: 色弱模式
+  hideTabs: 隐藏标签页
+  hideFooter: 隐藏页脚
+  sidebarLogo: 侧边栏Logo
+  labelPersistence: 标签页持久化
+  labelStyle: 标签风格
+  tagsStyleCard: 卡片
+  tagsStyleSmart: 灵动
+  tagsStyleChrome: 谷歌
+  cleanOut: 清空缓存并返回登录页
+  noticeTime: YYYY年MM月DD日 HH:mm:ss
+  backTop: 回到顶部
+  updateCheck: 检测到新版本
+  updateNow: 立即更新
+  clearCache: 清空缓存
+  light: 浅色
+  dark: 深色
+  auto: 自动
+  lightTip: 清新启航，点亮舒适的工作界面
+  darkTip: 月光序曲，沉醉于夜的静谧雅致
+  autoTip: 同步时光，界面随晨昏自然呼应
+  tagsStyleSmartTip: 灵动标签，添趣生辉
+  tagsStyleCardTip: 卡片标签，高效浏览
+  tagsStyleChromeTip: 谷歌风格，经典美观
+  favorite: 收藏
+  dragSort: （可拖拽排序）
+  searchHistory: 搜索历史
+  pageWidth: 页宽
+  fixed: 固定
+  fixedTip: 紧凑页面，轻松找到所需信息
+  customization: 自定义
+  customTip: 最小1280、最大1600
+  saveConfig: 保存
+  saveConfigTip: 将当前项目配置保存到服务器
+  resetConfig: 重置
+  resetConfigTip: 重置为默认项目配置并刷新页面
+
+error:
+  error403: 抱歉，你无权访问该页面
+  error404: 抱歉，你访问的页面不存在
+  error500: 抱歉，服务器出错了
+  goBack: 返回首页
+
+password:
+  veryWeak: 很弱
+  weak: 弱
+  average: 一般
+  strong: 强
+  veryStrong: 很强
+
+labels:
+  id: ID
+  status: 状态
+  verifyStatus: 请选择状态
+  description: 备注
+  verifyDescription: 请输入备注
+  sort: 排序
+  active: 激活
+  inactive: 未激活
+  read: 已读
+  unread: 未读
+  unPublish: 未发布
+  publish: 已发布
+  operations: 操作
+  enable: 启用
+  disable: 禁用
+  sure: 确定
+  cancel: 取消
+  descending: 降序
+  ascending: 升序
+  success: 成功
+  failed: 失败
+  checkColumn: 勾选列
+  dClickCopy: 双击进行拷贝
+  online: 在线
+  offline: 下线
+  yes: 是
+  no: 否
+
+exportImport:
+  import: 导入
+  export: 导出
+  type: 文件类型
+  exportRange: 导出范围
+  exportAll: 导出所有
+  exportSelected: 导出选中项
+  exportFiltered: 仅导出搜素结果
+  create: 创建
+  update: 更新
+  upload: 上传
+  uploadRuleTip: 文件不能为空
+  uploadTip: 可点击或拖拽上传
+  downloadTip: 下载{ action }模板
+  ignoreError: 忽略错误
+
+messageNotifications:
+  messageType: 消息类型
+  receivers: 接收人
+  editRecipient: 修改消息接收人
+  editRecipientTitle: 修改 { title } 的消息接收人
+
+results:
+  success: 执行成功
+  failed: 执行失败
+  batchDestroy: 批量删除 { count } 条数据
+  batchRead: 批量已读 { count } 条数据
+  noSelectedData: 数据未选择
+  formValidationFailed: 表单校验失败
+
+sorts:
+  registrationDate: 注册时间
+  loginDate: 登录时间
+  createdDate: 创建时间
+  updatedDate: 更新时间
+  rank: 排序
+
+buttons:
+  loginOut: 退出系统
+  add: 新增
+  save: 保存
+  update: 更新
+  search: 搜索
+  expendAll: 全部展开
+  collapseAll: 全部折叠
+  selectAll: 选择全部
+  unSelectAll: 取消选择
+  systemSet: 打开项目配置
+  delete: 删除
+  reload: 重新加载
+  reset: 重置
+  test: 测试
+  closeCurrentTab: 关闭当前标签页
+  closeLeftTabs: 关闭左侧标签页
+  closeRightTabs: 关闭右侧标签页
+  closeOtherTabs: 关闭其他标签页
+  closeAllTabs: 关闭全部标签页
+  contentFullScreen: 内容区全屏
+  contentExitFullScreen: 内容区退出全屏
+  cancel: 取消
+  close: 关闭
+  switch: 切换
+  sure: 确定
+  edit: 编辑
+  detail: 查看
+  batchDestroy: 批量删除
+  batchDeleteConfirm: 确定批量删除 { count } 条数据吗？
+  operateConfirm: 确定 { action } { message } ？
+  selected: "已选 { count } 项"
+  confirmDelete: 确定删除该数据吗？
+  confirmUpdate: 确定更新该数据吗？
+  checkStrictly: 层级关联
+  checkUnStrictly: 层级独立
+
+menus:
+  home: 首页
+  login: 登录
+  sysManagement: 系统管理
+  systemSettings: 系统设置
+  basicSettings: 基本设置
+  messageSettings: 消息通知
+  smsSettings: 短信设置
+  securitySettings: 安全设置
+  userManagement: 用户管理
+  deptManagement: 部门管理
+  menuManagement: 菜单管理
+  permissionManagement: 权限管理
+  configManagement: 配置管理
+  systemConfigManagement: 系统配置
+  userConfigManagement: 用户配置
+  roleManagement: 角色权限
+  dataPermissionManagement: 数据权限
+  logManagement: 日志管理
+  modelFieldManagement: 字段管理
+  operationLogManagement: 访问日志
+  loginLogManagement: 登录日志
+  uploadFileManagement: 文件管理
+  permission: 权限管理
+  abnormal: 异常页面
+  fourZeroFour: "404"
+  fourZeroThree: "403"
+  FiveZeroZero: "500"
+  about: 关于
+  empty: 无Layout页
+  noticeAndAnnouncement: 通知公告
+  newsAndAnnouncement: 消息公告
+  readNotice: 已读消息
+  timingTask: 定时任务
+  personalCenter: 个人中心
+  accountSettings: 账户设置
+  messageCenter: 消息中心
+  chat: 聊天室
+  apiDocs: 接口文档
+
+userinfo:
+  userinfo: 个人信息
+  edit: 修改个人信息
+  basicInfo: 基本资料
+  changePassword: 修改密码
+  updateAvatar: 更新头像
+  updateUserInfo: 更新信息
+  oldPassword: 旧密码
+  newPassword: 新密码
+  verifyOldPassword: 请输入旧密码
+  verifyNewPassword: 请输入新密码
+  surePassword: 确认密码
+  username: 用户名
+  nickname: 昵称
+  phone: 手机
+  email: 邮箱
+  gender: 性别
+  dept: 部门
+  roles: 角色
+  date_joined: 注册时间
+  last_login: 上次登录时间
+  avatar: 头像
+  bindEmail: 绑定邮箱
+  bindPhone: 绑定手机
+  existInfo: 已存在的绑定信息！！！
+  unbind: 解绑
+  continueBind: 继续绑定将会自动
+  bindInfo: 的绑定信息
+
+account:
+  profile: 个人信息
+  preference: 偏好设置
+  securityLog: 安全日志
+  notifications: 消息订阅
+  accountManagement: 账户管理
+  back: 返回
+  messagePush: 消息公告推送
+  messagePushTips: 消息公告将在右上角实时推送通知
+  chatPush: "聊天室{'@'}推送"
+  chatPushTips: "聊天{'@'}消息将在右上角实时推送通知"
+  password: 密码
+  bind: 已绑定
+  unbound: 暂未绑定
+
+systemUser:
+  user: 用户
+  email: 邮箱
+  username: 用户名
+  phone: 手机号
+  mode_type: 权限模式
+  avatar: 头像
+  nickname: 昵称
+  gender: 性别
+  dept: 所属部门
+  date_joined: 注册时间
+  last_login: 上次登录时间
+  batchSendNotice: 批量发送通知
+  editAvatar: 修改头像
+  resetPassword: 重置密码
+  assignRoles: 分配角色权限
+  resetPasswd: 重置用户 { user } 的密码
+  assignRole: 分配用户 { user } 的角色权限
+  updateAvatar: 更新用户 { user } 的头像
+  password: 密码
+  roles: 角色
+  rules: 数据权限
+  logout: 登出
+
+systemDept:
+  dept: 部门
+  name: 部门名称
+  code: 部门标识
+  auto_bind: 自动绑定
+  mode_type: 权限模式
+  user_count: 人员数量
+  assignRoles: 分配角色权限
+  assignRole: 分配部门 { dept } 的角色权限
+  autoBindDesc: 注册参数channel的值和该部门code一致，则该用户会自动和该部门绑定
+  parent: 归属部门
+  roles: 角色
+  rules: 数据权限
+
+systemPermission:
+  permission: 数据权限
+  name: 权限名称
+  mode_type: 权限模式
+  modeTypeTip: 权限模式, 且模式表示数据需要同时满足规则列表中的每条规则，或模式即满足任意一条规则即可
+  menu: 菜单权限
+  menuTip: 若存在菜单权限，则该权限仅针对所选择的菜单权限生效
+  addName: 属性名
+  addValue: 属性值
+  addType: 值类型
+  addExclude: 排除
+  addExcludeTip: 返回查找参数不匹配的数据
+  addMatch: 匹配
+  rules: 规则列表
+  table: 表名
+  field: 字段名
+  rulesFailed: 规则不存在或有误，请输入规则
+  notice_user: 用户
+  notice_dept: 部门
+  notice_role: 角色
+  notice_menu: 菜单
+
+systemRole:
+  role: 角色
+  name: 角色名称
+  code: 角色标识
+  permissions: 权限
+  menuTitle: 请输入菜单标题
+  menu: 菜单权限
+
+systemMenu:
+  menus: 菜单
+  type: 类型
+  title: 名称
+  icon: 图标
+  transitionLeave: 离场动画
+  transitionEnter: 进场动画
+  cache: 缓存
+  componentName: 组件名称
+  componentPath: 组件路径
+  exampleComponentName: "如：`user`需要和前端定义的组件名称一致，如外网地址需内链访问则以`http(s)://`开头"
+  exampleRoutePath: "访问的路由地址，如：`/user`, `/system/about`"
+  exampleComponentPath: "访问的组件路径，如：`system/user/index`，默认在`views`目录下"
+  exampleCache: "选择是则会被`keep-alive`缓存，需要匹配组件的`name`和地址保持一致"
+  exampleShowLink: "选择隐藏则路由将不会出现在侧边栏，但仍然可以访问"
+  exampleMenuStatus: "选择停用则路由将不会出现在侧边栏，也不能被访问"
+  exampleRequestStatus: "选择停用则权限将失效"
+  exampleExternalLink: "选择是外链则路由地址需要以`http(s)://`开头"
+  verifyExampleExternalLink: "默认为空，除非有外链"
+  exampleAnimation: "内嵌的iframe页面开启首次加载动画"
+  examplePermissionCode: "控制器中定义的权限字符，如：PreAuthorize(`permission.hashPermission('menu:query')`)"
+  path: 路由地址
+  verifyType: 请选择菜单类型
+  verifyTitle: 请输入菜单标题
+  verifyPath: 请输入路由地址
+  verifyComponentPath: 请输入组件路径
+  verifyTransition: 请选择动画
+  verifyRequestMethod: 请输入请求方式
+  verifyPermissionName: 请输入权限名称
+  verifyPermissionCode: 请输入权限标识
+  pathError: 路由必须`/`开头
+  parentNode: 上级节点
+  showParentMenu: 显示父级菜单
+  showLink: 菜单可见
+  externalLink: 内嵌外链地址
+  animation: 内嵌动画
+  permissionName: 权限名称
+  permissionCode: 权限标识
+  permissionPath: 权限路由
+  requestMethod: 请求方式
+  directory: 目录
+  menu: 菜单
+  permissions: 权限
+  associationModel: 关联模型
+  exampleAssociationModel: 模型关联用与字段权限控制
+  fixedTag: 固定标签页
+  fixedTagTip: 当前菜单名称是否固定显示在标签页且不可关闭
+  hiddenTag: 隐藏标签页
+  hiddenTagTip: 当前菜单名称或自定义信息禁止添加到标签页
+  addPermissions: 自动批量添加权限
+  codeSuffix: 权限标识后缀
+  codeSuffixTip: 默认为组件名称，若为空，则默认为后端视图名称，可自行修改
+  menuView: 后端视图名称
+  skipExistingData: 跳过已存在数据
+
+logsOperation:
+  creator_id: 用户ID
+  module: 模块
+  ipaddress: IP地址
+  system: 操作系统
+  browser: 浏览器
+  path: 请求路径
+  creator: 用户
+  body: 请求体
+  response_code: 状态码
+  response_result: 响应内容
+
+logsLogin:
+  creator_id: 用户ID
+  login_type: 登录方式
+  ipaddress: IP地址
+  system: 操作系统
+  browser: 浏览器
+  agent: 用户代理
+  creator: 用户
+
+configSystem:
+  configSystem: 系统配置
+  key: 配置名称
+  value: 配置数值
+  inherit: 用户继承
+  access: 接口访问
+  cache_value: 缓存数值
+  accessTip: 允许API接口访问该配置
+  inheritTip: 允许用户继承该配置
+  invalidCache: 缓存失效
+  confirmInvalid: 确定缓存失效该数据么？
+
+configUser:
+  configUser: 用户配置
+  key: 配置名称
+  value: 配置数值
+  username: 用户名
+  access: 接口访问
+  owner_id: 用户ID
+  config_user: 用户ID
+  owner: 用户信息
+  cache_value: 缓存数值
+  invalidCache: 缓存失效
+  confirmInvalid: 确定缓存失效该数据么？
+
+modelFieldManagement:
+  name: 模型/字段数值
+  label: 模型/字段名称
+  field_type: 字段类型
+  parent: 上级节点
+  makeData: 重新生成字段数据
+
+systemNotice:
+  notice: 通知公告
+  notice_type: 通知类型
+  level: 通知级别
+  publish: 是否发布
+  message: 内容
+  title: 标题
+  read_user_count: 接收人数/已读人数
+  notice_user: 用户
+  notice_dept: 部门
+  notice_role: 角色
+  allRead: 全部
+  showSystemNotice: 查看通知公告
+
+noticeRead:
+  owner_id: 用户ID
+  notice_id: 公告ID
+  message: 内容
+  title: 标题
+  username: 用户名
+  level: 通知级别
+  notice_type: 通知类型
+  unread: 是否已读
+  notice_info: 通知标题
+  readDate: 已读时间
+  showSystemNotice: 查看通知公告
+
+userNotice:
+  message: 内容
+  title: 标题
+  unread: 是否已读
+  level: 通知级别
+  notice_type: 通知类型
+  batchRead: 批量已读
+  unreadMessage: 未读消息
+  allRead: 全部已读
+  showSystemNotice: 查看通知公告
+
+systemUploadFile:
+  upload: 上传
+  fileLink: 文件连接
+  clickUpload: 点击上传
+  dropFile: 拖拽文件到这里或
+  uploadTip: 上传文件大小需要小于
+
+status:
+  hsLoad: 加载中...
+
+login:
+  username: 账号
+  password: 密码
+  verifyCode: 验证码
+  remember: 天内免登录
+  rememberInfo: 勾选并登录后，规定天数内无需输入用户名和密码会自动登入系统
+  sure: 确认密码
+  forget: 忘记密码?
+  login: 登录
+  thirdLogin: 第三方登录
+  verifyCodeLogin: 验证码登录
+  basicLogin: 普通登录
+  qRCodeLogin: 二维码登录
+  register: 注册
+  weChatLogin: 微信登录
+  alipayLogin: 支付宝登录
+  qqLogin: QQ登录
+  weiboLogin: 微博登录
+  phone: 手机号码
+  email: 邮箱地址
+  smsVerifyCode: 短信验证码
+  back: 返回
+  test: 模拟测试
+  tip: 扫码后点击"确认"，即可完成登录
+  definite: 确定
+  loginSuccess: 登录成功
+  registerSuccess: 注册成功
+  tickPrivacy: 请勾选隐私政策
+  readAccept: 我已仔细阅读并接受
+  privacyPolicy: 《隐私政策》
+  getVerifyCode: 获取验证码
+  info: 秒后重新获取
+  usernameReg: 请输入账号
+  passwordReg: 请输入密码
+  verifyCodeReg: 请输入验证码
+  verifyCodeCorrectReg: 请输入正确的验证码
+  verifyCodeSixReg: 请输入6位数字验证码
+  phoneReg: 请输入手机号码
+  phoneCorrectReg: 请输入正确的手机号码格式
+  emailReg: 请输入邮箱地址
+  emailCorrectReg: 请输入正确的邮箱地址格式
+  passwordRuleReg: 密码格式应为8-18位数字、字母、符号的任意两种组合
+  passwordSureReg: 请输入确认密码
+  passwordDifferentReg: 两次密码不一致!
+  passwordUpdateReg: 修改密码成功
+  emailVerify: 邮件验证
+  smsVerify: 短信验证
+  basic: 账户密码
+
+welcome:
+  operateLog: 操作日志
+  userAnalysis: 用户分析概览
+  registerUser: 注册人数
+  activeUser: 活跃人数
+  today: 当天
+  days: 天内
+  requestNum: 当天接口请求次数
+  userNum: 用户人数
+  loginTimes: 登录次数
+
+settingBasic:
+  title: 基本设置
+
+settingMessage:
+  mailTitle: 邮件服务器
+  messageTitle: 系统消息订阅
+
+settingSecurity:
+  code: 验证码安全配置
+  captcha: 图片验证码配置
+  login: 登录安全配置
+  limit: 登录限制配置
+  register: 注册安全配置
+  resetPassword: 重置密码配置
+  passwordRule: 密码规则配置
+  bingEmail: 绑定邮箱配置
+  bindPhone: 绑定手机配置
+  blockIp: 安全拦截IP
+
+settingPassword:
+  tips: 密码需要满足
+  minLength: 最小长度{length}位
+  upperCase: 大写字母
+  lowerCase: 小写字母
+  number: 数字字符
+  specialChar: 特殊字符
+
+settingSms:
+  title: 短信设置
+
+demoBook:
+  book: 书籍
+  name: 书籍名称
+  isbn: ISBN书号
+  author: 作者
+  publisher: 出版社
+  publication_date: 出版日期
+  price: 售价
+  is_active: 是否启用
+  pushBook: 推送书籍
+  confirmPushBook: 确定将该书籍 {name} 推送到推荐服务？

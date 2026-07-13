@@ -1,0 +1,631 @@
+commonLabels:
+  pk: ID
+  ordering: Sort
+  rank: Rank
+  status: Status
+  is_active: Status
+  description: Description
+  selection: Selection
+  operation: Operation
+  created_time: CreatedTime
+  updated_time: UpdatedTime
+  descending: Descending
+  ascending: Ascending
+
+tableBar:
+  loose: Loose
+  default: Default
+  compact: Compact
+  refresh: Refresh
+  density: Density
+  columnDisplay: Column Display
+  columnSettings: Column Settings
+  fold: Fold
+  unfold: Unfold
+  fullscreen: Fullscreen
+  exitFullscreen: Exit Fullscreen
+
+avatarUpload:
+  tips: 'Tips: Right-click the cropping area can open the function menu'
+  imageSize: "Image size: { x } x { y } pixels"
+  fileSize: "File size: { x } ({ y } bytes)"
+
+tagInput:
+  placeholder: Enter to continue
+
+cropper:
+  upload: Upload
+  download: Download
+  change: Circular Rectangle Switch
+  reset: Reset
+  up: Long press to move up
+  down: Long press to move down
+  left: Long press to move left
+  right: Long press to move right
+  zoomIn: Long press to zoom in
+  zoomOut: Long press to zoom out
+  flipHorizontal: Flip Horizontal
+  flipVertical: Flip Vertical
+  anticlockwise: Anticlockwise Rotation
+  clockwise: Clockwise Rotation
+
+layout:
+  notice: Notice
+  announcement: Announcement
+  settings: Settings
+  total: "{ total } items in total"
+  noData: No Data
+  more: More
+  fold: Fold
+  unfold: Unfold
+  searchPlaceholder: Search menu (Pinyin search is supported)
+  theme: Theme Mode
+  menuLayout: Menu Layout
+  leftMode: Left mode
+  topMode: Top mode
+  mixedMode: Mixed mode
+  themeColor: ThemeColor
+  display: Display
+  greyMode: Grey mode
+  colorWeakMode: Color weak mode
+  hideTabs: Hide tabs
+  hideFooter: Hide Footer
+  sidebarLogo: Sidebar Logo
+  labelPersistence: Label persistence
+  labelStyle: Label style
+  tagsStyleCard: Card
+  tagsStyleSmart: Smart
+  tagsStyleChrome: Chrome
+  cleanOut: Clear the cache and return the login page
+  noticeTime: YYYY-MM-DD HH:mm:ss
+  backTop: Back Top
+  updateCheck: New version detected
+  updateNow: Update now
+  clearCache: Clear Cache
+  light: Light
+  dark: Dark
+  auto: Auto
+  lightTip: Fresh start, light up the comfortable working interface
+  darkTip: Moonlight overture, drunk in the quiet and elegant night
+  autoTip: Synchronous time, interface with the morning and dusk natural echo
+  tagsStyleSmartTip: Smart tags add fun and brilliance
+  tagsStyleCardTip: Card tags for efficient browsing
+  tagsStyleChromeTip: Chrome style is classic and elegant
+  favorite: Favorite
+  dragSort: (Drag the sorting)
+  searchHistory: Search History
+  pageWidth: Page Width
+  fixed: Fixed
+  fixedTip: Compact page to easily find the information you need
+  customization: Customization
+  customTip: Minimum 1280, maximum 1600
+  saveConfig: Save
+  saveConfigTip: Save the current site configuration to the server
+  resetConfig: Reset
+  resetConfigTip: Reset to the default project configuration and reload
+
+error:
+  error403: Sorry, you are not authorized to access this page
+  error404: Sorry, the page you are looking for does not exist
+  error500: Sorry, server error
+  goBack: Back to home page
+
+password:
+  veryWeak: Very weak
+  weak: Weak
+  average: Average
+  strong: Strong
+  veryStrong: Very strong
+
+labels:
+  id: ID
+  status: Status
+  verifyStatus: Please select status
+  description: Description
+  verifyDescription: Please enter description
+  sort: Sort
+  active: Active
+  inactive: Inactive
+  read: Read
+  unread: Unread
+  unPublish: UnPublish
+  publish: publish
+  operations: Operations
+  enable: Enable
+  disable: Disable
+  sure: Sure
+  cancel: Cancel
+  descending: Descending
+  ascending: Ascending
+  success: Success
+  failed: Failed
+  checkColumn: CheckColumn
+  dClickCopy: Double-click to copy
+  online: Online
+  offline: Offline
+  yes: Yes
+  no: No
+
+exportImport:
+  import: Import
+  export: Export
+  type: File type
+  exportRange: Export range
+  exportAll: Export all
+  exportSelected: Export only selected items
+  exportFiltered: Export only filtered
+  create: Create
+  update: Update
+  upload: Upload
+  uploadRuleTip: upload file not exist
+  uploadTip: Drag file here or click here to upload
+  downloadTip: Download { action } template
+  ignoreError: Ignore error
+
+messageNotifications:
+  messageType: Message type
+  receivers: Receivers
+  editRecipient: Edit recipient
+  editRecipientTitle: Edit { title } recipient
+
+results:
+  success: Executed successfully
+  failed: Execution failure
+  batchDestroy: Batch deletes the { count } items
+  batchRead: Batch read the { count } items
+  noSelectedData: Data not selected
+  formValidationFailed: Form validation failed
+
+sorts:
+  registrationDate: Registration Date
+  loginDate: Login Date
+  createdDate: Creation date
+  updatedDate: Updated date
+  rank: Rank
+
+buttons:
+  loginOut: LoginOut
+  add: Add
+  save: Save
+  update: Update
+  search: Search
+  expendAll: Expand All
+  collapseAll: Collapse All
+  selectAll: Select All
+  unSelectAll: Cancel Select
+  systemSet: Open ProjectConfig
+  delete: Delete
+  reload: Reload
+  reset: Reset
+  test: Test
+  closeCurrentTab: Close CurrentTab
+  closeLeftTabs: Close LeftTabs
+  closeRightTabs: Close RightTabs
+  closeOtherTabs: Close OtherTabs
+  closeAllTabs: Close AllTabs
+  contentFullScreen: Content FullScreen
+  contentExitFullScreen: Content ExitFullScreen
+  cancel: Cancel
+  close: Close
+  switch: Switch
+  sure: Ok
+  edit: Edit
+  detail: Detail
+  batchDestroy: BatchDelete
+  batchDeleteConfirm: Are you sure to delete { count } pieces of items in batch?
+  operateConfirm: Are you sure to { action } { message } ?
+  selected: "{ count } items are selected"
+  confirmDelete: Are you sure to delete this?
+  confirmUpdate: Are you sure to update this?
+  checkStrictly: Hierarchical association
+  checkUnStrictly: Hierarchical independence
+
+menus:
+  home: Home
+  login: Login
+  sysManagement: System Manage
+  systemSettings: System Settings
+  basicSettings: Basic Settings
+  messageSettings: Message Settings
+  smsSettings: SMS Settings
+  securitySettings: Security Settings
+  userManagement: User Manage
+  deptManagement: Department Manage
+  menuManagement: Menu Manage
+  permissionManagement: Permission Manage
+  configManagement: Config Manage
+  systemConfigManagement: System Config
+  userConfigManagement: User Config
+  roleManagement: Role Permission
+  dataPermissionManagement: Data Permission
+  logManagement: Log Manage
+  modelFieldManagement: Model Field Manage
+  operationLogManagement: Operation Log Manage
+  loginLogManagement: Login Log Manage
+  uploadFileManagement: Upload File Manage
+  permission: Permission Manage
+  abnormal: Abnormal Page
+  fourZeroFour: "404"
+  fourZeroThree: "403"
+  FiveZeroZero: "500"
+  about: About
+  empty: Empty Page
+  noticeAndAnnouncement: Notice Announcement
+  newsAndAnnouncement: News Announcement
+  readNotice: Read Notice
+  timingTask: Timing Task
+  personalCenter: UserInfo
+  accountSettings: Account
+  messageCenter: Notice
+  chat: Chat
+  apiDocs: Api Docs
+
+userinfo:
+  userinfo: UserInfo
+  edit: Modify personal information
+  basicInfo: Basic information
+  changePassword: Change Password
+  updateAvatar: Update Avatar
+  updateUserInfo: Update UserInfo
+  oldPassword: Old Password
+  newPassword: New Password
+  verifyOldPassword: Please enter old password
+  verifyNewPassword: Please enter new password
+  surePassword: Sure Password
+  username: Username
+  nickname: Nickname
+  phone: Mobile
+  email: Email
+  gender: Gender
+  dept: Department
+  roles: Roles
+  date_joined: Registration Date
+  last_login: Last Login Date
+  avatar: Avatar
+  bindEmail: Bind Email
+  bindPhone: Bind Phone
+  existInfo: The existing binding information !!!
+  unbind: Unbind
+  continueBind: Continuing the binding will be automatic
+  bindInfo: binding information
+
+account:
+  profile: Profile
+  preference: Preference
+  securityLog: Security Log
+  accountManagement: Account Management
+  notifications: Notifications
+  back: Back
+  messagePush: Site Message Push
+  messagePushTips: The announcement will be a real-time push notification in the upper right corner
+  chatPush: "Chat room {'@'} push"
+  chatPushTips: "Chat {'@'} messages will be a live push notification in the top right corner"
+  password: Password
+  bind: Bind
+  unbound: Unbound
+
+systemUser:
+  user: User
+  email: Email
+  username: Username
+  phone: Mobile
+  mode_type: Mode Type
+  avatar: Avatar
+  nickname: Nickname
+  gender: Gender
+  dept: Department
+  date_joined: Registration Date
+  last_login: Last Login Date
+  batchSendNotice: Batch Send Notice
+  editAvatar: Edit Avatar
+  resetPassword: Reset Password
+  assignRoles: Assign Roles Permissions
+  resetPasswd: Reset the password of user { user }
+  assignRole: Assign multiple roles and permissions to user { user }
+  updateAvatar: Upload and update avatar to { user }
+  password: Password
+  roles: Roles
+  rules: Data Permissions
+  logout: Logout
+
+systemDept:
+  dept: Department
+  name: Name
+  code: Code
+  auto_bind: Auto Bind
+  mode_type: Mode Type
+  user_count: User Count
+  assignRoles: Assign Roles Permissions
+  assignRole: Assign multiple roles and permissions to department { dept }
+  autoBindDesc: If the value of the registration parameter channel is the same as the department code, the user will automatically bind to the department
+  parent: Department
+  roles: Roles
+  rules: Data Permissions
+
+systemPermission:
+  permission: Permissions
+  name: Name
+  mode_type: Mode Type
+  modeTypeTip: The permission mode indicates that the data must meet each rule in the rule list at the same time, or the mode can meet any rule
+  menu: Menu
+  menuTip: If a menu permission exists, it only applies to the selected menu permission
+  addName: Name
+  addValue: Value
+  addType: Mode
+  addExclude: Exclude
+  addExcludeTip: Returns data that do not match the given lookup parameters.
+  addMatch: Match
+  rules: rules
+  table: table
+  field: field
+  rulesFailed: The rules does not exist or is incorrect. Please enter the rules
+  notice_user: Users
+  notice_dept: Departments
+  notice_role: Roles
+  notice_menu: Menus
+
+systemRole:
+  role: Role
+  name: RoleName
+  code: RoleCode
+  permissions: Permissions
+  menuTitle: Please enter menu title
+  menu: Menus
+
+systemMenu:
+  menus: Menus
+  type: Type
+  title: Title
+  icon: Icon
+  transitionLeave: LeaveAnimation
+  transitionEnter: EntryAnimation
+  cache: Cache
+  componentName: ComponentName
+  componentPath: ComponentPath
+  exampleComponentName: "For example: 'user', if the external network address needs internal link access, start with 'http(s)://'"
+  exampleRoutePath: "Route address for access, such as' /user ', '/system/about'"
+  exampleComponentPath: "The access component path, such as' system/user/index ', defaults to the 'views' directory"
+  exampleCache: "If yes is selected, it will be cached by 'keep-alive', and the name and address of the matching component must be consistent"
+  exampleShowLink: "Hide the route will not appear in the sidebar, but it will still be accessible"
+  exampleMenuStatus: "If disabled, the route will not appear in the sidebar and cannot be accessed"
+  exampleRequestStatus: "Select Disable to invalidate permissions"
+  exampleExternalLink: "If it exists, the address needs to start with 'http(s)://'"
+  verifyExampleExternalLink: "Default is empty unless there is an external link"
+  exampleAnimation: "The embedded iframe page loads the animation for the first time"
+  examplePermissionCode: "Controller the permissions defined in character, such as: PreAuthorize(`permission.HashPermission('menu: query)`)"
+  path: RoutePath
+  verifyType: Please choice menu type
+  verifyTitle: Please enter menu title
+  verifyPath: Please enter routing path
+  verifyComponentPath: Please enter component path
+  verifyTransition: Please select animation
+  verifyRequestMethod: Please enter request method
+  verifyPermissionName: Please enter permission name
+  verifyPermissionCode: Please enter permission code
+  pathError: The route path must start with '/'
+  parentNode: ParentNode
+  showParentMenu: ShowParentMenu
+  showLink: ShowLink
+  externalLink: ExternalLink
+  animation: Animation
+  permissionName: PermissionName
+  permissionCode: PermissionCode
+  permissionPath: PermissionPath
+  requestMethod: RequestMethod
+  directory: Directory
+  menu: Menu
+  permissions: Permissions
+  associationModel: AssociationModel
+  exampleAssociationModel: Model association is used with field permission control
+  fixedTag: Fixed Tag
+  fixedTagTip: Whether the current menu name is fixed to the TAB and cannot be closed
+  hiddenTag: Hidden Tag
+  hiddenTagTip: The current menu name or custom information is prohibited from being added to the TAB
+  addPermissions: Automatic batch add permissions
+  codeSuffix: Permission identity suffix
+  codeSuffixTip: It is by default the component name. If it is empty, it will be by default the name of the back-end view, and it can be modified by yourself.
+  menuView: Back-end view name
+  skipExistingData: Skip existing data
+
+logsOperation:
+  creator_id: Creator Id
+  module: Module
+  ipaddress: Ip Address
+  system: Operating System
+  browser: Browser
+  path: Request Path
+  creator: Creator
+  body: Response Body
+  response_code: Status Code
+  response_result: Response Result
+
+logsLogin:
+  creator_id: Creator ID
+  login_type: Login Type
+  ipaddress: Ip Address
+  system: Operating System
+  browser: Browser
+  agent: User-Agent
+  creator: Creator
+
+configSystem:
+  configSystem: System Config
+  key: Config Name
+  value: Config Value
+  inherit: User Inherit
+  access: API Access
+  cache_value: Config Cache Value
+  accessTip: Allow API interfaces to access this configuration
+  inheritTip: Allows users to inherit this configuration
+  invalidCache: Invalid Cache
+  confirmInvalid: Are you sure to invalid this cache?
+
+configUser:
+  configUser: User Config
+  key: Config Name
+  value: Config Value
+  username: Username
+  access: API Access
+  owner_id: User ID
+  config_user: User ID
+  owner: UserInfo
+  cache_value: Config Cache Value
+  invalidCache: Invalid Cache
+  confirmInvalid: Are you sure to invalid this cache?
+
+modelFieldManagement:
+  name: Model/field name
+  label: Model/field label
+  field_type: Field Type
+  parent: Parent
+  makeData: Make Field Data
+
+systemNotice:
+  notice: Notice
+  notice_type: Notice Type
+  level: Level
+  publish: Publish
+  message: Message
+  title: Title
+  read_user_count: Receive/Read
+  notice_user: Users
+  notice_dept: Departments
+  notice_role: Roles
+  allRead: AllRead
+  showSystemNotice: Check the system announcement
+
+noticeRead:
+  owner_id: User ID
+  notice_id: Notice ID
+  message: Message
+  title: Title
+  username: Username
+  level: Level
+  notice_type: Notice Type
+  unread: Have Read
+  notice_info: Title
+  readDate: Read Date
+  showSystemNotice: Check the system announcement
+
+userNotice:
+  message: Message
+  title: Title
+  unread: Have Read
+  level: Level
+  notice_type: Notice Type
+  batchRead: BatchRead
+  unreadMessage: Unread Message
+  allRead: AllRead
+  showSystemNotice: Check the system announcement
+
+systemUploadFile:
+  upload: Upload
+  fileLink: File Link
+  clickUpload: click to upload
+  dropFile: Drop file here or
+  uploadTip: Files with a size less than
+
+status:
+  hsLoad: Loading...
+
+login:
+  username: Username
+  password: Password
+  verifyCode: VerifyCode
+  remember: days no need to login
+  rememberInfo: After checking and logging in, will automatically log in to the system without entering your username and password within the specified number of days.
+  sure: Sure Password
+  forget: Forget Password?
+  login: Login
+  thirdLogin: Third Login
+  basicLogin: Basic Login
+  verifyCodeLogin: Verify Code Login
+  qRCodeLogin: QRCode Login
+  register: Register
+  weChatLogin: WeChat Login
+  alipayLogin: Alipay Login
+  qqLogin: QQ Login
+  weiboLogin: Weibo Login
+  phone: Phone
+  email: Email
+  smsVerifyCode: SMS VerifyCode
+  back: Back
+  test: Mock Test
+  tip: After scanning the code, click "Confirm" to complete the login
+  definite: Definite
+  loginSuccess: Login Success
+  registerSuccess: Registered successfully
+  tickPrivacy: Please tick Privacy Policy
+  readAccept: I have read it carefully and accept
+  privacyPolicy: Privacy Policy
+  getVerifyCode: Get VerifyCode
+  info: Seconds
+  usernameReg: Please enter username
+  passwordReg: Please enter password
+  verifyCodeReg: Please enter verify code
+  verifyCodeCorrectReg: Please enter correct verify code
+  verifyCodeSixReg: Please enter a 6-digit verify code
+  phoneReg: Please enter the phone
+  phoneCorrectReg: Please enter the correct phone number format
+  emailReg: Please enter the email
+  emailCorrectReg: Please enter the correct email format
+  passwordRuleReg: The password format should be any combination of 8-18 digits
+  passwordSureReg: Please enter confirm password
+  passwordDifferentReg: The two passwords do not match!
+  passwordUpdateReg: Password has been updated
+  emailVerify: Email Auth
+  smsVerify: SMS Auth
+  basic: Username Auth
+
+welcome:
+  operateLog: Log of operations
+  userAnalysis: Overview of user analysis
+  registerUser: Number of Registered Users
+  activeUser: Number of Active Users
+  today: Today
+  days: Days
+  requestNum: Number of interface requests for today
+  userNum: Number of Users
+  loginTimes: Number of Logins
+
+settingBasic:
+  title: Basic Settings
+
+settingMessage:
+  mailTitle: Email Server
+  messageTitle: Message Notifications
+
+settingSecurity:
+  code: Verify Code
+  captcha: Captcha Code
+  login: Login Safe
+  limit: Login Limit
+  register: Register Safe
+  resetPassword: Reset Password
+  passwordRule: Password Rules
+  bingEmail: Bind Email
+  bindPhone: Bind Phone
+  blockIp: Block Ip
+
+settingPassword:
+  tips: Password should be
+  minLength: Min Length ｛length｝
+  upperCase: Upper Case
+  lowerCase: Lower Case
+  number: Number
+  specialChar: Special Char
+
+settingSms:
+  title: SMS Setting
+
+demoBook:
+  book: Book
+  name: Name
+  isbn: ISBN
+  author: Author
+  publisher: Publisher
+  publication_date: Publication date
+  price: Price
+  is_active: Active
+  pushBook: Push book
+  confirmPushBook: Are you sure to push {name} book?
