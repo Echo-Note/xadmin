@@ -1,0 +1,8 @@
+# OS
+.DS_Store
+
+# AI 助手本地工作数据
+.codebuddy/
+
+# 日志
+*.log

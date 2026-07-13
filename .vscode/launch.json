@@ -1,0 +1,61 @@
+{
+  // xadmin 全栈调试配置
+  // 前端: xadmin-client (Vue3 + Vite, 端口 8848)
+  // 后端: xadmin-server (Django 5.2, 端口 8896)
+  "version": "0.2.0",
+  "configurations": [
+    // ===== 后端 Django 调试 =====
+    // 需要安装 debugpy: uv sync --group dev (已在 pyproject.toml dev 组中)
+    // preLaunchTask 会自动启动 docker compose 中的 postgresql + redis 前置服务
+    // 注意: 宿主机调试需确保能访问数据库，请在 config.yml 中设置:
+    //   DB_HOST: 127.0.0.1, REDIS_HOST: 127.0.0.1
+    // 并通过 docker-compose.override.yml 暴露端口 (postgresql:5432, redis:6379)
+    {
+      "name": "Django: xadmin-server",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/xadmin-server/manage.py",
+      "args": ["runserver", "0.0.0.0:8896", "--noreload"],
+      // --noreload 避免 autoreload fork 子进程导致断点失效，调试时如需热重载可去掉该参数
+      "django": true,
+      "cwd": "${workspaceFolder}/xadmin-server",
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "server.settings"
+      },
+      "preLaunchTask": "docker: postgresql & redis (xadmin-server)",
+      "justMyCode": true
+    },
+    // ===== 前端 Vue 调试 (Chrome) =====
+    // 自动通过 preLaunchTask 启动 Vite dev server
+    {
+      "name": "Vue: xadmin-client (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:8848",
+      "webRoot": "${workspaceFolder}/xadmin-client/src",
+      "sourceMaps": true,
+      "preLaunchTask": "vite: dev (xadmin-client)"
+    },
+    // ===== 前端 Vue 调试 (Edge) =====
+    {
+      "name": "Vue: xadmin-client (Edge)",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:8848",
+      "webRoot": "${workspaceFolder}/xadmin-client/src",
+      "sourceMaps": true,
+      "preLaunchTask": "vite: dev (xadmin-client)"
+    }
+  ],
+  "compounds": [
+    // ===== 全栈联调: 同时启动后端调试 + 前端 Chrome 调试 =====
+    {
+      "name": "全栈调试: 前后端联调 (Chrome)",
+      "configurations": ["Django: xadmin-server", "Vue: xadmin-client (Chrome)"]
+    },
+    {
+      "name": "全栈调试: 前后端联调 (Edge)",
+      "configurations": ["Django: xadmin-server", "Vue: xadmin-client (Edge)"]
+    }
+  ]
+}

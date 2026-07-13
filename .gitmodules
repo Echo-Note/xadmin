@@ -1,0 +1,6 @@
+[submodule "xadmin-server"]
+    path = xadmin-server
+    url = https://github.com/Echo-Note/xadmin-server.git
+[submodule "xadmin-client"]
+    path = xadmin-client
+    url = https://github.com/Echo-Note/xadmin-client.git
