@@ -30,12 +30,15 @@
       }
     },
     // 启动后端前置服务: postgresql + redis (docker compose)
+    // Docker 地址通过根目录 .env 文件配置（参考 .env.example）
+    // set -a / source / set +a: 加载 .env 中的环境变量（如 DOCKER_HOST）
+    // 如果 .env 不存在则静默跳过，使用本地 Docker
     // --wait 等待 healthcheck 通过后再返回，确保后端启动时数据库已就绪
     // 被 launch.json 中 Django 调试配置的 preLaunchTask 引用
     {
       "label": "docker: postgresql & redis (xadmin-server)",
       "type": "shell",
-      "command": "docker compose up -d --wait postgresql redis",
+      "command": "set -a; source ${workspaceFolder}/.env 2>/dev/null; set +a; docker compose up -d --wait postgresql redis",
       "options": {
         "cwd": "${workspaceFolder}/xadmin-server"
       },
