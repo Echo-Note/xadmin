@@ -136,3 +136,33 @@ F5 启动调试
 - [Docker 容器化部署](https://docs.dvcloud.xin/guide/installation-docker.html)
 - 后端详细说明: `server/README.md`
 - 前端详细说明: `client/README.md`
+
+## 许可证与版权声明
+
+本项目基于 [MIT License](https://opensource.org/licenses/MIT) 开源。
+
+### 版权归属
+
+本项目由以下贡献者共同维护：
+
+- **ly_13** — 项目发起者与核心开发者，创建了后端服务的绝大多数模块
+- **laogao** (wadxf@live.com) — 参与部分模块开发
+- 其他贡献者 — 详见 Git 提交历史
+
+> **关于文件头部注释的说明**
+>
+> 在 2026 年 7 月的代码质量改进中（提交 `d1f1c9f`），为统一添加 Python docstring
+> 和类型标注，移除了部分 Python 文件顶部的元信息注释块，包括 `author`、`date`、
+> `project`、`filename` 等字段。受影响文件约 69 个，原始作者标注均为 **ly_13**。
+>
+> 这些文件的完整作者信息、创建日期和修改记录均完整保留在 Git 提交历史中，
+> 可通过 `git log --follow <file>` 或 `git blame <file>` 查询。移除头部注释
+> 仅出于代码风格统一目的，不改变任何版权归属。
+
+### 引用与二次开发
+
+依据 MIT License 条款，在复制、修改或分发本项目代码时：
+
+1. 保留上述版权声明
+2. 保留 MIT License 全文
+3. 可通过 Git 历史追溯原始作者贡献
