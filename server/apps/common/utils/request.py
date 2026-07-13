@@ -15,7 +15,7 @@ from rest_framework.throttling import BaseThrottle
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from user_agents import parse
 
-from common.core.auth import GetUserFromAccessToken
+from apps.common.core.auth import GetUserFromAccessToken
 
 
 def get_request_user(request):

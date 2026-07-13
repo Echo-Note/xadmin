@@ -11,14 +11,14 @@ from typing import Dict
 import aiofiles
 from channels.db import database_sync_to_async
 
-from common.celery.utils import get_celery_task_log_path
-from common.core.config import UserConfig
-from common.utils import get_logger
-from message.base import AsyncJsonWebsocket
-from message.utils import async_push_message, get_user_layer_group_name
+from apps.common.celery.utils import get_celery_task_log_path
+from apps.common.core.config import UserConfig
+from apps.common.utils import get_logger
+from apps.message.base import AsyncJsonWebsocket
+from apps.message.utils import async_push_message, get_user_layer_group_name
 from server.utils import get_current_request
-from system.models import UserInfo, UserLoginLog
-from system.views.auth.login import login_success
+from apps.system.models import UserInfo, UserLoginLog
+from apps.system.views.auth.login import login_success
 
 logger = get_logger(__name__)
 

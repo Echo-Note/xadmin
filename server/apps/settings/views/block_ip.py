@@ -10,10 +10,10 @@ import struct
 from django.conf import settings
 from django.core.cache import cache
 
-from common.core.modelset import ListDeleteModelSet
-from settings.models import Setting
-from settings.serializers.security import SecurityBlockIPSerializer
-from settings.utils.security import LoginIpBlockUtil
+from apps.common.core.modelset import ListDeleteModelSet
+from apps.settings.models import Setting
+from apps.settings.serializers.security import SecurityBlockIPSerializer
+from apps.settings.utils.security import LoginIpBlockUtil
 
 
 class FilterIps(list):

@@ -11,7 +11,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from common.core.models import DbAuditModel
+from apps.common.core.models import DbAuditModel
 
 
 class UserLoginLog(DbAuditModel):

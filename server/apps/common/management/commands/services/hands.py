@@ -6,11 +6,11 @@ from django.conf import settings
 from django.core import management
 from django.db.utils import OperationalError
 
-from common.core.utils import PrintLogFormat
-from common.utils import test_ip_connectivity
-from common.utils.file import download_file
+from apps.common.core.utils import PrintLogFormat
+from apps.common.utils import test_ip_connectivity
+from apps.common.utils.file import download_file
 from server.const import CONFIG
-from settings.models import Setting
+from apps.settings.models import Setting
 
 logger = PrintLogFormat(f"xAdmin API Server", title_width=30, body_width=0)
 

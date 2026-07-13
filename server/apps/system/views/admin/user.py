@@ -12,17 +12,17 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiRequest
 from rest_framework.decorators import action
 
-from common.core.filter import BaseFilterSet
-from common.core.modelset import BaseModelSet, UploadFileAction, ImportExportDataAction
-from common.core.response import ApiResponse
-from common.swagger.utils import get_default_response_schema
-from common.utils import get_logger
-from message.utils import send_logout_msg
-from notifications.message import SiteMessageUtil
-from settings.utils.security import LoginBlockUtil
-from system.models import UserInfo
-from system.serializers.user import UserSerializer, ResetPasswordSerializer
-from system.utils.modelset import ChangeRolePermissionAction
+from apps.common.core.filter import BaseFilterSet
+from apps.common.core.modelset import BaseModelSet, UploadFileAction, ImportExportDataAction
+from apps.common.core.response import ApiResponse
+from apps.common.swagger.utils import get_default_response_schema
+from apps.common.utils import get_logger
+from apps.message.utils import send_logout_msg
+from apps.notifications.message import SiteMessageUtil
+from apps.settings.utils.security import LoginBlockUtil
+from apps.system.models import UserInfo
+from apps.system.serializers.user import UserSerializer, ResetPasswordSerializer
+from apps.system.utils.modelset import ChangeRolePermissionAction
 
 logger = get_logger(__name__)
 

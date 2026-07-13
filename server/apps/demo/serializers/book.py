@@ -7,8 +7,8 @@
 
 from rest_framework import serializers
 
-from common.core.serializers import BaseModelSerializer, TabsColumn
-from common.fields.utils import input_wrapper
+from apps.common.core.serializers import BaseModelSerializer, TabsColumn
+from apps.common.fields.utils import input_wrapper
 from demo import models
 
 

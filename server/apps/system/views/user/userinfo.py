@@ -12,16 +12,16 @@ from drf_spectacular.utils import extend_schema, OpenApiRequest
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser
 
-from common.core.modelset import DetailUpdateModelSet, UploadFileAction, ChoicesAction
-from common.core.response import ApiResponse
-from common.swagger.utils import get_default_response_schema
-from common.utils import get_logger
-from common.utils.verify_code import TokenTempCache
-from settings.utils.security import ResetBlockUtil
-from system.models import UserInfo
-from system.notifications import ResetPasswordSuccessMsg
-from system.serializers.userinfo import UserInfoSerializer, ChangePasswordSerializer
-from system.utils.auth import verify_sms_email_code
+from apps.common.core.modelset import DetailUpdateModelSet, UploadFileAction, ChoicesAction
+from apps.common.core.response import ApiResponse
+from apps.common.swagger.utils import get_default_response_schema
+from apps.common.utils import get_logger
+from apps.common.utils.verify_code import TokenTempCache
+from apps.settings.utils.security import ResetBlockUtil
+from apps.system.models import UserInfo
+from apps.system.notifications import ResetPasswordSuccessMsg
+from apps.system.serializers.userinfo import UserInfoSerializer, ChangePasswordSerializer
+from apps.system.utils.auth import verify_sms_email_code
 
 logger = get_logger(__name__)
 

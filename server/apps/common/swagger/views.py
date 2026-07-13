@@ -17,8 +17,8 @@ from drf_spectacular.views import (
 from rest_framework.generics import GenericAPIView
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 
-from common.base.magic import cache_response
-from common.core.response import ApiResponse
+from apps.common.base.magic import cache_response
+from apps.common.core.response import ApiResponse
 
 
 class ApiLogin(GenericAPIView):

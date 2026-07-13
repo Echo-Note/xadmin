@@ -8,7 +8,7 @@ class Command(BaseCommand):
     help = "Clean up expired captcha hashkeys."
 
     def handle(self, **options):
-        from captcha.models import CaptchaStore
+        from apps.captcha.models import CaptchaStore
 
         verbose = int(options.get("verbosity"))
         expired_keys = CaptchaStore.objects.filter(

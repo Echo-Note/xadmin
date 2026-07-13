@@ -14,9 +14,9 @@ from drf_spectacular.utils import extend_schema, OpenApiRequest
 from rest_framework.generics import GenericAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from common.cache.storage import BlackAccessTokenCache
-from common.core.response import ApiResponse
-from common.swagger.utils import get_default_response_schema
+from apps.common.cache.storage import BlackAccessTokenCache
+from apps.common.core.response import ApiResponse
+from apps.common.swagger.utils import get_default_response_schema
 
 
 class LogoutAPIView(GenericAPIView):

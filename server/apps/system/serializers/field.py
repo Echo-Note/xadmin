@@ -5,9 +5,9 @@
 # author : ly_13
 # date : 8/10/2024
 
-from common.core.serializers import BaseModelSerializer
-from common.utils import get_logger
-from system.models import ModelLabelField
+from apps.common.core.serializers import BaseModelSerializer
+from apps.common.utils import get_logger
+from apps.system.models import ModelLabelField
 
 logger = get_logger(__name__)
 

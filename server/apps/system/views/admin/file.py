@@ -14,15 +14,15 @@ from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser
 
-from common.core.config import SysConfig, UserConfig
-from common.core.filter import BaseFilterSet
-from common.core.modelset import BaseModelSet
-from common.core.response import ApiResponse
-from common.core.throttle import UploadThrottle
-from common.swagger.utils import get_default_response_schema
-from common.utils import get_logger
-from system.models import UploadFile
-from system.serializers.upload import UploadFileSerializer
+from apps.common.core.config import SysConfig, UserConfig
+from apps.common.core.filter import BaseFilterSet
+from apps.common.core.modelset import BaseModelSet
+from apps.common.core.response import ApiResponse
+from apps.common.core.throttle import UploadThrottle
+from apps.common.swagger.utils import get_default_response_schema
+from apps.common.utils import get_logger
+from apps.system.models import UploadFile
+from apps.system.serializers.upload import UploadFileSerializer
 
 logger = get_logger(__name__)
 

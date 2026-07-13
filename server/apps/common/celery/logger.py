@@ -4,7 +4,7 @@ from threading import get_ident
 from celery import current_task
 from celery.signals import task_prerun, task_postrun
 
-from common.celery.utils import get_celery_task_log_path, CELERY_LOG_MAGIC_MARK
+from apps.common.celery.utils import get_celery_task_log_path, CELERY_LOG_MAGIC_MARK
 
 
 class CeleryTaskLoggerHandler(StreamHandler):

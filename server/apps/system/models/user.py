@@ -10,9 +10,9 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from pilkit.processors import ResizeToFill
 
-from common.core.models import upload_directory_path, DbAuditModel, AutoCleanFileMixin
-from common.fields.image import ProcessedImageField
-from system.models import ModeTypeAbstract
+from apps.common.core.models import upload_directory_path, DbAuditModel, AutoCleanFileMixin
+from apps.common.fields.image import ProcessedImageField
+from apps.system.models import ModeTypeAbstract
 
 
 class UserInfo(AutoCleanFileMixin, DbAuditModel, AbstractUser, ModeTypeAbstract):

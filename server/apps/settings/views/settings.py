@@ -8,12 +8,12 @@
 from django.conf import settings
 from django_filters import rest_framework as filters
 
-from common.core.filter import BaseFilterSet
-from common.core.modelset import NoDetailModelSet, ImportExportDataAction, ListDeleteModelSet
-from common.utils import get_logger
-from settings.models import Setting
-from settings.serializers.basic import BasicSettingSerializer
-from settings.serializers.setting import SettingSerializer
+from apps.common.core.filter import BaseFilterSet
+from apps.common.core.modelset import NoDetailModelSet, ImportExportDataAction, ListDeleteModelSet
+from apps.common.utils import get_logger
+from apps.settings.models import Setting
+from apps.settings.serializers.basic import BasicSettingSerializer
+from apps.settings.serializers.setting import SettingSerializer
 
 logger = get_logger(__name__)
 

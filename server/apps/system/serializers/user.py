@@ -12,14 +12,14 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueValidator
 
-from common.base.utils import AESCipherV2
-from common.core.serializers import BaseModelSerializer
-from common.fields.utils import input_wrapper
-from common.utils import get_logger
-from message.utils import get_online_user_layers
-from settings.utils.password import check_password_rules
-from settings.utils.security import LoginBlockUtil
-from system.models import UserInfo
+from apps.common.base.utils import AESCipherV2
+from apps.common.core.serializers import BaseModelSerializer
+from apps.common.fields.utils import input_wrapper
+from apps.common.utils import get_logger
+from apps.message.utils import get_online_user_layers
+from apps.settings.utils.password import check_password_rules
+from apps.settings.utils.security import LoginBlockUtil
+from apps.system.models import UserInfo
 
 logger = get_logger(__name__)
 

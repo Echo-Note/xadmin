@@ -16,14 +16,14 @@ from rest_framework.exceptions import APIException
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from common.base.utils import AESCipherV2
-from common.core.response import ApiResponse
-from common.core.throttle import LoginThrottle
-from common.swagger.utils import get_default_response_schema
-from common.utils.request import get_request_ip
-from settings.utils.security import LoginBlockUtil, LoginIpBlockUtil
-from system.models import UserInfo, UserLoginLog
-from system.utils.auth import get_username_password, get_token_lifetime, check_is_block, check_token_and_captcha, \
+from apps.common.base.utils import AESCipherV2
+from apps.common.core.response import ApiResponse
+from apps.common.core.throttle import LoginThrottle
+from apps.common.swagger.utils import get_default_response_schema
+from apps.common.utils.request import get_request_ip
+from apps.settings.utils.security import LoginBlockUtil, LoginIpBlockUtil
+from apps.system.models import UserInfo, UserLoginLog
+from apps.system.utils.auth import get_username_password, get_token_lifetime, check_is_block, check_token_and_captcha, \
     save_login_log, verify_sms_email_code, check_different_city_login_if_need
 
 

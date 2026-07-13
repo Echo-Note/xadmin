@@ -15,14 +15,14 @@ from drf_spectacular.utils import extend_schema, OpenApiRequest
 from rest_framework.generics import GenericAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from common.base.utils import AESCipherV2
-from common.core.response import ApiResponse
-from common.core.throttle import RegisterThrottle
-from common.swagger.utils import get_default_response_schema
-from settings.utils.password import check_password_rules
-from settings.utils.security import RegisterBlockUtil
-from system.models import DeptInfo, UserInfo
-from system.utils.auth import get_token_lifetime, save_login_log, verify_sms_email_code
+from apps.common.base.utils import AESCipherV2
+from apps.common.core.response import ApiResponse
+from apps.common.core.throttle import RegisterThrottle
+from apps.common.swagger.utils import get_default_response_schema
+from apps.settings.utils.password import check_password_rules
+from apps.settings.utils.security import RegisterBlockUtil
+from apps.system.models import DeptInfo, UserInfo
+from apps.system.utils.auth import get_token_lifetime, save_login_log, verify_sms_email_code
 
 
 class RegisterViewAPIView(GenericAPIView):

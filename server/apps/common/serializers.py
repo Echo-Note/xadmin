@@ -6,7 +6,7 @@
 # date : 9/14/2024
 from rest_framework import serializers
 
-from common.models import Monitor
+from apps.common.models import Monitor
 
 
 class MonitorSerializer(serializers.ModelSerializer):

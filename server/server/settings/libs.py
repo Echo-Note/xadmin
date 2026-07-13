@@ -10,27 +10,27 @@ from .base import SECRET_KEY, CACHES, REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, CE
 from ..const import CONFIG
 
 REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'common.swagger.utils.CustomAutoSchema',
+    'DEFAULT_SCHEMA_CLASS': 'apps.common.swagger.utils.CustomAutoSchema',
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
-        # 'common.drf.renders.CSVFileRenderer', # 为什么注释：因为导入导出需要权限判断，在导入导出功能中再次自定义解析数据
-        # 'common.drf.renders.ExcelFileRenderer',
+        # 'apps.common.drf.renders.CSVFileRenderer', # 为什么注释：因为导入导出需要权限判断，在导入导出功能中再次自定义解析数据
+        # 'apps.common.drf.renders.ExcelFileRenderer',
     ),
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework.parsers.JSONParser',
         'rest_framework.parsers.FormParser',
-        'common.drf.parsers.AxiosMultiPartParser',
-        'common.drf.parsers.CSVFileParser',
-        'common.drf.parsers.ExcelFileParser',
+        'apps.common.drf.parsers.AxiosMultiPartParser',
+        'apps.common.drf.parsers.CSVFileParser',
+        'apps.common.drf.parsers.ExcelFileParser',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'common.core.auth.CookieJWTAuthentication',
+        'apps.common.core.auth.CookieJWTAuthentication',
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",  # 允许basic授权，方便调试使用
     ],
-    'EXCEPTION_HANDLER': 'common.core.exception.common_exception_handler',
-    'DEFAULT_METADATA_CLASS': 'common.drf.metadata.SimpleMetadataWithFilters',
+    'EXCEPTION_HANDLER': 'apps.common.core.exception.common_exception_handler',
+    'DEFAULT_METADATA_CLASS': 'apps.common.drf.metadata.SimpleMetadataWithFilters',
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
     ],
@@ -45,15 +45,15 @@ REST_FRAMEWORK = {
         'login': '50/h',
         **CONFIG.DEFAULT_THROTTLE_RATES
     },
-    'DEFAULT_PAGINATION_CLASS': 'common.core.pagination.PageNumber',
+    'DEFAULT_PAGINATION_CLASS': 'apps.common.core.pagination.PageNumber',
     'DEFAULT_PERMISSION_CLASSES': [
         # 'rest_framework.permissions.IsAuthenticated',
-        'common.core.permission.IsAuthenticated',
+        'apps.common.core.permission.IsAuthenticated',
     ],
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.OrderingFilter',
-        'common.core.filter.BaseDataPermissionFilter',
+        'apps.common.core.filter.BaseDataPermissionFilter',
     ),
     'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',
     'DATETIME_INPUT_FORMATS': ['%Y/%m/%d %H:%M:%S', 'iso-8601', '%Y-%m-%d %H:%M:%S'],
@@ -88,7 +88,7 @@ SIMPLE_JWT = {
     'USER_ID_CLAIM': 'user_id',
     'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
 
-    'AUTH_TOKEN_CLASSES': ('common.core.auth.ServerAccessToken',),
+    'AUTH_TOKEN_CLASSES': ('apps.common.core.auth.ServerAccessToken',),
     # 'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
     'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
@@ -184,9 +184,9 @@ SPECTACULAR_SETTINGS = {
         "displayOperationId": False,
     },
     'SERIALIZER_EXTENSIONS': [
-        'common.swagger.utils.OpenApiAuthenticationScheme',
-        'common.swagger.utils.OpenApiPrimaryKeyRelatedField',
-        'common.swagger.utils.LabeledChoiceFieldExtension'
+        'apps.common.swagger.utils.OpenApiAuthenticationScheme',
+        'apps.common.swagger.utils.OpenApiPrimaryKeyRelatedField',
+        'apps.common.swagger.utils.LabeledChoiceFieldExtension'
     ],
     # 'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
 }

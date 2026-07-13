@@ -4,7 +4,7 @@
 # filename : base
 # author : ly_13
 # date : 8/6/2024
-from common.utils import get_logger
+from apps.common.utils import get_logger
 
 logger = get_logger(__name__)
 

@@ -6,15 +6,15 @@
 # date : 6/6/2023
 from rest_framework.routers import SimpleRouter
 
-from common.core.routers import NoDetailRouter
-from settings.views.basic import BasicSettingViewSet
-from settings.views.block_ip import SecurityBlockIpViewSet
-from settings.views.email import EmailServerSettingViewSet
-from settings.views.security import SecurityPasswordRuleViewSet, SecurityLoginLimitViewSet, \
+from apps.common.core.routers import NoDetailRouter
+from apps.settings.views.basic import BasicSettingViewSet
+from apps.settings.views.block_ip import SecurityBlockIpViewSet
+from apps.settings.views.email import EmailServerSettingViewSet
+from apps.settings.views.security import SecurityPasswordRuleViewSet, SecurityLoginLimitViewSet, \
     SecurityLoginAuthViewSet, SecurityRegisterAuthViewSet, SecurityResetPasswordAuthViewSet, \
     SecurityBindEmailAuthViewSet, SecurityBindPhoneAuthViewSet, SecurityVerifyCodeViewSet, SecurityCaptchaCodeViewSet
-from settings.views.settings import SettingViewSet
-from settings.views.sms import SmsSettingViewSet, SmsConfigViewSet
+from apps.settings.views.settings import SettingViewSet
+from apps.settings.views.sms import SmsSettingViewSet, SmsConfigViewSet
 
 app_name = "settings"
 

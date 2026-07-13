@@ -12,7 +12,7 @@ from django.db.models import TextChoices
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import APIException
 
-from common.utils import get_logger
+from apps.common.utils import get_logger
 from .base import BaseSMSClient
 
 logger = get_logger(__name__)

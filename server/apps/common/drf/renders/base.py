@@ -10,10 +10,10 @@ from rest_framework import serializers
 from rest_framework.renderers import BaseRenderer
 from rest_framework.utils import encoders, json
 
-from common.core.fields import LabeledChoiceField, BasePrimaryKeyRelatedField, PhoneField
-from common.core.utils import has_self_fields
-from common.utils import get_logger
-from common.utils.timezone import local_now
+from apps.common.core.fields import LabeledChoiceField, BasePrimaryKeyRelatedField, PhoneField
+from apps.common.core.utils import has_self_fields
+from apps.common.utils import get_logger
+from apps.common.utils.timezone import local_now
 
 logger = get_logger(__name__)
 

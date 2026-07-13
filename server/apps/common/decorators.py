@@ -11,8 +11,8 @@ from functools import wraps
 
 from django.db import transaction
 
-from common.core.db.utils import open_db_connection
-from common.utils import get_logger
+from apps.common.core.db.utils import open_db_connection
+from apps.common.utils import get_logger
 
 logger = get_logger(__name__)
 

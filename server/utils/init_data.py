@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'server.settings')
 django.setup()
 
-from system.models import *
+from apps.system.models import *
 from django.core import management
 
 # 如果有用户存在，则不支持初始化操作

@@ -1,6 +1,6 @@
 from django.urls import re_path
 
-from captcha import views
+from apps.captcha import views
 
 urlpatterns = [
     re_path(

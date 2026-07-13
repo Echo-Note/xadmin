@@ -7,8 +7,8 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from common.base.utils import signer
-from common.core.models import DbAuditModel, DbUuidModel
+from apps.common.base.utils import signer
+from apps.common.core.models import DbAuditModel, DbUuidModel
 
 
 class Setting(DbAuditModel, DbUuidModel):

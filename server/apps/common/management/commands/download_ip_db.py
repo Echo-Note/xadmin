@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from common.management.commands.services.hands import download_ip_db
+from apps.common.management.commands.services.hands import download_ip_db
 
 
 class Command(BaseCommand):

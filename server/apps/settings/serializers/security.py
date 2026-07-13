@@ -8,8 +8,8 @@ from django.db.models import TextChoices
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from common.core.fields import ColorField
-from common.utils.ip import is_ip_address, is_ip_network, is_ip_segment
+from apps.common.core.fields import ColorField
+from apps.common.utils.ip import is_ip_address, is_ip_network, is_ip_segment
 
 
 class SecurityPasswordRuleSerializer(serializers.Serializer):
@@ -281,13 +281,13 @@ class SecurityVerifyCodeSerializer(serializers.Serializer):
 
 class SecurityCaptchaCodeSerializer(serializers.Serializer):
     class ChallengeChoices(TextChoices):
-        RANDOM_CHAR = 'captcha.helpers.random_char_challenge', _('Random char')
-        MATH_CHALLENGE = 'captcha.helpers.math_challenge', _('Math challenge')
+        RANDOM_CHAR = 'apps.captcha.helpers.random_char_challenge', _('Random char')
+        MATH_CHALLENGE = 'apps.captcha.helpers.math_challenge', _('Math challenge')
 
     class NoiseFunctionsChoices(TextChoices):
-        FUNCTION_NULL = 'captcha.helpers.noise_null', _('Noise function null')
-        FUNCTION_ARCS = 'captcha.helpers.noise_arcs', _('Noise function arcs')
-        FUNCTION_DOTS = 'captcha.helpers.noise_dots', _('Noise function dots')
+        FUNCTION_NULL = 'apps.captcha.helpers.noise_null', _('Noise function null')
+        FUNCTION_ARCS = 'apps.captcha.helpers.noise_arcs', _('Noise function arcs')
+        FUNCTION_DOTS = 'apps.captcha.helpers.noise_dots', _('Noise function dots')
 
     CAPTCHA_CHALLENGE_FUNCT = serializers.ChoiceField(choices=ChallengeChoices.choices,
                                                       default=ChallengeChoices.MATH_CHALLENGE,

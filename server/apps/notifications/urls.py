@@ -1,8 +1,8 @@
 from rest_framework.routers import SimpleRouter
 
-from notifications.views.message import NoticeMessageViewSet, NoticeUserReadMessageViewSet
-from notifications.views.notifications import SystemMsgSubscriptionViewSet, UserMsgSubscriptionViewSet
-from notifications.views.user_site_msg import UserSiteMessageViewSet
+from apps.notifications.views.message import NoticeMessageViewSet, NoticeUserReadMessageViewSet
+from apps.notifications.views.notifications import SystemMsgSubscriptionViewSet, UserMsgSubscriptionViewSet
+from apps.notifications.views.user_site_msg import UserSiteMessageViewSet
 
 app_name = 'notifications'
 

@@ -6,11 +6,11 @@ from celery import shared_task
 from django.utils.translation import gettext_lazy as _
 from html2text import HTML2Text
 
-from common.utils import get_logger
-from common.utils.timezone import local_now
-from notifications.backends import BACKEND
-from notifications.models import SystemMsgSubscription, UserMsgSubscription
-from system.models import UserInfo
+from apps.common.utils import get_logger
+from apps.common.utils.timezone import local_now
+from apps.notifications.backends import BACKEND
+from apps.notifications.models import SystemMsgSubscription, UserMsgSubscription
+from apps.system.models import UserInfo
 
 logger = get_logger(__name__)
 system_msgs = []
@@ -103,7 +103,7 @@ class Message(metaclass=MessageType):
         if not msg:
             return
 
-        from system.models import UserInfo
+        from apps.system.models import UserInfo
         users = UserInfo.objects.filter(is_superuser=True)
         backends = []
         msg.send_msg(users, backends)
@@ -284,7 +284,7 @@ class UserMessage(Message):
 
     @classmethod
     def get_test_user(cls):
-        from system.models import UserInfo
+        from apps.system.models import UserInfo
         return UserInfo.objects.all().first()
 
     @classmethod

@@ -121,11 +121,11 @@ CAPTCHA_NOISE_FUNCTIONS = CONFIG.CAPTCHA_NOISE_FUNCTIONS
 
 # 下面图片验证码 默认配置
 CAPTCHA_OUTPUT_FORMAT = '%(image)s %(text_field)s %(hidden_field)s '
-# CAPTCHA_NOISE_FUNCTIONS = ("captcha.helpers.noise_arcs", "captcha.helpers.noise_dots")
-# CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge'
-CAPTCHA_FONT_PATH = os.path.join(PROJECT_DIR, "captcha", "fonts", "Vera.ttf")
+# CAPTCHA_NOISE_FUNCTIONS = ("apps.captcha.helpers.noise_arcs", "apps.captcha.helpers.noise_dots")
+# CAPTCHA_CHALLENGE_FUNCT = 'apps.captcha.helpers.random_char_challenge'
+CAPTCHA_FONT_PATH = os.path.join(PROJECT_DIR, "apps", "captcha", "fonts", "Vera.ttf")
 CAPTCHA_LETTER_ROTATION = (-35, 35)
-CAPTCHA_FILTER_FUNCTIONS = ("captcha.helpers.post_smooth",)
+CAPTCHA_FILTER_FUNCTIONS = ("apps.captcha.helpers.post_smooth",)
 CAPTCHA_PUNCTUATION = """_"',.;:-"""
 CAPTCHA_FLITE_PATH = None
 CAPTCHA_SOX_PATH = None

@@ -6,8 +6,8 @@ import redis
 from django.core.cache import cache
 from redis.client import PubSub
 
-from common.core.db.utils import safe_db_connection
-from common.utils import get_logger
+from apps.common.core.db.utils import safe_db_connection
+from apps.common.utils import get_logger
 
 logger = get_logger(__name__)
 

@@ -6,7 +6,7 @@
 # date : 6/6/2023
 from django.urls import re_path
 
-from common.api.common import ResourcesIDCacheAPIView, CountryListAPIView, HealthCheckAPIView
+from apps.common.api.common import ResourcesIDCacheAPIView, CountryListAPIView, HealthCheckAPIView
 
 app_name = "common"
 

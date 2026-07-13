@@ -11,8 +11,8 @@ from django.core.management.commands.loaddata import Command as LoadCommand
 from django.db import DEFAULT_DB_ALIAS
 from django.db.models.signals import ModelSignal
 
-from settings.models import Setting
-from system.models import *
+from apps.settings.models import Setting
+from apps.system.models import *
 
 
 class Command(LoadCommand):

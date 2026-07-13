@@ -11,7 +11,7 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 
-from system.models import OperationLog, UploadFile
+from apps.system.models import OperationLog, UploadFile
 
 logger = get_task_logger(__name__)
 

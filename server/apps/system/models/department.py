@@ -11,8 +11,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from rest_framework.utils import encoders
 
-from common.core.models import DbAuditModel, DbUuidModel
-from system.models import ModeTypeAbstract
+from apps.common.core.models import DbAuditModel, DbUuidModel
+from apps.system.models import ModeTypeAbstract
 
 
 class DeptInfo(DbAuditModel, ModeTypeAbstract, DbUuidModel):

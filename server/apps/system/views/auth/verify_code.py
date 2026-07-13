@@ -13,17 +13,17 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter, OpenApiRequest
 from rest_framework.generics import GenericAPIView
 
-from common.base.utils import AESCipherV2
-from common.core.response import ApiResponse
-from common.fields.utils import get_file_absolute_uri
-from common.swagger.utils import get_default_response_schema
-from common.utils import random_string
-from common.utils.request import get_request_ip
-from common.utils.verify_code import SendAndVerifyCodeUtil, TokenTempCache
-from settings.utils.password import get_password_check_rules
-from settings.utils.security import SendVerifyCodeBlockUtil, LoginIpBlockUtil
-from system.models import UserInfo
-from system.utils.auth import check_token_and_captcha, check_is_block
+from apps.common.base.utils import AESCipherV2
+from apps.common.core.response import ApiResponse
+from apps.common.fields.utils import get_file_absolute_uri
+from apps.common.swagger.utils import get_default_response_schema
+from apps.common.utils import random_string
+from apps.common.utils.request import get_request_ip
+from apps.common.utils.verify_code import SendAndVerifyCodeUtil, TokenTempCache
+from apps.settings.utils.password import get_password_check_rules
+from apps.settings.utils.security import SendVerifyCodeBlockUtil, LoginIpBlockUtil
+from apps.system.models import UserInfo
+from apps.system.utils.auth import check_token_and_captcha, check_is_block
 
 
 @extend_schema_view(

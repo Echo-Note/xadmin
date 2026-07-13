@@ -1,4 +1,4 @@
-from common.sdk.sms.endpoint import SMS
+from apps.common.sdk.sms.endpoint import SMS
 from .base import BackendBase
 
 

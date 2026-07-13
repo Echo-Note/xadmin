@@ -11,11 +11,11 @@ from django.utils import timezone
 from django.utils.translation import activate
 from django.utils.translation import gettext_lazy as _
 
-from common.core.models import DbAuditModel
-from common.core.serializers import BaseModelSerializer
-from common.core.utils import PrintLogFormat
-from common.utils import get_logger
-from system.models import ModelLabelField
+from apps.common.core.models import DbAuditModel
+from apps.common.core.serializers import BaseModelSerializer
+from apps.common.core.utils import PrintLogFormat
+from apps.common.utils import get_logger
+from apps.system.models import ModelLabelField
 
 logger = get_logger(__name__)
 

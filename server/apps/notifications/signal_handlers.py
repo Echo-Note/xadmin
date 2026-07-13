@@ -6,12 +6,12 @@ from django.db.models.signals import post_save, post_migrate, m2m_changed
 from django.dispatch import receiver
 from django.utils.functional import LazyObject
 
-from common.utils import get_logger
-from common.utils.connection import RedisPubSub
-from notifications.message import SiteMessageUtil
-from notifications.models import SystemMsgSubscription, MessageContent
-from notifications.notifications import SystemMessage
-from system.models import UserInfo
+from apps.common.utils import get_logger
+from apps.common.utils.connection import RedisPubSub
+from apps.notifications.message import SiteMessageUtil
+from apps.notifications.models import SystemMsgSubscription, MessageContent
+from apps.notifications.notifications import SystemMessage
+from apps.system.models import UserInfo
 
 logger = get_logger(__name__)
 

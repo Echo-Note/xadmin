@@ -15,14 +15,14 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 
-from common.base.utils import get_choices_dict
-from common.core.response import ApiResponse
-from common.sdk.sms.endpoint import BACKENDS
-from common.swagger.utils import get_default_response_schema
-from common.utils import get_logger
-from settings.models import Setting
-from settings.serializers.sms import AlibabaSMSSettingSerializer, SMSSettingSerializer
-from settings.views.settings import BaseSettingViewSet
+from apps.common.base.utils import get_choices_dict
+from apps.common.core.response import ApiResponse
+from apps.common.sdk.sms.endpoint import BACKENDS
+from apps.common.swagger.utils import get_default_response_schema
+from apps.common.utils import get_logger
+from apps.settings.models import Setting
+from apps.settings.serializers.sms import AlibabaSMSSettingSerializer, SMSSettingSerializer
+from apps.settings.views.settings import BaseSettingViewSet
 
 logger = get_logger(__name__)
 

@@ -11,7 +11,7 @@ from django.core.cache import cache
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
-from common.utils import ip
+from apps.common.utils import ip
 
 
 class BlockUtil:

@@ -8,7 +8,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.encoding import smart_str
 
-from captcha.helpers import get_challenge
+from apps.captcha.helpers import get_challenge
 
 # Heavily based on session key generation in Django
 # Use the system (hardware-based) random number generator if it exists.
@@ -18,7 +18,7 @@ else:
     randrange = random.randrange
 MAX_RANDOM_KEY = 18446744073709551616  # 2 << 63
 
-from common.utils import get_logger
+from apps.common.utils import get_logger
 
 logger = get_logger(__name__)
 

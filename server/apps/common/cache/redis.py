@@ -9,7 +9,7 @@ import time
 
 from django_redis import get_redis_connection
 
-from common.utils import get_logger
+from apps.common.utils import get_logger
 
 logger = get_logger(__name__)
 

@@ -10,10 +10,10 @@ from django.conf import settings
 from django.core.mail import get_connection, send_mail
 from django.utils.translation import gettext_lazy as _
 
-from common.core.response import ApiResponse
-from common.utils import get_logger
-from settings.serializers.email import EmailSettingSerializer
-from settings.views.settings import BaseSettingViewSet
+from apps.common.core.response import ApiResponse
+from apps.common.utils import get_logger
+from apps.settings.serializers.email import EmailSettingSerializer
+from apps.settings.views.settings import BaseSettingViewSet
 
 logger = get_logger(__name__)
 

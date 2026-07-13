@@ -11,8 +11,8 @@ from django.core.exceptions import ImproperlyConfigured
 from django.http import Http404, HttpResponse
 from ranged_response import RangedFileResponse
 
-from captcha.helpers import captcha_audio_url, captcha_image_url, noise_functions, filter_functions, makeimg
-from captcha.models import CaptchaStore
+from apps.captcha.helpers import captcha_audio_url, captcha_image_url, noise_functions, filter_functions, makeimg
+from apps.captcha.models import CaptchaStore
 
 # Distance of the drawn text from the top of the captcha image
 DISTANCE_FROM_TOP = 4
@@ -144,7 +144,7 @@ def captcha_audio(request, key):
             return HttpResponse(status=410)
 
         text = store.challenge
-        if "captcha.helpers.math_challenge" == settings.CAPTCHA_CHALLENGE_FUNCT:
+        if "apps.captcha.helpers.math_challenge" == settings.CAPTCHA_CHALLENGE_FUNCT:
             text = text.replace("*", "times").replace("-", "minus").replace("+", "plus")
         else:
             text = ", ".join(list(text))

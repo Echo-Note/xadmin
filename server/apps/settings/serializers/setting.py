@@ -4,8 +4,8 @@
 # filename : settings
 # author : ly_13
 # date : 10/25/2024
-from common.core.serializers import BaseModelSerializer
-from settings.models import Setting
+from apps.common.core.serializers import BaseModelSerializer
+from apps.settings.models import Setting
 
 
 class SettingSerializer(BaseModelSerializer):

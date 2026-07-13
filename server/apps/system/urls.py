@@ -7,34 +7,34 @@
 from django.urls import re_path, include
 from rest_framework.routers import SimpleRouter
 
-from common.core.routers import NoDetailRouter
-from system.views.admin.config import SystemConfigViewSet, UserPersonalConfigViewSet
-from system.views.admin.dept import DeptViewSet
-from system.views.admin.file import UploadFileViewSet
-from system.views.admin.loginlog import LoginLogViewSet
-from system.views.admin.menu import MenuViewSet
-from system.views.admin.modelfield import ModelLabelFieldViewSet
-from system.views.admin.online import UserOnlineViewSet
-from system.views.admin.operationlog import OperationLogViewSet
-from system.views.admin.permission import DataPermissionViewSet
-from system.views.admin.role import RoleViewSet
-from system.views.admin.user import UserViewSet
-from system.views.auth.login import BasicLoginAPIView, VerifyCodeLoginAPIView
-from system.views.auth.logout import LogoutAPIView
-from system.views.auth.register import RegisterViewAPIView
-from system.views.auth.reset import ResetPasswordAPIView
-from system.views.auth.rule import PasswordRulesAPIView
-from system.views.auth.token import RefreshTokenAPIView, CaptchaAPIView, TempTokenAPIView
-from system.views.auth.verify_code import SendVerifyCodeAPIView
-from system.views.configs import ConfigsViewSet
-from system.views.dashboard import DashboardViewSet
-from system.views.routes import UserRoutesAPIView
-from system.views.search.dept import SearchDeptViewSet
-from system.views.search.menu import SearchMenuViewSet
-from system.views.search.role import SearchRoleViewSet
-from system.views.search.user import SearchUserViewSet
-from system.views.user.login_log import UserLoginLogViewSet
-from system.views.user.userinfo import UserInfoViewSet
+from apps.common.core.routers import NoDetailRouter
+from apps.system.views.admin.config import SystemConfigViewSet, UserPersonalConfigViewSet
+from apps.system.views.admin.dept import DeptViewSet
+from apps.system.views.admin.file import UploadFileViewSet
+from apps.system.views.admin.loginlog import LoginLogViewSet
+from apps.system.views.admin.menu import MenuViewSet
+from apps.system.views.admin.modelfield import ModelLabelFieldViewSet
+from apps.system.views.admin.online import UserOnlineViewSet
+from apps.system.views.admin.operationlog import OperationLogViewSet
+from apps.system.views.admin.permission import DataPermissionViewSet
+from apps.system.views.admin.role import RoleViewSet
+from apps.system.views.admin.user import UserViewSet
+from apps.system.views.auth.login import BasicLoginAPIView, VerifyCodeLoginAPIView
+from apps.system.views.auth.logout import LogoutAPIView
+from apps.system.views.auth.register import RegisterViewAPIView
+from apps.system.views.auth.reset import ResetPasswordAPIView
+from apps.system.views.auth.rule import PasswordRulesAPIView
+from apps.system.views.auth.token import RefreshTokenAPIView, CaptchaAPIView, TempTokenAPIView
+from apps.system.views.auth.verify_code import SendVerifyCodeAPIView
+from apps.system.views.configs import ConfigsViewSet
+from apps.system.views.dashboard import DashboardViewSet
+from apps.system.views.routes import UserRoutesAPIView
+from apps.system.views.search.dept import SearchDeptViewSet
+from apps.system.views.search.menu import SearchMenuViewSet
+from apps.system.views.search.role import SearchRoleViewSet
+from apps.system.views.search.user import SearchUserViewSet
+from apps.system.views.user.login_log import UserLoginLogViewSet
+from apps.system.views.user.userinfo import UserInfoViewSet
 
 app_name = "system"
 
@@ -42,7 +42,7 @@ router = SimpleRouter(False)
 no_detail_router = NoDetailRouter(False)
 
 no_auth_url = [
-    re_path('^captcha/', include('captcha.urls')),
+    re_path('^captcha/', include('apps.captcha.urls')),
     re_path('^login/basic$', BasicLoginAPIView.as_view(), name='login-by-basic'),
     re_path('^login/code$', VerifyCodeLoginAPIView.as_view(), name='login-by-code'),
     re_path('^register$', RegisterViewAPIView.as_view(), name='register'),

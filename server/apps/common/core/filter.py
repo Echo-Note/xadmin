@@ -19,11 +19,11 @@ from django_filters.fields import MultipleChoiceField
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.filters import BaseFilterBackend
 
-from common.base.magic import timeit, count_sql_queries
-from common.cache.storage import CommonResourceIDsCache
-from common.core.db.utils import RelatedManager
-from common.utils import get_logger
-from system.models import UserInfo, DataPermission, ModeTypeAbstract, DeptInfo, ModelLabelField
+from apps.common.base.magic import timeit, count_sql_queries
+from apps.common.cache.storage import CommonResourceIDsCache
+from apps.common.core.db.utils import RelatedManager
+from apps.common.utils import get_logger
+from apps.system.models import UserInfo, DataPermission, ModeTypeAbstract, DeptInfo, ModelLabelField
 
 logger = get_logger(__name__)
 

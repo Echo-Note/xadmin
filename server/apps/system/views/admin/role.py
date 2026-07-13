@@ -7,11 +7,11 @@
 
 from django_filters import rest_framework as filters
 
-from common.core.filter import BaseFilterSet
-from common.core.modelset import BaseModelSet, ImportExportDataAction
-from common.utils import get_logger
-from system.models import UserRole
-from system.serializers.role import RoleSerializer, ListRoleSerializer
+from apps.common.core.filter import BaseFilterSet
+from apps.common.core.modelset import BaseModelSet, ImportExportDataAction
+from apps.common.utils import get_logger
+from apps.system.models import UserRole
+from apps.system.serializers.role import RoleSerializer, ListRoleSerializer
 
 logger = get_logger(__name__)
 

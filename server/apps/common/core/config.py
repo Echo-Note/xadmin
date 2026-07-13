@@ -14,10 +14,10 @@ from django.template import Context, Template, TemplateSyntaxError
 from django.template.base import VariableNode
 from rest_framework import serializers
 
-from common.cache.storage import UserSystemConfigCache
-from common.utils import get_logger
+from apps.common.cache.storage import UserSystemConfigCache
+from apps.common.utils import get_logger
 from server import settings
-from system.models import SystemConfig, UserPersonalConfig
+from apps.system.models import SystemConfig, UserPersonalConfig
 
 logger = get_logger(__name__)
 

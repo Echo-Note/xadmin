@@ -18,7 +18,7 @@ from django.core.asgi import get_asgi_application
 from django.core.handlers.asgi import ASGIRequest
 from django.utils.module_loading import import_string
 
-from common.utils import get_logger
+from apps.common.utils import get_logger
 from server.utils import set_current_request
 
 logger = get_logger(__name__)
@@ -27,7 +27,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'server.settings')
 django_asgi_app = get_asgi_application()
 
 # 写到上面会导致gunicorn启动失败
-from message.routing import urlpatterns as message_urlpatterns
+from apps.message.routing import urlpatterns as message_urlpatterns
 
 urlpatterns = message_urlpatterns
 

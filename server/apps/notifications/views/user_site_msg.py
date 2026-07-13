@@ -15,12 +15,12 @@ from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 
-from common.core.filter import BaseFilterSet
-from common.core.modelset import OnlyListModelSet, CacheListResponseMixin
-from common.core.response import ApiResponse
-from common.swagger.utils import get_default_response_schema
-from notifications.models import MessageContent, MessageUserRead
-from notifications.serializers.message import UserNoticeSerializer
+from apps.common.core.filter import BaseFilterSet
+from apps.common.core.modelset import OnlyListModelSet, CacheListResponseMixin
+from apps.common.core.response import ApiResponse
+from apps.common.swagger.utils import get_default_response_schema
+from apps.notifications.models import MessageContent, MessageUserRead
+from apps.notifications.serializers.message import UserNoticeSerializer
 
 
 def get_users_notice_q(user_obj):

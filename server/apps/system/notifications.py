@@ -1,9 +1,9 @@
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
-from common.utils.request import get_request_ip, get_browser
-from common.utils.timezone import local_now_display
-from notifications.notifications import UserMessage
+from apps.common.utils.request import get_request_ip, get_browser
+from apps.common.utils.timezone import local_now_display
+from apps.notifications.notifications import UserMessage
 
 
 class DifferentCityLoginMessage(UserMessage):
@@ -35,7 +35,7 @@ class DifferentCityLoginMessage(UserMessage):
 
     @classmethod
     def gen_test_msg(cls):
-        from system.models import UserInfo
+        from apps.system.models import UserInfo
         user = UserInfo.objects.first()
         ip = '8.8.8.8'
         city = '洛杉矶'

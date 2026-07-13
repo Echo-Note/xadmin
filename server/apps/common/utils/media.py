@@ -16,7 +16,7 @@ from django.utils.http import http_date
 from django.utils.translation import gettext_lazy as _
 from django.views.static import directory_index, was_modified_since
 
-from common.fields.image import ProcessedImageField, get_thumbnail
+from apps.common.fields.image import ProcessedImageField, get_thumbnail
 
 
 def get_media_path(path):

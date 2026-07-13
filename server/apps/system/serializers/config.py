@@ -10,12 +10,12 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from common.core.config import SysConfig, UserConfig
-from common.core.fields import BasePrimaryKeyRelatedField
-from common.core.serializers import BaseModelSerializer
-from common.fields.utils import input_wrapper
-from common.utils import get_logger
-from system.models import SystemConfig, UserPersonalConfig, UserInfo
+from apps.common.core.config import SysConfig, UserConfig
+from apps.common.core.fields import BasePrimaryKeyRelatedField
+from apps.common.core.serializers import BaseModelSerializer
+from apps.common.fields.utils import input_wrapper
+from apps.common.utils import get_logger
+from apps.system.models import SystemConfig, UserPersonalConfig, UserInfo
 
 logger = get_logger(__name__)
 

@@ -14,7 +14,7 @@ from rest_framework.fields import empty
 from rest_framework.request import Request
 from rest_framework.serializers import ModelSerializer
 
-from common.core.fields import BasePrimaryKeyRelatedField, LabeledChoiceField
+from apps.common.core.fields import BasePrimaryKeyRelatedField, LabeledChoiceField
 from server.utils import get_current_request
 
 

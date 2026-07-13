@@ -7,10 +7,10 @@
 
 from django_filters import rest_framework as filters
 
-from common.core.filter import BaseFilterSet
-from common.core.modelset import OnlyListModelSet
-from system.models import UserInfo
-from system.serializers.user import UserSerializer
+from apps.common.core.filter import BaseFilterSet
+from apps.common.core.modelset import OnlyListModelSet
+from apps.system.models import UserInfo
+from apps.system.serializers.user import UserSerializer
 
 
 class SearchUserFilter(BaseFilterSet):

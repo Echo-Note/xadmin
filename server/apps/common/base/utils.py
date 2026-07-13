@@ -13,7 +13,7 @@ from Cryptodome.Cipher import AES
 from django.conf import settings
 from django.forms.models import ModelChoiceIteratorValue
 
-from common.utils import get_logger
+from apps.common.utils import get_logger
 
 logger = get_logger(__name__)
 

@@ -13,7 +13,7 @@ from django.db import models
 from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
 
-from common.utils import get_logger
+from apps.common.utils import get_logger
 
 logger = get_logger(__name__)
 

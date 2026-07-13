@@ -8,10 +8,10 @@ from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from common.core.serializers import BaseModelSerializer
-from common.utils import get_logger
-from message.utils import get_online_user_layers
-from system.models import UserLoginLog, OperationLog
+from apps.common.core.serializers import BaseModelSerializer
+from apps.common.utils import get_logger
+from apps.message.utils import get_online_user_layers
+from apps.system.models import UserLoginLog, OperationLog
 
 logger = get_logger(__name__)
 

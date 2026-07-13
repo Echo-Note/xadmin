@@ -4,11 +4,11 @@
 from django_filters import rest_framework as filters
 from rest_framework.decorators import action
 
-from common.core.filter import BaseFilterSet, PkMultipleFilter
-from common.core.modelset import BaseModelSet, ImportExportDataAction
-from common.core.pagination import DynamicPageNumber
-from common.core.response import ApiResponse
-from common.utils import get_logger
+from apps.common.core.filter import BaseFilterSet, PkMultipleFilter
+from apps.common.core.modelset import BaseModelSet, ImportExportDataAction
+from apps.common.core.pagination import DynamicPageNumber
+from apps.common.core.response import ApiResponse
+from apps.common.utils import get_logger
 from demo.models import Book
 from demo.serializers.book import BookSerializer
 

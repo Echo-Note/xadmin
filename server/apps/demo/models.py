@@ -2,9 +2,9 @@ from django.db import models
 from django.utils import timezone
 from pilkit.processors import ResizeToFill
 
-from common.core.models import DbAuditModel, upload_directory_path, AutoCleanFileMixin
-from common.fields.image import ProcessedImageField
-from system.models import UserInfo, UploadFile
+from apps.common.core.models import DbAuditModel, upload_directory_path, AutoCleanFileMixin
+from apps.common.fields.image import ProcessedImageField
+from apps.system.models import UserInfo, UploadFile
 
 
 class Book(AutoCleanFileMixin, DbAuditModel):

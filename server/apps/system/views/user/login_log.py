@@ -7,10 +7,10 @@
 from rest_framework.mixins import ListModelMixin
 from rest_framework.viewsets import GenericViewSet
 
-from common.core.modelset import SearchColumnsAction
-from common.core.response import ApiResponse
-from system.models import UserLoginLog
-from system.serializers.log import UserLoginLogSerializer
+from apps.common.core.modelset import SearchColumnsAction
+from apps.common.core.response import ApiResponse
+from apps.system.models import UserLoginLog
+from apps.system.serializers.log import UserLoginLogSerializer
 
 
 class UserLoginLogViewSet(ListModelMixin, SearchColumnsAction, GenericViewSet):

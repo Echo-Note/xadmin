@@ -10,12 +10,12 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.generics import GenericAPIView
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from captcha.utils import CaptchaAuth
-from common.core.response import ApiResponse
-from common.swagger.utils import get_default_response_schema
-from common.utils.request import get_request_ident
-from common.utils.token import make_token_cache
-from system.utils.auth import get_token_lifetime
+from apps.captcha.utils import CaptchaAuth
+from apps.common.core.response import ApiResponse
+from apps.common.swagger.utils import get_default_response_schema
+from apps.common.utils.request import get_request_ident
+from apps.common.utils.token import make_token_cache
+from apps.system.utils.auth import get_token_lifetime
 
 
 class TempTokenAPIView(GenericAPIView):

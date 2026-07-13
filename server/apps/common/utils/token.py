@@ -9,8 +9,8 @@ import string
 import time
 import uuid
 
-from common.cache.storage import TokenManagerCache, RedisCacheBase
-from common.utils import get_logger
+from apps.common.cache.storage import TokenManagerCache, RedisCacheBase
+from apps.common.utils import get_logger
 
 logger = get_logger(__name__)
 

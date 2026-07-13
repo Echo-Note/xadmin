@@ -13,9 +13,9 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import PermissionDenied, NotAuthenticated
 from rest_framework.permissions import BasePermission
 
-from common.base.magic import MagicCacheData
+from apps.common.base.magic import MagicCacheData
 from server.utils import get_current_request, set_current_request
-from system.models import Menu, FieldPermission
+from apps.system.models import Menu, FieldPermission
 
 
 def get_user_menu_queryset(user_obj):

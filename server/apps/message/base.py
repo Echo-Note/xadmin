@@ -13,10 +13,10 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from django.utils.translation import gettext_lazy as _
 from rest_framework.utils import encoders
 
-from common.decorators import cached_method
-from common.utils import get_logger
-from message.utils import set_mid_result_to_cache
-from system.serializers.userinfo import UserInfoSerializer
+from apps.common.decorators import cached_method
+from apps.common.utils import get_logger
+from apps.message.utils import set_mid_result_to_cache
+from apps.system.serializers.userinfo import UserInfoSerializer
 
 logger = get_logger(__name__)
 

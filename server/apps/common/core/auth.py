@@ -14,7 +14,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import AccessToken
 
-from common.cache.storage import BlackAccessTokenCache
+from apps.common.cache.storage import BlackAccessTokenCache
 
 
 def auth_required(view_func):

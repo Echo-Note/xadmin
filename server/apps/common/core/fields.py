@@ -15,8 +15,8 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.request import Request
 
-from common.core.filter import get_filter_queryset
-from common.fields.utils import get_file_absolute_uri
+from apps.common.core.filter import get_filter_queryset
+from apps.common.fields.utils import get_file_absolute_uri
 from server.utils import get_current_request
 
 

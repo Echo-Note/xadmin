@@ -7,13 +7,13 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework.generics import GenericAPIView
 
-from common.base.magic import cache_response
-from common.base.utils import menu_list_to_tree, format_menu_data
-from common.core.modelset import CacheDetailResponseMixin
-from common.core.permission import get_user_menu_queryset
-from common.core.response import ApiResponse
-from system.models import Menu
-from system.serializers.route import RouteSerializer
+from apps.common.base.magic import cache_response
+from apps.common.base.utils import menu_list_to_tree, format_menu_data
+from apps.common.core.modelset import CacheDetailResponseMixin
+from apps.common.core.permission import get_user_menu_queryset
+from apps.common.core.response import ApiResponse
+from apps.system.models import Menu
+from apps.system.serializers.route import RouteSerializer
 
 
 def get_auths(user):

@@ -14,7 +14,7 @@ from django.core.cache import cache
 from django.db import close_old_connections, connection
 from django.http.response import HttpResponse
 
-from common.utils import get_logger
+from apps.common.utils import get_logger
 
 logger = get_logger(__name__)
 

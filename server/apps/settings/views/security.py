@@ -5,12 +5,12 @@
 # author : ly_13
 # date : 8/1/2024
 
-from common.utils import get_logger
-from settings.serializers.security import SecurityPasswordRuleSerializer, SecurityLoginLimitSerializer, \
+from apps.common.utils import get_logger
+from apps.settings.serializers.security import SecurityPasswordRuleSerializer, SecurityLoginLimitSerializer, \
     SecurityLoginAuthSerializer, SecurityRegisterAuthSerializer, SecurityResetPasswordAuthSerializer, \
     SecurityBindEmailAuthSerializer, SecurityBindPhoneAuthSerializer, SecurityVerifyCodeSerializer, \
     SecurityCaptchaCodeSerializer
-from settings.views.settings import BaseSettingViewSet
+from apps.settings.views.settings import BaseSettingViewSet
 
 logger = get_logger(__name__)
 

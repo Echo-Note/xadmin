@@ -7,9 +7,9 @@
 
 from django.utils import timezone
 
-from captcha.helpers import captcha_image_url
-from captcha.models import CaptchaStore
-from common.utils import get_logger
+from apps.captcha.helpers import captcha_image_url
+from apps.captcha.models import CaptchaStore
+from apps.common.utils import get_logger
 
 logger = get_logger(__name__)
 

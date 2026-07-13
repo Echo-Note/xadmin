@@ -10,12 +10,12 @@ from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from common.base.utils import AESCipherV2
-from common.core.serializers import BaseModelSerializer
-from common.utils import get_logger
-from settings.utils.password import check_password_rules
-from system import models
-from system.models import UserInfo
+from apps.common.base.utils import AESCipherV2
+from apps.common.core.serializers import BaseModelSerializer
+from apps.common.utils import get_logger
+from apps.settings.utils.password import check_password_rules
+from apps.system import models
+from apps.system.models import UserInfo
 
 logger = get_logger(__name__)
 

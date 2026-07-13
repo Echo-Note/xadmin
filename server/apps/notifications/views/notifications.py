@@ -4,13 +4,13 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin
 
-from common.core.modelset import DetailUpdateModelSet
-from common.core.response import ApiResponse
-from common.swagger.utils import get_default_response_schema
-from notifications.backends import BACKEND
-from notifications.models import SystemMsgSubscription, UserMsgSubscription
-from notifications.notifications import system_msgs, user_msgs
-from notifications.serializers import SystemMsgSubscriptionSerializer, SystemMsgSubscriptionByCategorySerializer, \
+from apps.common.core.modelset import DetailUpdateModelSet
+from apps.common.core.response import ApiResponse
+from apps.common.swagger.utils import get_default_response_schema
+from apps.notifications.backends import BACKEND
+from apps.notifications.models import SystemMsgSubscription, UserMsgSubscription
+from apps.notifications.notifications import system_msgs, user_msgs
+from apps.notifications.serializers import SystemMsgSubscriptionSerializer, SystemMsgSubscriptionByCategorySerializer, \
     UserMsgSubscriptionSerializer, UserMsgSubscriptionByCategorySerializer
 
 

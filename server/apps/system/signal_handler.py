@@ -10,11 +10,11 @@ from django.contrib.auth import user_logged_out
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
-from common.base.magic import cache_response, MagicCacheData
-from common.core.config import SysConfig
-from common.utils import get_logger
-from system.models import Menu, UserRole, UserInfo, DeptInfo, SystemConfig
-from system.signal import invalid_user_cache_signal
+from apps.common.base.magic import cache_response, MagicCacheData
+from apps.common.core.config import SysConfig
+from apps.common.utils import get_logger
+from apps.system.models import Menu, UserRole, UserInfo, DeptInfo, SystemConfig
+from apps.system.signal import invalid_user_cache_signal
 
 logger = get_logger(__name__)
 

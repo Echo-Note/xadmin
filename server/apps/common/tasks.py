@@ -18,13 +18,13 @@ from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 from django_celery_beat.models import PeriodicTask
 
-from common.cache.redis import CacheList
-from common.celery.decorator import register_as_period_task, after_app_ready_start
-from common.celery.utils import delete_celery_periodic_task, disable_celery_periodic_task, get_celery_periodic_task, \
+from apps.common.cache.redis import CacheList
+from apps.common.celery.decorator import register_as_period_task, after_app_ready_start
+from apps.common.celery.utils import delete_celery_periodic_task, disable_celery_periodic_task, get_celery_periodic_task, \
     create_or_update_celery_periodic_tasks
-from common.models import Monitor
-from common.notifications import ServerPerformanceCheckUtil, ImportDataMessage, BatchDeleteDataMessage
-from common.utils.timezone import local_now_display
+from apps.common.models import Monitor
+from apps.common.notifications import ServerPerformanceCheckUtil, ImportDataMessage, BatchDeleteDataMessage
+from apps.common.utils.timezone import local_now_display
 from server.celery import app
 
 logger = get_task_logger(__name__)

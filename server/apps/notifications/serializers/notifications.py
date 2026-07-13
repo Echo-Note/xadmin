@@ -7,9 +7,9 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from common.core.fields import BasePrimaryKeyRelatedField
-from common.core.serializers import BaseModelSerializer
-from notifications.models import SystemMsgSubscription, UserMsgSubscription
+from apps.common.core.fields import BasePrimaryKeyRelatedField
+from apps.common.core.serializers import BaseModelSerializer
+from apps.notifications.models import SystemMsgSubscription, UserMsgSubscription
 
 
 class SystemMsgSubscriptionSerializer(BaseModelSerializer):

@@ -11,15 +11,15 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiRequest
 from rest_framework.generics import GenericAPIView
 
-from common.base.utils import AESCipherV2
-from common.core.response import ApiResponse
-from common.core.throttle import ResetPasswordThrottle
-from common.swagger.utils import get_default_response_schema
-from common.utils.verify_code import TokenTempCache
-from settings.utils.password import check_password_rules
-from settings.utils.security import ResetBlockUtil
-from system.models import UserInfo
-from system.utils.auth import verify_sms_email_code
+from apps.common.base.utils import AESCipherV2
+from apps.common.core.response import ApiResponse
+from apps.common.core.throttle import ResetPasswordThrottle
+from apps.common.swagger.utils import get_default_response_schema
+from apps.common.utils.verify_code import TokenTempCache
+from apps.settings.utils.password import check_password_rules
+from apps.settings.utils.security import ResetBlockUtil
+from apps.system.models import UserInfo
+from apps.system.utils.auth import verify_sms_email_code
 
 
 class ResetPasswordAPIView(GenericAPIView):

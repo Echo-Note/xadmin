@@ -9,7 +9,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from common.base.utils import AESCipher
+from apps.common.base.utils import AESCipher
 
 
 class AESField(models.Field):

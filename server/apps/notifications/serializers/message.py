@@ -13,11 +13,11 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from common.core.filter import get_filter_queryset
-from common.core.serializers import BaseModelSerializer
-from common.utils import get_logger
-from notifications.models import MessageUserRead, MessageContent
-from system.models import UploadFile, UserInfo
+from apps.common.core.filter import get_filter_queryset
+from apps.common.core.serializers import BaseModelSerializer
+from apps.common.utils import get_logger
+from apps.notifications.models import MessageUserRead, MessageContent
+from apps.system.models import UploadFile, UserInfo
 
 logger = get_logger(__name__)
 

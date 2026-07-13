@@ -16,8 +16,8 @@ from django.urls import URLPattern, URLResolver
 from django.utils.module_loading import import_string
 from django.utils.termcolors import make_style
 
-from common.base.magic import import_from_string
-from common.decorators import cached_method
+from apps.common.base.magic import import_from_string
+from apps.common.decorators import cached_method
 
 logger = logging.getLogger(__name__)
 

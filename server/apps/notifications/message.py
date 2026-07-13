@@ -4,17 +4,17 @@ from typing import List, Dict
 from django.db import transaction
 from rest_framework.utils import encoders
 
-from common.core.config import UserConfig
-from common.utils import get_logger
-from message.utils import push_message, get_online_users
-from notifications.serializers.message import NoticeMessageSerializer
-from system.models import UserInfo
+from apps.common.core.config import UserConfig
+from apps.common.utils import get_logger
+from apps.message.utils import push_message, get_online_users
+from apps.notifications.serializers.message import NoticeMessageSerializer
+from apps.system.models import UserInfo
 
 logger = get_logger(__name__)
 
 from django.db.models import QuerySet
 
-from notifications.models import MessageContent
+from apps.notifications.models import MessageContent
 
 SYSTEM = MessageContent.NoticeChoices.SYSTEM
 

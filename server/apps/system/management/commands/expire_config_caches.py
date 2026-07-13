@@ -6,7 +6,7 @@
 # date : 12/25/2023
 from django.core.management.base import BaseCommand
 
-from common.core.config import ConfigCacheBase
+from apps.common.core.config import ConfigCacheBase
 
 
 class Command(BaseCommand):

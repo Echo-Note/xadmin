@@ -20,10 +20,10 @@ from django.contrib import admin
 from django.urls import include, re_path
 from django.views.static import serve as static_serve
 
-from common.celery.flower import CeleryFlowerAPIView
-from common.core.utils import auto_register_app_url
-from common.swagger.views import JsonApi, SwaggerUI, Redoc
-from common.utils.media import media_serve
+from apps.common.celery.flower import CeleryFlowerAPIView
+from apps.common.core.utils import auto_register_app_url
+from apps.common.swagger.views import JsonApi, SwaggerUI, Redoc
+from apps.common.utils.media import media_serve
 
 swagger_apis = [
     re_path('^api-docs/schema/', JsonApi.as_view(), name='schema'),
@@ -33,10 +33,10 @@ swagger_apis = [
 
 urlpatterns = [
     re_path('^admin/', admin.site.urls),
-    re_path('^api/common/', include('common.urls', namespace='common')),
-    re_path('^api/system/', include('system.urls', namespace='system')),
-    re_path('^api/settings/', include('settings.urls', namespace='settings')),
-    re_path('^api/notifications/', include('notifications.urls', namespace='notifications')),
+    re_path('^api/common/', include('apps.common.urls', namespace='common')),
+    re_path('^api/system/', include('apps.system.urls', namespace='system')),
+    re_path('^api/settings/', include('apps.settings.urls', namespace='settings')),
+    re_path('^api/notifications/', include('apps.notifications.urls', namespace='notifications')),
     re_path('^api/flower/(?P<path>.*)$', CeleryFlowerAPIView.as_view(), name='flower-view'),
     # media路径配置 开发环境可以启动下面配置，正式环境需要让nginx读取资源，无需进行转发
     re_path('^media/(?P<path>.*)$', media_serve, {'document_root': settings.MEDIA_ROOT}),

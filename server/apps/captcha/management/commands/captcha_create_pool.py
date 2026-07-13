@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from captcha.models import CaptchaStore
+from apps.captcha.models import CaptchaStore
 
 
 class Command(BaseCommand):

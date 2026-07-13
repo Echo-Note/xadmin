@@ -10,10 +10,10 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from common.core.serializers import BaseModelSerializer
-from common.fields.utils import get_file_absolute_uri
-from common.utils import get_logger
-from system.models import UploadFile
+from apps.common.core.serializers import BaseModelSerializer
+from apps.common.fields.utils import get_file_absolute_uri
+from apps.common.utils import get_logger
+from apps.system.models import UploadFile
 
 logger = get_logger(__name__)
 

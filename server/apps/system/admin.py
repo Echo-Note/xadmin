@@ -2,7 +2,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from system.models import *
+from apps.system.models import *
 
 admin.site.register(UserInfo)
 admin.site.register(DeptInfo)

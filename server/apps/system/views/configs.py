@@ -9,13 +9,13 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiRequest
 from rest_framework.viewsets import GenericViewSet
 
-from common.core.auth import auth_required
-from common.core.config import UserConfig, SysConfig
-from common.core.filter import OwnerUserFilter
-from common.core.response import ApiResponse
-from common.swagger.utils import get_default_response_schema
-from system.models import UserPersonalConfig
-from system.serializers.config import UserPersonalConfigSerializer
+from apps.common.core.auth import auth_required
+from apps.common.core.config import UserConfig, SysConfig
+from apps.common.core.filter import OwnerUserFilter
+from apps.common.core.response import ApiResponse
+from apps.common.swagger.utils import get_default_response_schema
+from apps.system.models import UserPersonalConfig
+from apps.system.serializers.config import UserPersonalConfigSerializer
 
 
 def config_response_schema():

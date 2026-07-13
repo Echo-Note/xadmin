@@ -12,16 +12,16 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.decorators import action
 
-from common.base.utils import get_choices_dict
-from common.core.filter import BaseFilterSet
-from common.core.modelset import ListDeleteModelSet, ImportExportDataAction
-from common.core.pagination import DynamicPageNumber
-from common.core.response import ApiResponse
-from common.swagger.utils import get_default_response_schema
-from common.utils import get_logger
-from system.models import ModelLabelField
-from system.serializers.field import ModelLabelFieldSerializer, ModelLabelFieldImportSerializer
-from system.utils.modelfield import sync_model_field, get_field_lookup_info
+from apps.common.base.utils import get_choices_dict
+from apps.common.core.filter import BaseFilterSet
+from apps.common.core.modelset import ListDeleteModelSet, ImportExportDataAction
+from apps.common.core.pagination import DynamicPageNumber
+from apps.common.core.response import ApiResponse
+from apps.common.swagger.utils import get_default_response_schema
+from apps.common.utils import get_logger
+from apps.system.models import ModelLabelField
+from apps.system.serializers.field import ModelLabelFieldSerializer, ModelLabelFieldImportSerializer
+from apps.system.utils.modelfield import sync_model_field, get_field_lookup_info
 
 logger = get_logger(__name__)
 

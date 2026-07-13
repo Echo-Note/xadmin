@@ -9,11 +9,11 @@ from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as filters
 from rest_framework import serializers
 
-from common.core.filter import BaseFilterSet
-from common.core.modelset import OnlyListModelSet
-from common.core.pagination import DynamicPageNumber
-from system.models import Menu
-from system.serializers.menu import MenuSerializer
+from apps.common.core.filter import BaseFilterSet
+from apps.common.core.modelset import OnlyListModelSet
+from apps.common.core.pagination import DynamicPageNumber
+from apps.system.models import Menu
+from apps.system.serializers.menu import MenuSerializer
 
 
 class SearchMenuFilter(BaseFilterSet):

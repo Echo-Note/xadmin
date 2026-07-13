@@ -27,17 +27,17 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.utils import encoders
 from rest_framework.viewsets import GenericViewSet
 
-from common.base.magic import cache_response
-from common.base.utils import get_choices_dict
-from common.core.config import SysConfig
-from common.core.response import ApiResponse
-from common.core.serializers import BasePrimaryKeyRelatedField
-from common.core.utils import has_self_fields, topological_sort
-from common.drf.renders.csv import CSVFileRenderer
-from common.drf.renders.excel import ExcelFileRenderer
-from common.swagger.utils import get_default_response_schema
-from common.tasks import background_task_view_set_job
-from common.utils import get_logger
+from apps.common.base.magic import cache_response
+from apps.common.base.utils import get_choices_dict
+from apps.common.core.config import SysConfig
+from apps.common.core.response import ApiResponse
+from apps.common.core.serializers import BasePrimaryKeyRelatedField
+from apps.common.core.utils import has_self_fields, topological_sort
+from apps.common.drf.renders.csv import CSVFileRenderer
+from apps.common.drf.renders.excel import ExcelFileRenderer
+from apps.common.swagger.utils import get_default_response_schema
+from apps.common.tasks import background_task_view_set_job
+from apps.common.utils import get_logger
 
 logger = get_logger(__name__)
 

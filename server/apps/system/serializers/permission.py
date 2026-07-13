@@ -9,9 +9,9 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
-from common.core.serializers import BaseModelSerializer
-from common.utils import get_logger
-from system.models import DataPermission, Menu
+from apps.common.core.serializers import BaseModelSerializer
+from apps.common.utils import get_logger
+from apps.system.models import DataPermission, Menu
 
 logger = get_logger(__name__)
 

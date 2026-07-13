@@ -14,7 +14,7 @@ from drf_spectacular.utils import extend_schema
 from proxy.views import proxy_view
 from rest_framework.generics import GenericAPIView
 
-from common.utils import get_logger
+from apps.common.utils import get_logger
 
 logger = get_logger(__name__)
 

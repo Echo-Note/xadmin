@@ -10,8 +10,8 @@ from django.conf import settings
 from django.core import serializers
 from django.core.management.base import BaseCommand
 
-from settings.models import Setting
-from system.models import *
+from apps.settings.models import Setting
+from apps.system.models import *
 
 
 def get_fields(model):

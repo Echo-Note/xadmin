@@ -1,4 +1,4 @@
-from common.startup import CoreTerminal
+from apps.common.startup import CoreTerminal
 from .base import BaseService
 from ..hands import *
 

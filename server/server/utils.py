@@ -10,7 +10,7 @@ from django.db import connection
 from django.db.backends.utils import truncate_name
 from django.db.models.signals import class_prepared
 
-from common.local import thread_local
+from apps.common.local import thread_local
 
 
 def set_current_request(request):

@@ -9,7 +9,7 @@ import time
 
 from django.core.cache import cache
 
-from common.utils import get_logger
+from apps.common.utils import get_logger
 
 logger = get_logger(__name__)
 

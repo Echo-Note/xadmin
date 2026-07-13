@@ -1,4 +1,4 @@
-from common.tasks import send_mail_async
+from apps.common.tasks import send_mail_async
 from .base import BackendBase
 
 

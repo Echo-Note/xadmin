@@ -12,10 +12,10 @@ import time
 
 from django.conf import settings
 
-from common.core.db.utils import close_old_connections
-from common.decorators import Singleton
-from common.serializers import MonitorSerializer
-from common.utils import get_cpu_load, get_memory_usage, get_disk_usage, get_boot_time, get_cpu_percent
+from apps.common.core.db.utils import close_old_connections
+from apps.common.decorators import Singleton
+from apps.common.serializers import MonitorSerializer
+from apps.common.utils import get_cpu_load, get_memory_usage, get_disk_usage, get_boot_time, get_cpu_percent
 
 
 class BaseTerminal(object):

@@ -9,10 +9,10 @@ from django.utils.module_loading import import_string
 from rest_framework.routers import SimpleRouter
 from rest_framework.viewsets import GenericViewSet
 
-from common.core.modelset import NoDetailModelSet
-from common.core.routers import NoDetailRouter
-from common.core.utils import get_all_url_dict
-from common.utils import get_logger
+from apps.common.core.modelset import NoDetailModelSet
+from apps.common.core.routers import NoDetailRouter
+from apps.common.core.utils import get_all_url_dict
+from apps.common.utils import get_logger
 
 router = SimpleRouter(False)
 no_detail_router = NoDetailRouter(False)

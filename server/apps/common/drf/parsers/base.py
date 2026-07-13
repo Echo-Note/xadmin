@@ -9,8 +9,8 @@ from rest_framework import status
 from rest_framework.exceptions import ParseError, APIException
 from rest_framework.parsers import BaseParser
 
-from common.core.fields import LabeledChoiceField, BasePrimaryKeyRelatedField
-from common.utils import get_logger
+from apps.common.core.fields import LabeledChoiceField, BasePrimaryKeyRelatedField
+from apps.common.utils import get_logger
 
 logger = get_logger(__name__)
 

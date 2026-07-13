@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from notifications.models import *
+from apps.notifications.models import *
 
 admin.site.register(MessageContent)
 admin.site.register(MessageUserRead)

@@ -16,11 +16,11 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from common.cache.storage import CommonResourceIDsCache
-from common.core.response import ApiResponse
-from common.models import Monitor
-from common.swagger.utils import get_default_response_schema
-from common.utils.country import COUNTRY_CALLING_CODES, COUNTRY_CALLING_CODES_ZH
+from apps.common.cache.storage import CommonResourceIDsCache
+from apps.common.core.response import ApiResponse
+from apps.common.models import Monitor
+from apps.common.swagger.utils import get_default_response_schema
+from apps.common.utils.country import COUNTRY_CALLING_CODES, COUNTRY_CALLING_CODES_ZH
 
 
 class ResourcesIDCacheAPIView(GenericAPIView):

@@ -9,8 +9,8 @@ import django.utils.timezone
 from django.conf import settings
 from django.db import migrations, models
 
-import common.core.models
-import common.fields.image
+import apps.common.core.models
+import apps.common.fields.image
 
 
 class Migration(migrations.Migration):
@@ -50,8 +50,8 @@ class Migration(migrations.Migration):
                 ('created_time', models.DateTimeField(auto_now_add=True, null=True, verbose_name='Created time')),
                 ('updated_time', models.DateTimeField(auto_now=True, null=True, verbose_name='Updated time')),
                 ('description', models.CharField(blank=True, max_length=256, null=True, verbose_name='Description')),
-                ('avatar', common.fields.image.ProcessedImageField(blank=True, null=True,
-                                                                   upload_to=common.core.models.upload_directory_path,
+                ('avatar', apps.common.fields.image.ProcessedImageField(blank=True, null=True,
+                                                                   upload_to=apps.common.core.models.upload_directory_path,
                                                                    verbose_name='Avatar')),
                 ('nickname', models.CharField(blank=True, max_length=150, verbose_name='Nickname')),
                 ('gender', models.IntegerField(choices=[(0, 'Unknown'), (1, 'Male'), (2, 'Female')], default=0,
@@ -376,7 +376,7 @@ class Migration(migrations.Migration):
                 ('created_time', models.DateTimeField(auto_now_add=True, null=True, verbose_name='Created time')),
                 ('updated_time', models.DateTimeField(auto_now=True, null=True, verbose_name='Updated time')),
                 ('description', models.CharField(blank=True, max_length=256, null=True, verbose_name='Description')),
-                ('filepath', models.FileField(blank=True, null=True, upload_to=common.core.models.upload_directory_path,
+                ('filepath', models.FileField(blank=True, null=True, upload_to=apps.common.core.models.upload_directory_path,
                                               verbose_name='Filepath')),
                 ('file_url',
                  models.URLField(blank=True, help_text='Usually an address accessible to the outside Internet',

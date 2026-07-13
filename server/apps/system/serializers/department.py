@@ -10,9 +10,9 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from common.core.serializers import BaseModelSerializer
-from common.utils import get_logger
-from system.models import DeptInfo
+from apps.common.core.serializers import BaseModelSerializer
+from apps.common.utils import get_logger
+from apps.system.models import DeptInfo
 
 logger = get_logger(__name__)
 

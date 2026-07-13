@@ -13,7 +13,7 @@ from channels.layers import get_channel_layer
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-from common.cache.storage import WebSocketMsgResultCache
+from apps.common.cache.storage import WebSocketMsgResultCache
 
 channel_layer = get_channel_layer()
 

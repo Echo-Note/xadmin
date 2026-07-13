@@ -59,11 +59,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'system.apps.SystemConfig',  # 系统管理
-    'settings.apps.SettingsConfig',  # 设置相关
-    "notifications.apps.NotificationsConfig",  # 消息通知相关
-    'captcha.apps.CaptchaConfig',  # 图片验证码
-    'message.apps.MessageConfig',  # websocket 消息
+    'apps.system.apps.SystemConfig',  # 系统管理
+    'apps.settings.apps.SettingsConfig',  # 设置相关
+    "apps.notifications.apps.NotificationsConfig",  # 消息通知相关
+    'apps.captcha.apps.CaptchaConfig',  # 图片验证码
+    'apps.message.apps.MessageConfig',  # websocket 消息
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
@@ -75,7 +75,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'drf_spectacular_sidecar',
     *XADMIN_APPS,
-    'common.apps.CommonConfig',  # 这个放到最后, django ready
+    'apps.common.apps.CommonConfig',  # 这个放到最后, django ready
 ]
 
 if DEBUG or DEBUG_DEV:
@@ -95,7 +95,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'server.middleware.RefererCheckMiddleware',
     'server.middleware.SQLCountMiddleware',
-    'common.core.middleware.ApiLoggingMiddleware',
+    'apps.common.core.middleware.ApiLoggingMiddleware',
     'server.middleware.EndMiddleware'
 ]
 
@@ -144,8 +144,8 @@ CACHES = {
             "REDIS_CLIENT_KWARGS": {"health_check_interval": 30},
         },
         "TIMEOUT": 60 * 15,
-        "KEY_FUNCTION": "common.base.utils.redis_key_func",
-        "REVERSE_KEY_FUNCTION": "common.base.utils.redis_reverse_key_func",
+        "KEY_FUNCTION": "apps.common.base.utils.redis_key_func",
+        "REVERSE_KEY_FUNCTION": "apps.common.base.utils.redis_reverse_key_func",
     },
 }
 
@@ -193,12 +193,12 @@ if DB_ENGINE == 'mysql':
 # >>> p = Person(name="Fred")
 # >>> p.save(using="second")  # (statement 2)
 
-DATABASE_ROUTERS = ['common.core.db.router.DBRouter']
+DATABASE_ROUTERS = ['apps.common.core.db.router.DBRouter']
 
 # websocket 消息需要用到redis的消息发布订阅
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "common.cache.channel.RedisChannelLayer",
+        "BACKEND": "apps.common.cache.channel.RedisChannelLayer",
         # "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
         "CONFIG": {
             "hosts": [f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{CHANNEL_LAYERS_CACHE_ID}"],

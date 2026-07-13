@@ -8,9 +8,9 @@ import phonenumbers
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from common.core.fields import PhoneField
-from common.core.validators import PhoneValidator
-from common.sdk.sms.endpoint import BACKENDS
+from apps.common.core.fields import PhoneField
+from apps.common.core.validators import PhoneValidator
+from apps.common.sdk.sms.endpoint import BACKENDS
 
 
 class SMSSettingSerializer(serializers.Serializer):

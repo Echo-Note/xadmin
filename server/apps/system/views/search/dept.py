@@ -7,12 +7,12 @@
 
 from django_filters import rest_framework as filters
 
-from common.core.filter import BaseFilterSet
-from common.core.modelset import OnlyListModelSet
-from common.core.pagination import DynamicPageNumber
-from common.utils import get_logger
-from system.models import DeptInfo
-from system.serializers.department import DeptSerializer
+from apps.common.core.filter import BaseFilterSet
+from apps.common.core.modelset import OnlyListModelSet
+from apps.common.core.pagination import DynamicPageNumber
+from apps.common.utils import get_logger
+from apps.system.models import DeptInfo
+from apps.system.serializers.department import DeptSerializer
 
 logger = get_logger(__name__)
 

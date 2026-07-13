@@ -11,17 +11,17 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiRequest
 from rest_framework.decorators import action
 
-from common.base.magic import temporary_disable_signal
-from common.core.filter import BaseFilterSet
-from common.core.modelset import BaseModelSet, RankAction, ImportExportDataAction, ChoicesAction, CacheListResponseMixin
-from common.core.pagination import DynamicPageNumber
-from common.core.response import ApiResponse
-from common.core.utils import get_all_url_dict
-from common.swagger.utils import get_default_response_schema
-from system.models import Menu, ModelLabelField
-from system.serializers.menu import MenuSerializer
-from system.signal_handler import clean_cache_handler
-from system.utils.menu import get_view_permissions
+from apps.common.base.magic import temporary_disable_signal
+from apps.common.core.filter import BaseFilterSet
+from apps.common.core.modelset import BaseModelSet, RankAction, ImportExportDataAction, ChoicesAction, CacheListResponseMixin
+from apps.common.core.pagination import DynamicPageNumber
+from apps.common.core.response import ApiResponse
+from apps.common.core.utils import get_all_url_dict
+from apps.common.swagger.utils import get_default_response_schema
+from apps.system.models import Menu, ModelLabelField
+from apps.system.serializers.menu import MenuSerializer
+from apps.system.signal_handler import clean_cache_handler
+from apps.system.utils.menu import get_view_permissions
 
 
 class MenuFilter(BaseFilterSet):

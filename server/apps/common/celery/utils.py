@@ -13,8 +13,8 @@ from django.db.utils import ProgrammingError, OperationalError
 from django.utils import timezone
 from django_celery_beat.models import IntervalSchedule, CrontabSchedule, PeriodicTask, PeriodicTasks
 
-from common.utils import get_logger
-from common.utils.timezone import local_now
+from apps.common.utils import get_logger
+from apps.common.utils.timezone import local_now
 
 logger = get_logger(__name__)
 

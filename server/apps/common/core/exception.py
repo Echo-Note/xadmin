@@ -16,7 +16,7 @@ from rest_framework.views import exception_handler
 from rest_framework.views import set_rollback
 from rest_framework_simplejwt.exceptions import InvalidToken
 
-from common.core.response import ApiResponse
+from apps.common.core.response import ApiResponse
 
 logger = getLogger('drf_exception')
 unexpected_exception_logger = getLogger('unexpected_exception')

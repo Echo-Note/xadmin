@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from common.cache.storage import RedisCacheBase
+from apps.common.cache.storage import RedisCacheBase
 
 
 class Command(BaseCommand):

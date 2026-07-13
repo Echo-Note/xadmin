@@ -6,8 +6,8 @@
 # date : 9/15/2024
 from celery import shared_task
 
-from captcha.models import CaptchaStore
-from common.celery.decorator import register_as_period_task
+from apps.captcha.models import CaptchaStore
+from apps.common.celery.decorator import register_as_period_task
 
 
 @shared_task

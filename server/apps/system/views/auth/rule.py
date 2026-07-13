@@ -9,9 +9,9 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework.generics import GenericAPIView
 
-from common.core.response import ApiResponse
-from common.swagger.utils import get_default_response_schema
-from settings.utils.password import get_password_check_rules
+from apps.common.core.response import ApiResponse
+from apps.common.swagger.utils import get_default_response_schema
+from apps.settings.utils.password import get_password_check_rules
 
 
 class PasswordRulesAPIView(GenericAPIView):

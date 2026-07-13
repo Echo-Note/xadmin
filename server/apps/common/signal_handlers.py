@@ -19,12 +19,12 @@ from django.dispatch import receiver
 from django_celery_beat.models import PeriodicTask
 from django_celery_results.models import TaskResult
 
-from common.base.utils import remove_file
-from common.celery.decorator import get_after_app_ready_tasks, get_after_app_shutdown_clean_tasks
-from common.celery.logger import CeleryThreadTaskFileHandler
-from common.celery.utils import get_celery_task_log_path
-from common.signals import django_ready
-from common.utils import get_logger
+from apps.common.base.utils import remove_file
+from apps.common.celery.decorator import get_after_app_ready_tasks, get_after_app_shutdown_clean_tasks
+from apps.common.celery.logger import CeleryThreadTaskFileHandler
+from apps.common.celery.utils import get_celery_task_log_path
+from apps.common.signals import django_ready
+from apps.common.utils import get_logger
 from server.utils import get_current_request
 
 logger = get_logger(__name__)

@@ -3,11 +3,11 @@ from django.db.models.functions import Round
 from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
-from common.models import Monitor
-from notifications.backends import BACKEND
-from notifications.models import SystemMsgSubscription
-from notifications.notifications import SystemMessage, UserMessage
-from system.models import UserInfo
+from apps.common.models import Monitor
+from apps.notifications.backends import BACKEND
+from apps.notifications.models import SystemMsgSubscription
+from apps.notifications.notifications import SystemMessage, UserMessage
+from apps.system.models import UserInfo
 
 
 class ServerPerformanceMessage(SystemMessage):

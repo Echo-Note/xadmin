@@ -13,10 +13,10 @@ from django.contrib.auth.models import AnonymousUser
 from django.utils.deprecation import MiddlewareMixin
 from rest_framework.utils import encoders
 
-from common.utils import get_logger
-from common.utils.request import get_request_user, get_request_ip, get_request_data, get_os, \
+from apps.common.utils import get_logger
+from apps.common.utils.request import get_request_user, get_request_ip, get_request_data, get_os, \
     get_browser, get_verbose_name
-from system.models import OperationLog
+from apps.system.models import OperationLog
 
 logger = get_logger(__name__)
 

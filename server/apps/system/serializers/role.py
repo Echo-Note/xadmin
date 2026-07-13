@@ -11,9 +11,9 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from common.core.serializers import BaseModelSerializer
-from common.utils import get_logger
-from system.models import FieldPermission, UserRole
+from apps.common.core.serializers import BaseModelSerializer
+from apps.common.utils import get_logger
+from apps.system.models import FieldPermission, UserRole
 
 logger = get_logger(__name__)
 
