@@ -141,10 +141,13 @@ class ApiLoggingMiddleware(MiddlewareMixin):
                         v = settings.API_MODEL_MAP.get(request.path, v)
                         if not v and model:
                             v = model._meta.label
-                    log = OperationLog(module=v)
-                    log.save()
-                    setattr(request, self.operation_log_id, log.id)
-                    setattr(request, 'request_module', v)
+                    try:
+                        log = OperationLog(module=v)
+                        log.save()
+                        setattr(request, self.operation_log_id, log.id)
+                        setattr(request, 'request_module', v)
+                    except Exception:
+                        pass
 
         return
 
