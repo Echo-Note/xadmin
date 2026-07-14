@@ -28,7 +28,7 @@
         },
         "permissions": [
           {
-            "name": "list:Company",
+            "name": "list:CompanyInstance",
             "menu_type": 2,
             "rank": 0,
             "path": "api/company/company$",
@@ -39,7 +39,7 @@
             }
           },
           {
-            "name": "create:Company",
+            "name": "create:CompanyInstance",
             "menu_type": 2,
             "rank": 0,
             "path": "api/company/company$",
@@ -50,7 +50,7 @@
             }
           },
           {
-            "name": "retrieve:Company",
+            "name": "retrieve:CompanyInstance",
             "menu_type": 2,
             "rank": 0,
             "path": "api/company/company/[a-zA-Z0-9-]+$",
@@ -61,7 +61,7 @@
             }
           },
           {
-            "name": "update:Company",
+            "name": "update:CompanyInstance",
             "menu_type": 2,
             "rank": 0,
             "path": "api/company/company/[a-zA-Z0-9-]+$",
@@ -72,7 +72,7 @@
             }
           },
           {
-            "name": "delete:Company",
+            "name": "destroy:CompanyInstance",
             "menu_type": 2,
             "rank": 0,
             "path": "api/company/company/[a-zA-Z0-9-]+$",
