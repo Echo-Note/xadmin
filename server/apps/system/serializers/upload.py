@@ -23,8 +23,20 @@ class UploadFileSerializer(BaseModelSerializer):
         fields = ['pk', 'filename', 'filesize', 'mime_type', 'md5sum', 'file_url', 'access_url', 'is_tmp', 'is_upload']
         read_only_fields = ['pk', 'is_upload']
         table_fields = ['pk', 'filename', 'filesize', 'mime_type', 'access_url', 'is_tmp', 'is_upload', 'md5sum']
+        extra_kwargs = {
+            'filename': {'label': _('Filename'), 'help_text': _('Name of the uploaded file')},
+            'filesize': {'label': _('Filesize'), 'help_text': _('Size of the uploaded file in bytes')},
+            'mime_type': {'label': _('Mime type'), 'help_text': _('MIME type of the uploaded file')},
+            'md5sum': {'label': _('File md5sum'), 'help_text': _('MD5 checksum of the uploaded file content')},
+            'file_url': {'label': _('Internet URL'),
+                         'help_text': _('Usually an address accessible to the outside Internet')},
+            'is_tmp': {'label': _('Tmp file'),
+                       'help_text': _('Temporary files are automatically cleared by scheduled tasks')},
+            'is_upload': {'label': _('Upload file'), 'help_text': _('Whether the file was uploaded by a user')},
+        }
 
-    access_url = serializers.SerializerMethodField(label=_('Access URL'))
+    access_url = serializers.SerializerMethodField(label=_('Access URL'),
+                                                   help_text=_('Accessible URL of the file'))
 
     @extend_schema_field(serializers.CharField)
     def get_access_url(self, obj: UploadFile) -> str:

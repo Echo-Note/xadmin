@@ -93,12 +93,15 @@ class StorageMediaSerializer(serializers.Serializer):
     STORAGE_S3_SIGNATURE_VERSION = serializers.CharField(
         required=False, allow_blank=True, default="s3v4",
         label=_("签名版本"),
+        help_text=_("S3 签名版本，一般使用 s3v4。"),
     )
     STORAGE_S3_USE_SSL = serializers.BooleanField(
         required=False, default=True, label=_("使用 SSL"),
+        help_text=_("是否通过 SSL 加密连接 S3 服务。"),
     )
     STORAGE_S3_VERIFY = serializers.BooleanField(
         required=False, default=True, label=_("验证 SSL 证书"),
+        help_text=_("是否验证 S3 服务的 SSL 证书，自签名证书可关闭。"),
     )
 
     # URL
@@ -115,23 +118,28 @@ class StorageMediaSerializer(serializers.Serializer):
     )
     STORAGE_S3_QUERYSTRING_AUTH = serializers.BooleanField(
         required=False, default=True, label=_("URL 签名认证"),
+        help_text=_("启用后通过签名 URL 访问私有对象，关闭则对象可公开访问。"),
     )
     STORAGE_S3_QUERYSTRING_EXPIRE = serializers.IntegerField(
         required=False, default=3600, label=_("签名过期时间（秒）"),
+        help_text=_("签名 URL 的有效时长（秒），过期后需重新生成。"),
     )
     STORAGE_S3_CUSTOM_DOMAIN = serializers.CharField(
         required=False, allow_blank=True, default="",
         label=_("自定义域名 (CDN)"),
+        help_text=_("通过自定义域名/CDN 访问存储对象，留空则使用默认 S3 URL。"),
     )
     STORAGE_S3_URL_PROTOCOL = serializers.ChoiceField(
         choices=[("https", "https"), ("http", "http")],
         required=False, default="https",
         label=_("URL 协议"),
+        help_text=_("生成访问 URL 时使用的协议，建议 https。"),
     )
 
     # 上传
     STORAGE_S3_FILE_OVERWRITE = serializers.BooleanField(
         required=False, default=True, label=_("同名文件覆盖"),
+        help_text=_("启用后上传同名文件会覆盖旧文件，关闭则保留两者。"),
     )
     STORAGE_S3_LOCATION = serializers.CharField(
         required=False, allow_blank=True, default="media/",
@@ -145,6 +153,7 @@ class StorageMediaSerializer(serializers.Serializer):
     )
     STORAGE_S3_GZIP = serializers.BooleanField(
         required=False, default=False, label=_("Gzip 压缩"),
+        help_text=_("启用后对指定类型的文件进行 Gzip 压缩存储，减少传输体积。"),
     )
     STORAGE_S3_GZIP_CONTENT_TYPES = serializers.MultipleChoiceField(
         choices=[(t, t) for t in GZIP_CONTENT_TYPE_CHOICES],
@@ -186,6 +195,7 @@ class StorageStaticSerializer(serializers.Serializer):
     STATIC_S3_REGION_NAME = serializers.CharField(
         required=False, allow_blank=True, default="",
         label=_("区域（留空则复用媒体文件配置）"),
+        help_text=_("静态文件存储桶所在区域，留空则复用媒体文件配置。"),
     )
     STATIC_S3_ACCESS_KEY = serializers.CharField(
         required=False, allow_blank=True, default="",

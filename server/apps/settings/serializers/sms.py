@@ -51,16 +51,32 @@ class BaseSMSSettingSerializer(serializers.Serializer):
 class AlibabaSMSSettingSerializer(BaseSMSSettingSerializer):
     """阿里云短信设置序列化器。"""
 
-    ALIBABA_ACCESS_KEY_ID = serializers.CharField(max_length=256, required=True, label='Access Key ID')
-    ALIBABA_ACCESS_KEY_SECRET = serializers.CharField(
-        max_length=256, required=False, label='Access Key Secret', write_only=True
+    ALIBABA_ACCESS_KEY_ID = serializers.CharField(
+        max_length=256, required=True, label='Access Key ID',
+        help_text=_("Access key ID of the Alibaba Cloud SMS account")
     )
-    ALIBABA_VERIFY_SIGN_NAME = serializers.CharField(max_length=256, required=True, label=_('Signature'))
-    ALIBABA_VERIFY_TEMPLATE_CODE = serializers.CharField(max_length=256, required=True, label=_('Template code'))
+    ALIBABA_ACCESS_KEY_SECRET = serializers.CharField(
+        max_length=256, required=False, label='Access Key Secret', write_only=True,
+        help_text=_("Access key secret of the Alibaba Cloud SMS account")
+    )
+    ALIBABA_VERIFY_SIGN_NAME = serializers.CharField(
+        max_length=256, required=True, label=_('Signature'),
+        help_text=_("SMS signature name registered on Alibaba Cloud")
+    )
+    ALIBABA_VERIFY_TEMPLATE_CODE = serializers.CharField(
+        max_length=256, required=True, label=_('Template code'),
+        help_text=_("SMS template code registered on Alibaba Cloud")
+    )
 
 
 class SMSBackendSerializer(serializers.Serializer):
     """短信后端序列化器。"""
 
-    name = serializers.CharField(max_length=256, required=True, label=_('Name'))
-    label = serializers.CharField(max_length=256, required=True, label=_('Label'))
+    name = serializers.CharField(
+        max_length=256, required=True, label=_('Name'),
+        help_text=_("Internal name of the SMS backend")
+    )
+    label = serializers.CharField(
+        max_length=256, required=True, label=_('Label'),
+        help_text=_("Display label of the SMS backend")
+    )

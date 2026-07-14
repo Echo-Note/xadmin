@@ -16,8 +16,14 @@ class EmailSettingSerializer(serializers.Serializer):
     EMAIL_ENABLED = serializers.BooleanField(
         default=False, label=_('Email'), help_text=_('Enable Email Service (Email)')
     )
-    EMAIL_HOST = serializers.CharField(max_length=1024, required=True, label=_("Host"))
-    EMAIL_PORT = serializers.CharField(max_length=5, required=True, label=_("Port"))
+    EMAIL_HOST = serializers.CharField(
+        max_length=1024, required=True, label=_("Host"),
+        help_text=_("The host to use for sending email")
+    )
+    EMAIL_PORT = serializers.CharField(
+        max_length=5, required=True, label=_("Port"),
+        help_text=_("The port to use for the SMTP server defined in `Host`")
+    )
     EMAIL_HOST_USER = serializers.CharField(
         max_length=128, required=True, label=_("Account"),
         help_text=_("The user to be used for email server authentication")

@@ -36,20 +36,39 @@ class UserSerializer(BaseModelSerializer):
             'last_login', 'date_joined', 'roles', 'rules'
         ]
         extra_kwargs = {
-            'pk': {'read_only': True}, 'last_login': {'read_only': True}, 'date_joined': {'read_only': True},
-            'avatar': {'read_only': True}, 'password': {'write_only': True},
-            'roles': {'required': False, 'attrs': ['pk', 'name', 'code'], 'format': '{name}', 'many': True},
+            'pk': {'read_only': True, 'label': _('ID'), 'help_text': _('Primary key ID')},
+            'last_login': {'read_only': True, 'label': _('Last login'), 'help_text': _('Last login time of the user')},
+            'date_joined': {'read_only': True, 'label': _('Date joined'),
+                            'help_text': _('Date and time when the user account was created')},
+            'avatar': {'read_only': True, 'label': _('Avatar'), 'help_text': _('User avatar image')},
+            'password': {'write_only': True, 'label': _('Password'),
+                         'help_text': _('Encrypted password for the user account')},
+            'roles': {'required': False, 'attrs': ['pk', 'name', 'code'], 'format': '{name}', 'many': True,
+                       'label': _('Role permission'), 'help_text': _('Roles assigned to the user')},
             'rules': {'required': False, 'attrs': ['pk', 'name', 'get_mode_type_display'], 'format': '{name}',
-                      'many': True},
-            'dept': {'required': False, 'attrs': ['pk', 'name', 'parent_id'], 'format': '{name}'},
-            'email': {'validators': [UniqueValidator(queryset=UserInfo.objects.all())]},
-            'phone': {'validators': [UniqueValidator(queryset=UserInfo.objects.all())]}
+                      'many': True, 'label': _('Data permission'),
+                      'help_text': _('Data permission rules assigned to the user')},
+            'dept': {'required': False, 'attrs': ['pk', 'name', 'parent_id'], 'format': '{name}',
+                     'label': _('Department'), 'help_text': _('Department to which the user belongs')},
+            'email': {'validators': [UniqueValidator(queryset=UserInfo.objects.all())],
+                      'label': _('Email'), 'help_text': _('Email address of the user')},
+            'phone': {'validators': [UniqueValidator(queryset=UserInfo.objects.all())],
+                      'label': _('Phone'), 'help_text': _('Phone number of the user')},
+            'username': {'label': _('Username'), 'help_text': _('Unique username for login')},
+            'nickname': {'label': _('Nickname'), 'help_text': _('Display name of the user')},
+            'gender': {'label': _('Gender'), 'help_text': _('Gender of the user')},
+            'is_active': {'label': _('Is active'), 'help_text': _('Whether the user account is active')},
+            'description': {'label': _('Description'), 'help_text': _('Description of the user')},
+            'mode_type': {'label': _('Data permission mode'),
+                          'help_text': _('Permission mode, AND means all rules must be satisfied, OR means any rule')},
         }
 
     block = input_wrapper(serializers.SerializerMethodField)(read_only=True, input_type='boolean',
-                                                             label=_('Login blocked'))
+                                                             label=_('Login blocked'),
+                                                             help_text=_('Whether the user is blocked from login'))
     online_count = input_wrapper(serializers.SerializerMethodField)(read_only=True, input_type='number',
-                                                                    label=_('Online count'))
+                                                                    label=_('Online count'),
+                                                                    help_text=_('Number of active online sessions of the user'))
 
     @extend_schema_field(serializers.BooleanField)
     def get_block(self, obj: UserInfo) -> bool:
@@ -103,7 +122,8 @@ class ResetPasswordSerializer(serializers.Serializer):
     """重置密码序列化器。"""
 
     password = serializers.CharField(
-        min_length=5, max_length=128, required=True, write_only=True, label=_('Password')
+        min_length=5, max_length=128, required=True, write_only=True, label=_('Password'),
+        help_text=_('New password, encrypted with AES before transmission')
     )
 
     def update(self, instance: UserInfo, validated_data: dict) -> UserInfo:

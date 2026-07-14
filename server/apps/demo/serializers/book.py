@@ -6,6 +6,7 @@
 # author : ly_13
 # date : 6/12/2024
 
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from apps.common.core.serializers import BaseModelSerializer, TabsColumn
@@ -57,31 +58,47 @@ class BookSerializer(BaseModelSerializer):
         # # extra_kwargs包含了admin 单对多的两种方式，managers 多对多的两种方式，区别在于自定义的input_type，
         # # 观察前端页面变化和 search-columns 请求的数据
         extra_kwargs = {
-            'pk': {'read_only': True},  # 表示pk字段只读
+            'pk': {'read_only': True, 'label': _('Primary key'), 'help_text': _('Unique identifier of the book')},
+            'name': {'label': _('Book name'), 'help_text': _('Name of the book')},
+            'isbn': {'label': _('ISBN'), 'help_text': _('International Standard Book Number of the book')},
+            'category': {'label': _('Category'), 'help_text': _('Category of the book (novel, literature, philosophy)')},
+            'is_active': {'label': _('Active'), 'help_text': _('Whether the book is active')},
+            'author': {'label': _('Author'), 'help_text': _('Author of the book')},
+            'publisher': {'label': _('Publisher'), 'help_text': _('Publisher of the book')},
+            'publication_date': {'label': _('Publication date'), 'help_text': _('Publication date of the book')},
+            'price': {'label': _('Price'), 'help_text': _('Sale price of the book')},
+            'created_time': {'read_only': True, 'label': _('Created time'), 'help_text': _('Time when the book was created')},
+            'updated_time': {'read_only': True, 'label': _('Updated time'), 'help_text': _('Time when the book was last updated')},
             'admin': {
                 'attrs': ['pk', 'username'], 'required': True, 'format': "{username}({pk})",
-                'input_type': 'api-search-user'
+                'input_type': 'api-search-user', 'label': _('Admin'), 'help_text': _('Primary administrator of the book')
             },
             'admin2': {
                 'attrs': ['pk', 'username'], 'required': True, 'format': "{username}({pk})",
+                'label': _('Admin 2'), 'help_text': _('Secondary administrator of the book')
             },
             'managers': {
                 'attrs': ['pk', 'username'], 'required': True, 'format': "{username}({pk})",
-                'input_type': 'api-search-user'
+                'input_type': 'api-search-user', 'label': _('Managers'), 'help_text': _('Primary managers of the book')
             },
             'managers2': {
                 'attrs': ['pk', 'username'], 'required': False, 'format': "{username}({pk})",
+                'label': _('Managers 2'), 'help_text': _('Secondary managers of the book')
             },
+            'avatar': {'label': _('Avatar'), 'help_text': _('Thumbnail image of the book cover')},
+            'cover': {'label': _('Cover'), 'help_text': _('Original image of the book cover')},
+            'book_file': {'label': _('Book file'), 'help_text': _('Stored file of the book')},
             # 多文件关联默认的 input_type为 m2m_related_field_file
             'files': {
                 'attrs': ['pk', 'filepath', 'filesize', 'filename'], 'required': False, 'format': "{filename}({pk})",
-                'ignore_field_permission': True
+                'ignore_field_permission': True, 'label': _('Files'), 'help_text': _('Multiple attachments of the book')
             },
             # 单文件关联默认的 input_type为 object_related_field_file  ，为了让前端支持图片上传后回显，需要添加 'input_type_suffix': 'image'
             # ignore_field_permission 忽略上传文件的字段控制权限
             'file': {
                 'attrs': ['pk', 'filepath', 'filesize', 'filename'], 'required': True, 'format': "{filename}({pk})",
-                'ignore_field_permission': True, 'input_type_suffix': 'image'
+                'ignore_field_permission': True, 'input_type_suffix': 'image', 'label': _('File'),
+                'help_text': _('Single attachment of the book')
             }
         }
 
@@ -110,7 +127,7 @@ class BookSerializer(BaseModelSerializer):
     # 前端自定义组件库 src/components/RePlusPage/src/components
     # 渲染组件定义 src/components/RePlusPage/src/utils/columns.tsx
     block = input_wrapper(serializers.SerializerMethodField)(read_only=True, input_type='boolean',
-                                                             label="自定义input_type")
+                                                             label=_('Block'), help_text=_('Custom block status'))
 
     def get_block(self, obj: models.Book) -> bool:
         """返回书籍是否启用的状态。

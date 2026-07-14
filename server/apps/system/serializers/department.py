@@ -30,13 +30,34 @@ class DeptSerializer(BaseModelSerializer):
         ]
 
         extra_kwargs = {
-            'roles': {'required': False, 'attrs': ['pk', 'name', 'code'], 'format': '{name}', 'many': True},
+            'roles': {'required': False, 'attrs': ['pk', 'name', 'code'], 'format': '{name}', 'many': True,
+                       'label': _('Role permission'),
+                       'help_text': _('Roles associated with the department')},
             'rules': {'required': False, 'attrs': ['pk', 'name', 'get_mode_type_display'], 'format': '{name}',
-                      'many': True},
-            'parent': {'required': False, 'attrs': ['pk', 'name', 'parent_id']},
+                      'many': True, 'label': _('Data permission'),
+                      'help_text': _('Data permission rules associated with the department')},
+            'parent': {'required': False, 'attrs': ['pk', 'name', 'parent_id'],
+                       'label': _('Superior department'),
+                       'help_text': _('Parent department of the current department, null for top-level')},
+            'pk': {'read_only': True, 'label': _('ID'), 'help_text': _('Primary key ID')},
+            'name': {'label': _('Department name'), 'help_text': _('Name of the department')},
+            'code': {'label': _('Department code'),
+                     'help_text': _('Unique code identifying the department')},
+            'rank': {'label': _('Rank'), 'help_text': _('Sort order of the department')},
+            'is_active': {'label': _('Is active'),
+                          'help_text': _('Whether the department is active')},
+            'mode_type': {'label': _('Data permission mode'),
+                          'help_text': _('Permission mode, AND means all rules must be satisfied, OR means any rule')},
+            'auto_bind': {'label': _('Auto bind'),
+                          'help_text': _('If the value of the registration parameter channel is consistent with the department code, the user is automatically bound to the department')},
+            'description': {'label': _('Description'),
+                            'help_text': _('Description of the department')},
+            'created_time': {'label': _('Created time'),
+                             'help_text': _('Creation time of the department')},
         }
 
-    user_count = serializers.SerializerMethodField(read_only=True, label=_('User count'))
+    user_count = serializers.SerializerMethodField(read_only=True, label=_('User count'),
+                                                    help_text=_('Number of users belonging to the department'))
 
     def validate(self, attrs: dict) -> dict:
         """验证部门数据，移除权限相关字段并确保上级部门存在。

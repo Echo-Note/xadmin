@@ -25,8 +25,20 @@ class SystemConfigSerializer(BaseModelSerializer):
         fields = ['pk', 'key', 'value', 'cache_value', 'is_active', 'inherit', 'access', 'description', 'created_time']
         read_only_fields = ['pk']
         fields_unexport = ['cache_value']  # 导入导出文件时，忽略该字段
+        extra_kwargs = {
+            'key': {'label': _('Config name'), 'help_text': _('Unique configuration key name')},
+            'value': {'label': _('Config value'), 'help_text':_('Configuration value stored in JSON format')},
+            'is_active': {'label': _('Is active'), 'help_text': _('Whether this configuration is enabled')},
+            'inherit': {'label': _('User inherit'),
+                        'help_text': _('Allows users to inherit this config')},
+            'access': {'label': _('API access'),
+                       'help_text': _('Allows API interfaces to access this config')},
+            'description': {'label': _('Description'), 'help_text': _('Description of this configuration')},
+            'created_time': {'label': _('Created time'), 'help_text': _('Time when this record was created')},
+        }
 
     cache_value = input_wrapper(serializers.SerializerMethodField)(read_only=True, label=_('Config cache value'),
+                                                                   help_text=_('Cached configuration value'),
                                                                    input_type='json')
 
     @extend_schema_field(serializers.JSONField)
@@ -51,7 +63,8 @@ class UserPersonalConfigExportImportSerializer(SystemConfigSerializer):
         model = UserPersonalConfig
         fields = ['pk', 'value', 'key', 'is_active', 'created_time', 'description', 'cache_value', 'owner', 'access']
         read_only_fields = ['pk']
-        extra_kwargs = {'owner': {'attrs': ['pk', 'username'], 'required': True}}
+        extra_kwargs = {'owner': {'attrs': ['pk', 'username'], 'required': True,
+                                  'label': _('User'), 'help_text': _('User to whom this personal config belongs')}}
 
 
 class UserPersonalConfigSerializer(SystemConfigSerializer):
@@ -66,10 +79,21 @@ class UserPersonalConfigSerializer(SystemConfigSerializer):
             'created_time'
         ]
         read_only_fields = ['pk', 'owner']
-        extra_kwargs = {'owner': {'attrs': ['pk', 'username'], 'read_only': True, 'format': '{username}'}}
+        extra_kwargs = {'owner': {'attrs': ['pk', 'username'], 'read_only': True, 'format': '{username}',
+                                  'label': _('User'), 'help_text': _('User to whom this personal config belongs')},
+                        'key': {'label': _('Config name'), 'help_text': _('Configuration key name')},
+                        'value': {'label': _('Config value'), 'help_text': _('Configuration value stored in JSON format')},
+                        'is_active': {'label': _('Is active'), 'help_text': _('Whether this configuration is enabled')},
+                        'access': {'label': _('API access'),
+                                   'help_text': _('Allows API interfaces to access this config')},
+                        'description': {'label': _('Description'),
+                                        'help_text': _('Description of this configuration')},
+                        'created_time': {'label': _('Created time'),
+                                         'help_text': _('Time when this record was created')}}
 
     config_user = BasePrimaryKeyRelatedField(write_only=True, many=True, queryset=UserInfo.objects,
-                                             label=_('Users'), input_type='api-search-user')
+                                             label=_('Users'), help_text=_('Users for whom this config will be created'),
+                                             input_type='api-search-user')
 
     def create(self, validated_data: dict) -> UserPersonalConfig:
         """为指定用户创建个人配置。

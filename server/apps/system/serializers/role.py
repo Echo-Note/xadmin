@@ -22,6 +22,12 @@ class FieldPermissionSerializer(BaseModelSerializer):
         model = FieldPermission
         fields = ['pk', 'role', 'menu', 'field']
         read_only_fields = ['pk']
+        extra_kwargs = {
+            'pk': {'read_only': True, 'label': _('ID'), 'help_text': _('Primary key ID')},
+            'role': {'label': _('Role'), 'help_text': _('Role that the field permission belongs to')},
+            'menu': {'label': _('Menu'), 'help_text': _('Menu that the field permission applies to')},
+            'field': {'label': _('Field'), 'help_text': _('Fields that the role can access within the menu')},
+        }
 
 
 class RoleSerializer(BaseModelSerializer):
@@ -36,8 +42,14 @@ class RoleSerializer(BaseModelSerializer):
         read_only_fields = ['pk']
         extra_kwargs = {
             'menu': {
-                'attrs': ['pk', 'name'], 'many': True, 'input_type': 'input'
-            }
+                'attrs': ['pk', 'name'], 'many': True, 'input_type': 'input',
+                'label': _('Menu'), 'help_text': _('Menus that the role has access to')
+            },
+            'name': {'label': _('Role name'), 'help_text': _('Display name of the role')},
+            'code': {'label': _('Role code'), 'help_text': _('Unique code identifying the role')},
+            'is_active': {'label': _('Is active'), 'help_text': _('Whether the role is active')},
+            'description': {'label': _('Description'), 'help_text': _('Description of the role')},
+            'updated_time': {'label': _('Updated time'), 'help_text': _('Last update time of the role')},
         }
 
     # 上面写的 extra_kwargs['menu'] 和下面下结果一样，但是上面写法少写了 label 和 queryset
@@ -45,8 +57,10 @@ class RoleSerializer(BaseModelSerializer):
     #                                   input_type="input")
 
     # field和fields 设置两个相同的label，可以进行文件导入导出
-    field = serializers.SerializerMethodField(read_only=True, label=_('Fields'))
-    fields = serializers.DictField(write_only=True, label=_('Fields'))
+    field = serializers.SerializerMethodField(read_only=True, label=_('Fields'),
+                                              help_text=_('Mapping of menu ID to accessible field list for the role'))
+    fields = serializers.DictField(write_only=True, label=_('Fields'),
+                                   help_text=_('Field permission data to set, mapping menu ID to field list'))
 
     @extend_schema_field(OpenApiTypes.OBJECT)
     def get_field(self, obj: UserRole) -> dict:
@@ -122,8 +136,10 @@ class ListRoleSerializer(RoleSerializer):
         fields = ['pk', 'name', 'is_active', 'code', 'menu', 'description', 'updated_time', 'field', 'fields']
         read_only_fields = [x.name for x in UserRole._meta.fields]
 
-    field = serializers.ListField(default=[], read_only=True)
-    menu = serializers.SerializerMethodField(read_only=True)
+    field = serializers.ListField(default=[], read_only=True, label=_('Fields'),
+                                  help_text=_('List of field permission values for the role'))
+    menu = serializers.SerializerMethodField(read_only=True, label=_('Menu'),
+                                             help_text=_('Menu list associated with the role'))
 
     @extend_schema_field(serializers.ListField)
     def get_menu(self, instance: UserRole) -> list:

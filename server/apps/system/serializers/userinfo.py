@@ -25,9 +25,21 @@ class UserInfoSerializer(BaseModelSerializer):
         write_fields = ['username', 'nickname', 'gender']
         fields = write_fields + ['email', 'last_login', 'pk', 'phone', 'avatar', 'roles', 'date_joined', 'dept']
         read_only_fields = list(set([x.name for x in models.UserInfo._meta.fields]) - set(write_fields))
+        extra_kwargs = {
+            'username': {'label': _('Username'), 'help_text': _('Unique username for login')},
+            'nickname': {'label': _('Nickname'), 'help_text': _('Display name of the user')},
+            'gender': {'label': _('Gender'), 'help_text': _('Gender of the user')},
+            'email': {'label': _('Email'), 'help_text': _('Email address of the user')},
+            'last_login': {'label': _('Last login'), 'help_text': _('Time of the last successful login')},
+            'phone': {'label': _('Phone'), 'help_text': _('Phone number of the user')},
+            'avatar': {'label': _('Avatar'), 'help_text': _('Avatar image of the user')},
+            'date_joined': {'label': _('Date joined'), 'help_text': _('Time when the user account was created')},
+        }
 
-    dept = serializers.CharField(source='dept.name', read_only=True)
-    roles = serializers.SerializerMethodField()
+    dept = serializers.CharField(source='dept.name', read_only=True, label=_('Department'),
+                                 help_text=_('Name of the department the user belongs to'))
+    roles = serializers.SerializerMethodField(label=_('Role permission'),
+                                              help_text=_('List of role names assigned to the user'))
 
     @extend_schema_field(serializers.ListField)
     def get_roles(self, obj: UserInfo) -> list[str]:
@@ -46,10 +58,12 @@ class ChangePasswordSerializer(serializers.Serializer):
     """修改密码序列化器。"""
 
     old_password = serializers.CharField(
-        min_length=5, max_length=128, required=True, write_only=True, label=_('Old password')
+        min_length=5, max_length=128, required=True, write_only=True, label=_('Old password'),
+        help_text=_('Current password of the user, used for verification before changing')
     )
     sure_password = serializers.CharField(
-        min_length=5, max_length=128, required=True, write_only=True, label=_('Confirm password')
+        min_length=5, max_length=128, required=True, write_only=True, label=_('Confirm password'),
+        help_text=_('New password to set, must match the confirmation')
     )
 
     def update(self, instance: UserInfo, validated_data: dict) -> UserInfo:

@@ -34,8 +34,19 @@ class DataPermissionSerializer(BaseModelSerializer):
         extra_kwargs = {
             'menu': {
                 'attrs': ['pk', 'name', 'parent_id', 'meta__title'],
-                'many': True, 'required': False, 'queryset': get_menu_queryset()
+                'many': True, 'required': False, 'queryset': get_menu_queryset(),
+                'label': _('Menu'),
+                'help_text': _('If a menu exists, it only applies to the selected menu permission')
             },
+            'pk': {'read_only': True, 'label': _('ID'), 'help_text': _('Primary key ID')},
+            'name': {'label': _('Name'), 'help_text': _('Name of the data permission')},
+            'is_active': {'label': _('Is active'), 'help_text': _('Whether the data permission is active')},
+            'mode_type': {'label': _('Data permission mode'),
+                          'help_text': _('Permission mode, AND means all rules must be satisfied, OR means any rule')},
+            'rules': {'label': _('Rules'), 'help_text': _('Data permission rule list for filtering data')},
+            'description': {'label': _('Description'), 'help_text': _('Description of the data permission')},
+            'created_time': {'label': _('Created time'),
+                             'help_text': _('Creation time of the data permission')},
         }
 
     def validate(self, attrs: dict) -> dict:

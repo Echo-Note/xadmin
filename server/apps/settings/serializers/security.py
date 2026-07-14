@@ -19,23 +19,29 @@ class SecurityPasswordRuleSerializer(serializers.Serializer):
 
     SECURITY_PASSWORD_MIN_LENGTH = serializers.IntegerField(
         min_value=6, max_value=30, required=True,
-        label=_("Minimum length (User)")
+        label=_("Minimum length (User)"),
+        help_text=_("Minimum password length for regular users")
     )
     SECURITY_ADMIN_USER_PASSWORD_MIN_LENGTH = serializers.IntegerField(
         min_value=6, max_value=30, required=True,
-        label=_('Minimum length (Admin)')
+        label=_('Minimum length (Admin)'),
+        help_text=_("Minimum password length for administrators")
     )
     SECURITY_PASSWORD_UPPER_CASE = serializers.BooleanField(
-        required=False, label=_('Uppercase')
+        required=False, label=_(message='Uppercase'),
+        help_text=_("Whether the password must contain uppercase letters")
     )
     SECURITY_PASSWORD_LOWER_CASE = serializers.BooleanField(
-        required=False, label=_('Lowercase')
+        required=False, label=_('Lowercase'),
+        help_text=_("Whether the password must contain lowercase letters")
     )
     SECURITY_PASSWORD_NUMBER = serializers.BooleanField(
-        required=False, label=_('Digits')
+        required=False, label=_('Digits'),
+        help_text=_("Whether the password must contain digits")
     )
     SECURITY_PASSWORD_SPECIAL_CHAR = serializers.BooleanField(
-        required=False, label=_('Special characters')
+        required=False, label=_('Special characters'),
+        help_text=_("Whether the password must contain special characters")
     )
 
 
@@ -78,7 +84,8 @@ class SecurityLoginLimitSerializer(serializers.Serializer):
     )
     SECURITY_LOGIN_LIMIT_COUNT = serializers.IntegerField(
         min_value=3, max_value=99999,
-        label=_('User login failures count')
+        label=_('User login failures count'),
+        help_text=_('The maximum number of failed login attempts for a user before being locked')
     )
     SECURITY_LOGIN_LIMIT_TIME = serializers.IntegerField(
         min_value=5, max_value=99999, required=True,
@@ -88,7 +95,8 @@ class SecurityLoginLimitSerializer(serializers.Serializer):
 
     SECURITY_LOGIN_IP_LIMIT_COUNT = serializers.IntegerField(
         min_value=3, max_value=99999,
-        label=_('IP login failures count')
+        label=_('IP login failures count'),
+        help_text=_('The maximum number of failed login attempts from a single IP before being locked')
     )
     SECURITY_LOGIN_IP_LIMIT_TIME = serializers.IntegerField(
         min_value=5, max_value=99999, required=True,
@@ -266,9 +274,12 @@ class SecurityBindPhoneAuthSerializer(serializers.Serializer):
 class SecurityBlockIPSerializer(serializers.Serializer):
     """IP 封锁列表序列化器。"""
 
-    pk = serializers.CharField(required=False, label=_("ID"))
-    ip = serializers.CharField(max_length=1024, required=False, allow_blank=True, label=_("Block IP"))
-    created_time = serializers.DateTimeField(label=_("Created time"))
+    pk = serializers.CharField(required=False, label=_("ID"), help_text=_("Unique identifier of the blocked IP record"))
+    ip = serializers.CharField(
+        max_length=1024, required=False, allow_blank=True, label=_("Block IP"),
+        help_text=_("The IP address that is blocked from login")
+    )
+    created_time = serializers.DateTimeField(label=_("Created time"), help_text=_("Time when the IP was blocked"))
 
 
 class SecurityVerifyCodeSerializer(serializers.Serializer):
@@ -292,15 +303,18 @@ class SecurityVerifyCodeSerializer(serializers.Serializer):
     )
 
     VERIFY_CODE_UPPER_CASE = serializers.BooleanField(
-        required=False, label=_('Uppercase')
+        required=False, label=_('Uppercase'),
+        help_text=_("Whether the verify code must contain uppercase letters")
     )
 
     VERIFY_CODE_LOWER_CASE = serializers.BooleanField(
-        required=False, label=_('Lowercase')
+        required=False, label=_('Lowercase'),
+        help_text=_("Whether the verify code must contain lowercase letters")
     )
 
     VERIFY_CODE_DIGIT_CASE = serializers.BooleanField(
-        required=False, label=_('Digits')
+        required=False, label=_('Digits'),
+        help_text=_("Whether the verify code must contain digits")
     )
 
 
@@ -340,9 +354,18 @@ class SecurityCaptchaCodeSerializer(serializers.Serializer):
         help_text=_("Captcha code expiration time")
     )
 
-    CAPTCHA_BACKGROUND_COLOR = ColorField(max_length=256, required=True, label=_('Captcha background color'))
-    CAPTCHA_FOREGROUND_COLOR = ColorField(max_length=256, required=True, label=_('Captcha foreground color'))
+    CAPTCHA_BACKGROUND_COLOR = ColorField(
+        max_length=256, required=True, label=_('Captcha background color'),
+        help_text=_("Background color of the captcha image (hex color code)")
+    )
+    CAPTCHA_FOREGROUND_COLOR = ColorField(
+        max_length=256, required=True, label=_('Captcha foreground color'),
+        help_text=_("Foreground color of the captcha characters (hex color code)")
+    )
 
-    CAPTCHA_NOISE_FUNCTIONS = serializers.MultipleChoiceField(label=_('Noise functions'),
-                                                              default=NoiseFunctionsChoices.FUNCTION_NULL,
-                                                              choices=NoiseFunctionsChoices.choices)
+    CAPTCHA_NOISE_FUNCTIONS = serializers.MultipleChoiceField(
+        label=_('Noise functions'),
+        default=NoiseFunctionsChoices.FUNCTION_NULL,
+        choices=NoiseFunctionsChoices.choices,
+        help_text=_("Noise functions applied to the captcha image to hinder recognition")
+    )
