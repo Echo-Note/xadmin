@@ -18,7 +18,7 @@ export function usePlatform() {
     credentialList: hasAuth("list:Credential"),
     credentialCreate: hasAuth("create:Credential"),
     credentialUpdate: hasAuth("update:Credential"),
-    credentialDelete: hasAuth("delete:Credential"),
+    credentialDelete: hasAuth("destroy:Credential"),
     credentialDecrypt: hasAuth("decrypt:Credential")
   });
 

@@ -140,6 +140,6 @@ print(f'清理孤儿权限: {deleted[0]} 条')
 
 `<keep-alive :include="cachePageList">` 的 `include` 列表存储路由名，而 Vue 的 keep-alive 匹配的是**组件名**。因此组件名必须与路由名一致，否则缓存失效。这要求权限后缀也必须与两者一致，不能单独修改组件名。
 
-### 凭据权限特例
+### 凭据权限统一
 
-凭据（Credential）权限使用 `delete:Credential`（非 `destroy:`），因为 `hook.tsx` 中通过 `hasAuth("delete:Credential")` 显式调用，不走 `getDefaultAuths`。若后续凭据也接入 `getDefaultAuths`，需同步改为 `destroy:`。
+凭据（Credential）权限同样使用 `destroy:Credential`（非 `delete:`），与平台、公司权限保持一致。`hook.tsx` 中通过 `hasAuth("destroy:Credential")` 显式调用，所有权限的删除动作统一为 `destroy`。

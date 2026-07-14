@@ -127,7 +127,7 @@
             }
           },
           {
-            "name": "delete:Credential",
+            "name": "destroy:Credential",
             "menu_type": 2,
             "rank": 0,
             "path": "api/cloud/credential/[a-zA-Z0-9-]+$",
