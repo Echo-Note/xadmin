@@ -28,7 +28,7 @@
         },
         "permissions": [
           {
-            "name": "list:CloudPlatform",
+            "name": "list:CloudPlatformInstance",
             "menu_type": 2,
             "rank": 0,
             "path": "api/cloud/platform$",
@@ -39,7 +39,7 @@
             }
           },
           {
-            "name": "create:CloudPlatform",
+            "name": "create:CloudPlatformInstance",
             "menu_type": 2,
             "rank": 0,
             "path": "api/cloud/platform$",
@@ -50,7 +50,7 @@
             }
           },
           {
-            "name": "retrieve:CloudPlatform",
+            "name": "retrieve:CloudPlatformInstance",
             "menu_type": 2,
             "rank": 0,
             "path": "api/cloud/platform/[a-zA-Z0-9-]+$",
@@ -61,7 +61,7 @@
             }
           },
           {
-            "name": "update:CloudPlatform",
+            "name": "update:CloudPlatformInstance",
             "menu_type": 2,
             "rank": 0,
             "path": "api/cloud/platform/[a-zA-Z0-9-]+$",
@@ -72,7 +72,7 @@
             }
           },
           {
-            "name": "delete:CloudPlatform",
+            "name": "destroy:CloudPlatformInstance",
             "menu_type": 2,
             "rank": 0,
             "path": "api/cloud/platform/[a-zA-Z0-9-]+$",
