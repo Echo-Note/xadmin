@@ -1,0 +1,171 @@
+[
+  {
+    "name": "CloudPlatform",
+    "menu_type": 0,
+    "rank": 91,
+    "path": "/cloud",
+    "component": "",
+    "is_active": true,
+    "meta": {
+      "title": "云平台管理",
+      "icon": "ri:cloudy-2-fill",
+      "is_show_menu": true,
+      "is_keepalive": true
+    },
+    "children": [
+      {
+        "name": "CloudPlatformInstance",
+        "menu_type": 1,
+        "rank": 1,
+        "path": "/cloud/platform/index",
+        "component": "cloud/platform/index",
+        "is_active": true,
+        "meta": {
+          "title": "云平台实例",
+          "icon": "ri:database-2-line",
+          "is_show_menu": true,
+          "is_keepalive": true
+        },
+        "permissions": [
+          {
+            "name": "list:CloudPlatform",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/cloud/platform$",
+            "method": "GET",
+            "is_active": true,
+            "meta": {
+              "title": "查询云平台实例"
+            }
+          },
+          {
+            "name": "create:CloudPlatform",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/cloud/platform$",
+            "method": "POST",
+            "is_active": true,
+            "meta": {
+              "title": "新增云平台实例"
+            }
+          },
+          {
+            "name": "retrieve:CloudPlatform",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/cloud/platform/[a-zA-Z0-9-]+$",
+            "method": "GET",
+            "is_active": true,
+            "meta": {
+              "title": "查看云平台实例详情"
+            }
+          },
+          {
+            "name": "update:CloudPlatform",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/cloud/platform/[a-zA-Z0-9-]+$",
+            "method": "PUT",
+            "is_active": true,
+            "meta": {
+              "title": "更新云平台实例"
+            }
+          },
+          {
+            "name": "delete:CloudPlatform",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/cloud/platform/[a-zA-Z0-9-]+$",
+            "method": "DELETE",
+            "is_active": true,
+            "meta": {
+              "title": "删除云平台实例"
+            }
+          }
+        ]
+      },
+      {
+        "name": "CloudCredential",
+        "menu_type": 1,
+        "rank": 2,
+        "path": "/cloud/credential/index",
+        "component": "cloud/credential/index",
+        "is_active": true,
+        "meta": {
+          "title": "云平台凭据",
+          "icon": "ri:key-2-line",
+          "is_show_menu": true,
+          "is_keepalive": true
+        },
+        "permissions": [
+          {
+            "name": "list:Credential",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/cloud/credential$",
+            "method": "GET",
+            "is_active": true,
+            "meta": {
+              "title": "查询凭据列表"
+            }
+          },
+          {
+            "name": "create:Credential",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/cloud/credential$",
+            "method": "POST",
+            "is_active": true,
+            "meta": {
+              "title": "新增凭据"
+            }
+          },
+          {
+            "name": "retrieve:Credential",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/cloud/credential/[a-zA-Z0-9-]+$",
+            "method": "GET",
+            "is_active": true,
+            "meta": {
+              "title": "查看凭据详情"
+            }
+          },
+          {
+            "name": "update:Credential",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/cloud/credential/[a-zA-Z0-9-]+$",
+            "method": "PUT",
+            "is_active": true,
+            "meta": {
+              "title": "更新凭据"
+            }
+          },
+          {
+            "name": "delete:Credential",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/cloud/credential/[a-zA-Z0-9-]+$",
+            "method": "DELETE",
+            "is_active": true,
+            "meta": {
+              "title": "删除凭据"
+            }
+          },
+          {
+            "name": "decrypt:Credential",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/cloud/credential/[a-zA-Z0-9-]+/decrypt$",
+            "method": "POST",
+            "is_active": true,
+            "meta": {
+              "title": "解密查看凭据明文"
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

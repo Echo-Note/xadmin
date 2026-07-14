@@ -1,4 +1,9 @@
-"""加载初始化 JSON 数据的管理命令。"""
+"""加载初始化 JSON 数据的管理命令。
+
+执行流程：
+1. 加载 loadjson/ 目录下的标准 fixture JSON 文件（MenuMeta, Menu, SystemConfig 等）
+2. 自动调用各应用的 fixtures/initialize.py 执行自定义初始化
+"""
 
 import os.path
 
@@ -9,6 +14,7 @@ from django.db.models.signals import ModelSignal
 from django.core.management.base import CommandParser
 
 from apps.settings.models import Setting
+from apps.system.management.commands.init import run_all_initializers
 from apps.system.models import *
 
 
@@ -53,3 +59,7 @@ class Command(LoadCommand):
         options["exclude"] = []
         options["format"] = "json"
         super(Command, self).handle(*fixture_labels, **options)
+
+        # 加载完基础数据后，自动执行各应用的 fixtures 初始化
+        self.stdout.write(self.style.NOTICE('正在执行各应用的 fixtures 初始化...'))
+        run_all_initializers()
