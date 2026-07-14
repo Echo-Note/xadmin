@@ -8,12 +8,13 @@
 import itertools
 import json
 import math
+import os
 import uuid
 from hashlib import md5
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 from django.conf import settings
-from django.db import transaction
+from django.db import models, transaction
 from django.forms.widgets import SelectMultiple, DateTimeInput
 from django.utils.translation import gettext_lazy as _
 from django_filters.utils import get_model_field
@@ -245,6 +246,246 @@ class UploadFileAction(object):
         instance.modifier = request.user
         instance.save(update_fields=[self.FILE_UPLOAD_FIELD, 'modifier'])
         return ApiResponse()
+
+
+class FileUploadMixin(object):
+    """文件上传视图混入类，为指定的 FileField/ImageField 字段生成独立上传接口。
+
+    通过 ``FILE_UPLOAD_FIELDS`` 手动指定需要上传接口的文件字段名列表，
+    每个字段自动生成 ``{field}_upload`` action 方法。
+
+    功能特点：
+    1. **手动指定字段**：通过 ``FILE_UPLOAD_FIELDS`` 列出文件字段名
+    2. **内容寻址去重（幂等性）**：按文件 MD5 哈希生成存储路径，
+       相同文件自动共享物理文件
+    3. **可选关联实例**：设置 ``FILE_UPLOAD_REQUIRE_INSTANCE = True``，
+       通过 ``?id=`` 参数绑定到已有实例
+
+    配置属性：
+    - ``FILE_UPLOAD_FIELDS``：需要生成上传接口的文件字段名列表（必填）
+    - ``FILE_UPLOAD_REQUIRE_INSTANCE``：是否关联实例，默认 False
+    - ``FILE_UPLOAD_ALLOW_MULTIPLE``：是否多文件上传，默认 False
+    - ``FILE_UPLOAD_TYPE``：允许的文件扩展名列表，None 不限制
+    - ``FILE_UPLOAD_MAX_SIZE``：文件大小限制（字节），默认 ``settings.FILE_UPLOAD_SIZE``
+
+    使用示例::
+
+        from apps.common.core.modelset import FileUploadMixin, BaseModelSet
+
+        class BookViewSet(FileUploadMixin, BaseModelSet):
+            queryset = Book.objects.all()
+            FILE_UPLOAD_FIELDS = ['file', 'img']
+            FILE_UPLOAD_TYPE = ['png', 'jpg', 'pdf']
+
+            # 自动生成：
+            #   POST /api/book/file-upload/  → 上传 file 字段
+            #   POST /api/book/img-upload/   → 上传 img 字段
+    """
+
+    FILE_UPLOAD_FIELDS: list = []
+    FILE_UPLOAD_REQUIRE_INSTANCE: bool = False
+    FILE_UPLOAD_ALLOW_MULTIPLE: bool = False
+    FILE_UPLOAD_TYPE: Optional[list] = None
+    FILE_UPLOAD_MAX_SIZE = settings.FILE_UPLOAD_SIZE
+
+    get_object: Callable
+    get_queryset: Callable
+
+    # ---------- 动态 action 生成 ----------
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """子类初始化时，为 ``FILE_UPLOAD_FIELDS`` 中的每个字段创建上传 action。"""
+        super().__init_subclass__(**kwargs)
+        for field_name in cls.FILE_UPLOAD_FIELDS:
+            setattr(cls, f'{field_name}_upload', cls._build_upload_action(field_name))
+
+    @staticmethod
+    def _build_upload_action(field_name: str) -> Callable:
+        """为指定字段构建上传 action（detail=False）。
+
+        Args:
+            field_name: 模型 FileField/ImageField 字段名。
+
+        Returns:
+            装饰好的上传方法。
+        """
+        @action(
+            methods=['post'],
+            detail=False,
+            parser_classes=(MultiPartParser,),
+            url_path=f'{field_name}-upload',
+            url_name=f'{field_name}-upload',
+        )
+        def upload_action(self, request: Request, *args: Any, **kwargs: Any) -> Any:
+            return self._handle_upload(request, field_name)
+
+        upload_action.__name__ = f'{field_name}_upload'
+        upload_action.__qualname__ = f'FileUploadMixin.{field_name}_upload'
+        return upload_action
+
+    # ---------- 上传逻辑 ----------
+
+    def _handle_upload(self, request: Request, field_name: str) -> Any:
+        """处理文件上传：校验 → 去重 → 存储 → 返回文件信息。
+
+        可选：若 ``FILE_UPLOAD_REQUIRE_INSTANCE`` 为 True，通过 id 参数
+        获取实例并更新对应字段。
+
+        Args:
+            request: DRF 请求对象。
+            field_name: 目标文件字段名。
+
+        Returns:
+            ApiResponse 响应对象。
+        """
+        # 1. 获取上传文件
+        uploaded_files = self._get_uploaded_files(request, field_name)
+        if not uploaded_files:
+            return ApiResponse(code=1001, detail=_("请选择要上传的文件"))
+
+        if not self.FILE_UPLOAD_ALLOW_MULTIPLE and len(uploaded_files) > 1:
+            return ApiResponse(code=1001, detail=_("不支持多文件上传"))
+
+        # 2. 解析目标字段
+        error = self._resolve_field(field_name)
+        if error:
+            return error
+        target_field = self._target_field
+
+        # 3. 获取关联实例（可选）
+        instance = self._get_instance(request) if self.FILE_UPLOAD_REQUIRE_INSTANCE else None
+
+        # 4. 逐个处理文件
+        storage = target_field.storage
+        upload_results: list = []
+        failed_count = 0
+
+        for uploaded_file in uploaded_files:
+            try:
+                if error := self._validate_file(uploaded_file):
+                    failed_count += 1
+                    upload_results.append({
+                        'file_name': uploaded_file.name, 'file_size': uploaded_file.size,
+                        'success': False, 'error': error,
+                    })
+                    continue
+
+                # 内容寻址去重
+                content_hash = self._compute_file_hash(uploaded_file)
+                ext = os.path.splitext(uploaded_file.name)[-1] or ''
+                hashed_name = f"{content_hash}{ext}"
+
+                if instance:
+                    storage_path = target_field.generate_filename(instance, hashed_name)
+                else:
+                    labels = self.get_queryset().model._meta.label_lower.split('.')
+                    storage_path = os.path.join(labels[0], labels[1], field_name, hashed_name)
+
+                if not storage.exists(storage_path):
+                    storage.save(storage_path, uploaded_file)
+                else:
+                    uploaded_file.close()
+
+                upload_results.append({
+                    'field': field_name, 'file_name': uploaded_file.name,
+                    'file_size': uploaded_file.size, 'hash': content_hash,
+                    'path': storage_path, 'success': True,
+                })
+
+            except Exception as e:
+                failed_count += 1
+                upload_results.append({
+                    'file_name': uploaded_file.name, 'file_size': uploaded_file.size,
+                    'success': False, 'error': str(e),
+                })
+                logger.error(f"文件上传失败: {e}")
+
+        # 5. 关联实例时更新字段
+        if instance and len(upload_results) == 1 and upload_results[0]['success']:
+            saved_path = upload_results[0]['path']
+            try:
+                setattr(instance, target_field.attname, saved_path)
+                update_fields = [target_field.name]
+                if hasattr(instance, 'modifier'):
+                    instance.modifier = request.user
+                    update_fields.append('modifier')
+                instance.save(update_fields=update_fields)
+            except Exception as e:
+                logger.error(f"更新实例文件字段失败: {e}")
+
+        # 6. 构建响应
+        if len(uploaded_files) == 1:
+            result = upload_results[0]
+            if result['success']:
+                return ApiResponse(data=result)
+            return ApiResponse(code=1001, detail=f"上传失败：{result.get('error')}")
+        else:
+            success_count = len([r for r in upload_results if r['success']])
+            detail = _("所有文件上传成功（共{}个）").format(len(uploaded_files)) if failed_count == 0 else \
+                _("部分文件上传成功（成功{}个，失败{}个）").format(success_count, failed_count)
+            return ApiResponse(data={
+                'results': upload_results, 'total_count': len(uploaded_files),
+                'success_count': success_count, 'failed_count': failed_count,
+            }, detail=detail)
+
+    # ---------- 辅助方法 ----------
+
+    def _get_uploaded_files(self, request: Request, field_name: str) -> list:
+        """从请求中提取上传文件列表。"""
+        files = []
+        single = request.FILES.get(field_name)
+        if single:
+            files.append(single)
+        if self.FILE_UPLOAD_ALLOW_MULTIPLE:
+            multiple = request.FILES.getlist(field_name)
+            if len(multiple) > 1:
+                files = multiple
+            extra = request.FILES.getlist('files')
+            if extra:
+                files.extend(extra)
+        return files
+
+    def _resolve_field(self, field_name: str) -> Optional[Any]:
+        """解析并缓存目标字段对象。"""
+        model = self.get_queryset().model
+        try:
+            field = model._meta.get_field(field_name)
+            if not isinstance(field, (models.FileField, models.ImageField)):
+                return ApiResponse(code=1001, detail=_("字段 '{}' 不是文件类型").format(field_name))
+        except Exception:
+            return ApiResponse(code=1001, detail=_("字段 '{}' 不存在").format(field_name))
+        self._target_field = field
+        return None
+
+    def _get_instance(self, request: Request) -> Optional[Any]:
+        """获取关联实例（通过 id 参数）。"""
+        instance_id = request.data.get('id') or request.query_params.get('id')
+        if not instance_id:
+            return None
+        try:
+            return self.get_queryset().get(pk=instance_id)
+        except self.get_queryset().model.DoesNotExist:
+            return None
+
+    def _validate_file(self, uploaded_file: Any) -> Optional[str]:
+        """验证文件类型和大小，返回错误信息或 None。"""
+        if self.FILE_UPLOAD_TYPE is not None:
+            file_ext = uploaded_file.name.split('.')[-1].lower()
+            if file_ext not in self.FILE_UPLOAD_TYPE:
+                return _("不支持的文件类型，允许：{}").format(','.join(self.FILE_UPLOAD_TYPE))
+        if self.FILE_UPLOAD_MAX_SIZE and uploaded_file.size > self.FILE_UPLOAD_MAX_SIZE:
+            return _("文件大小不能超过 {}").format(self.FILE_UPLOAD_MAX_SIZE)
+        return None
+
+    @staticmethod
+    def _compute_file_hash(file_obj: Any) -> str:
+        """计算文件 MD5 哈希。"""
+        md5_hash = md5()
+        file_obj.seek(0)
+        for chunk in file_obj.chunks():
+            md5_hash.update(chunk)
+        file_obj.seek(0)
+        return md5_hash.hexdigest()
 
 
 class RankAction(object):

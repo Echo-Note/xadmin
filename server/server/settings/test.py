@@ -13,3 +13,6 @@ LOG_LEVEL = 'ERROR'
 # Celery 同步执行
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
+
+# 注册演示/测试应用
+INSTALLED_APPS.append('apps.demo.apps.DemoConfig')

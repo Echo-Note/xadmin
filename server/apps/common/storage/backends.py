@@ -207,6 +207,20 @@ class DynamicFileStorage:
         """
         return self._ensure_backend()._open(name, mode)
 
+    def save(self, name: str, content: Any, max_length: int | None = None) -> str:
+        """保存文件（符合 Django Storage API）。
+
+        Args:
+            name: 文件名。
+            content: 文件内容。
+            max_length: 文件名最大长度。
+
+        Returns:
+            保存后的文件名。
+        """
+        name = self.get_available_name(name, max_length=max_length)
+        return self._save(name, content)
+
     def _save(self, name: str, content: Any) -> str:
         """保存文件。
 
