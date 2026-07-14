@@ -13,17 +13,20 @@ from apps.system.models import ModeTypeAbstract
 class DeptInfo(DbAuditModel, ModeTypeAbstract, DbUuidModel):
     """部门信息模型，支持树形层级结构和数据权限配置。"""
 
-    name = models.CharField(verbose_name=_('Department name'), max_length=128)
-    code = models.CharField(max_length=128, verbose_name=_('Department code'), unique=True)
+    name = models.CharField(verbose_name=_('Department name'), max_length=128, help_text=_('Display name of the department'), db_comment="部门名称")
+    code = models.CharField(max_length=128, verbose_name=_('Department code'), unique=True, help_text=_('Unique code identifier for the department, used for auto-binding'), db_comment="部门编码")
     parent = models.ForeignKey('system.DeptInfo', on_delete=models.PROTECT, verbose_name=_('Superior department'),
-                               null=True, blank=True, related_query_name='parent_query')
-    roles = models.ManyToManyField('system.UserRole', verbose_name=_('Role permission'), blank=True)
-    rules = models.ManyToManyField('system.DataPermission', verbose_name=_('Data permission'), blank=True)
-    rank = models.IntegerField(verbose_name=_('Rank'), default=99)
+                               null=True, blank=True, related_query_name='parent_query',
+                               help_text=_('Reference to the parent department in the tree hierarchy'),
+                               db_comment="上级部门")
+    roles = models.ManyToManyField('system.UserRole', verbose_name=_('Role permission'), blank=True, help_text=_('Role permissions associated with this department'))
+    rules = models.ManyToManyField('system.DataPermission', verbose_name=_('Data permission'), blank=True, help_text=_('Data permission rules associated with this department'))
+    rank = models.IntegerField(verbose_name=_('Rank'), default=99, help_text=_('Sorting weight, higher value means higher priority in ordering'), db_comment="排序权重")
     auto_bind = models.BooleanField(verbose_name=_('Auto bind'), default=False,
                                     help_text=_(
-                                        'If the value of the registration parameter channel is consistent with the department code, the user is automatically bound to the department'))
-    is_active = models.BooleanField(verbose_name=_('Is active'), default=True)
+                                        'If the value of the registration parameter channel is consistent with the department code, the user is automatically bound to the department'),
+                                    db_comment="是否自动绑定（注册渠道与部门编码一致时自动绑定）")
+    is_active = models.BooleanField(verbose_name=_('Is active'), default=True, help_text=_('Whether this department is currently active and available'), db_comment="是否启用")
 
     @classmethod
     def recursion_dept_info(cls, dept_id: int, dept_all_list: list[dict] | None = None,
@@ -60,6 +63,7 @@ class DeptInfo(DbAuditModel, ModeTypeAbstract, DbUuidModel):
         verbose_name = _('Department')
         verbose_name_plural = verbose_name
         ordering = ('-rank', '-created_time',)
+        db_table_comment = "部门信息表，支持树形层级结构和数据权限配置"
 
     def __str__(self) -> str:
         """返回部门名称和主键的字符串表示。"""

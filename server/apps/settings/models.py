@@ -18,11 +18,11 @@ from apps.system.models import UserInfo
 class Setting(DbAuditModel, DbUuidModel):
     """系统设置模型，存储各类配置项的名称、值及加密状态。"""
 
-    name = models.CharField(max_length=128, unique=True, verbose_name=_("Name"))
-    value = models.TextField(verbose_name=_("Value"), null=True, blank=True)
-    category = models.CharField(max_length=128, default="default", verbose_name=_('Category'))
-    encrypted = models.BooleanField(default=False, verbose_name=_('Encrypted'))
-    is_active = models.BooleanField(default=True, verbose_name=_("Is active"))
+    name = models.CharField(max_length=128, unique=True, verbose_name=_("Name"), help_text=_("Unique configuration item name"), db_comment="设置项名称")
+    value = models.TextField(verbose_name=_("Value"), null=True, blank=True, help_text=_("Configuration value, supports JSON format"), db_comment="设置项值")
+    category = models.CharField(max_length=128, default="default", verbose_name=_('Category'), help_text=_("Configuration category for grouping settings"), db_comment="设置项分类")
+    encrypted = models.BooleanField(default=False, verbose_name=_('Encrypted'), help_text=_("Whether the value is encrypted at rest"), db_comment="是否加密存储")
+    is_active = models.BooleanField(default=True, verbose_name=_("Is active"), help_text=_("Whether this setting is active and loaded into the system"), db_comment="是否启用")
 
     def __str__(self):
         """返回设置项名称。"""
@@ -133,3 +133,4 @@ class Setting(DbAuditModel, DbUuidModel):
 
         verbose_name = _("System setting")
         verbose_name_plural = verbose_name
+        db_table_comment = "系统设置表，存储各类配置项的名称、值及加密状态"

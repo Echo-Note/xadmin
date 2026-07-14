@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 class DbUuidModel(models.Model):
     """使用 UUID 作为主键的抽象模型基类。"""
 
-    id = models.UUIDField(default=uuid.uuid4, primary_key=True, verbose_name=_("ID"))
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, verbose_name=_("ID"), help_text=_("Auto-generated UUID primary key"), db_comment="主键ID（UUID）")
 
     class Meta:
         """元数据配置，声明为抽象模型。"""
@@ -34,7 +34,7 @@ class DbUuidModel(models.Model):
 class DbCharModel(models.Model):
     """使用 CharField 作为主键的抽象模型基类。"""
 
-    id = models.CharField(primary_key=True, max_length=128, verbose_name=_("ID"))
+    id = models.CharField(primary_key=True, max_length=128, verbose_name=_("ID"), help_text=_("String-based primary key (max 128 characters)"), db_comment="主键ID（字符串）")
 
     class Meta:
         """元数据配置，声明为抽象模型。"""
@@ -154,9 +154,9 @@ class AutoCleanFileMixin(object):
 class DbBaseModel(models.Model):
     """基础模型，包含创建时间、更新时间和描述字段。"""
 
-    created_time = models.DateTimeField(auto_now_add=True, verbose_name=_("Created time"), null=True, blank=True)
-    updated_time = models.DateTimeField(auto_now=True, verbose_name=_("Updated time"), null=True, blank=True)
-    description = models.CharField(max_length=256, verbose_name=_("Description"), null=True, blank=True)
+    created_time = models.DateTimeField(auto_now_add=True, verbose_name=_("Created time"), null=True, blank=True, help_text=_("Timestamp automatically set when the record is first created"), db_comment="创建时间")
+    updated_time = models.DateTimeField(auto_now=True, verbose_name=_("Updated time"), null=True, blank=True, help_text=_("Timestamp automatically updated each time the record is saved"), db_comment="更新时间")
+    description = models.CharField(max_length=256, verbose_name=_("Description"), null=True, blank=True, help_text=_("Optional brief description or remark for this record"), db_comment="描述信息")
 
     class Meta:
         """元数据配置，声明为抽象模型。"""
@@ -168,12 +168,18 @@ class DbAuditModel(DbBaseModel):
     """审计模型，在基础模型上增加创建人、修改人及数据归属部门字段。"""
 
     creator = models.ForeignKey(to=settings.AUTH_USER_MODEL, related_query_name='creator_query', null=True, blank=True,
-                                verbose_name=_("Creator"), on_delete=models.SET_NULL, related_name='+')
+                                verbose_name=_("Creator"), on_delete=models.SET_NULL, related_name='+',
+                                help_text=_("User who created this record; cleared (set to null) if the user is deleted"),
+                                db_comment="创建人")
     modifier = models.ForeignKey(to=settings.AUTH_USER_MODEL, related_query_name='modifier_query', null=True,
-                                 blank=True, verbose_name=_("Modifier"), on_delete=models.SET_NULL, related_name='+')
+                                 blank=True, verbose_name=_("Modifier"), on_delete=models.SET_NULL, related_name='+',
+                                 help_text=_("User who last modified this record; cleared (set to null) if the user is deleted"),
+                                 db_comment="修改人")
     dept_belong = models.ForeignKey(to="system.DeptInfo", related_query_name='dept_belong_query', null=True, blank=True,
                                     verbose_name=_("Data ownership department"), on_delete=models.SET_NULL,
-                                    related_name='+')
+                                    related_name='+',
+                                    help_text=_("Department to which this record belongs, used for data-level permission filtering"),
+                                    db_comment="数据归属部门")
 
     class Meta:
         """元数据配置，声明为抽象模型。"""

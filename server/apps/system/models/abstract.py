@@ -16,7 +16,8 @@ class ModeTypeAbstract(models.Model):
     mode_type = models.SmallIntegerField(choices=ModeChoices, default=ModeChoices.OR,
                                          verbose_name=_("Data permission mode"),
                                          help_text=_(
-                                             "Permission mode, and the mode indicates that the data needs to satisfy each rule in the rule list at the same time, or the mode satisfies any rule"))
+                                             "Permission mode, and the mode indicates that the data needs to satisfy each rule in the rule list at the same time, or the mode satisfies any rule"),
+                                         db_comment="数据权限匹配模式：OR满足任一规则，AND满足全部规则")
 
     class Meta:
         """抽象模型元数据配置。"""
