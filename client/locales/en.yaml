@@ -635,3 +635,22 @@ demoBook:
   is_active: Active
   pushBook: Push book
   confirmPushBook: Are you sure to push {name} book?
+
+cloudPlatform:
+  platform: Cloud Platform
+  name: Name
+  platform_type: Platform Type
+  endpoint: API Endpoint
+  region: Default Region
+  company: Company
+  is_active: Active
+  credentialCount: Credential Count
+  created_time: Created Time
+  cloudPlatform: Cloud Platform
+
+company:
+  company: Company
+  name: Company Name
+  short_name: Short Name
+  is_active: Status
+  created_time: Created Time

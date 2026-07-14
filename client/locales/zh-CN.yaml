@@ -635,3 +635,22 @@ demoBook:
   is_active: 是否启用
   pushBook: 推送书籍
   confirmPushBook: 确定将该书籍 {name} 推送到推荐服务？
+
+cloudPlatform:
+  platform: 云平台实例
+  name: 平台名称
+  platform_type: 平台类型
+  endpoint: API 端点
+  region: 默认区域
+  company: 所属公司
+  is_active: 启用状态
+  credentialCount: 凭据数量
+  created_time: 创建时间
+  cloudPlatform: 云平台实例
+
+company:
+  company: 公司主体
+  name: 公司名称
+  short_name: 公司简称
+  is_active: 状态
+  created_time: 创建时间
