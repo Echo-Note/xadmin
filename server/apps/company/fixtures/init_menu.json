@@ -1,0 +1,89 @@
+[
+  {
+    "name": "Company",
+    "menu_type": 0,
+    "rank": 92,
+    "path": "/company",
+    "component": "",
+    "is_active": true,
+    "meta": {
+      "title": "公司管理",
+      "icon": "ri:building-2-line",
+      "is_show_menu": true,
+      "is_keepalive": true
+    },
+    "children": [
+      {
+        "name": "CompanyInstance",
+        "menu_type": 1,
+        "rank": 1,
+        "path": "/company/index",
+        "component": "company/index",
+        "is_active": true,
+        "meta": {
+          "title": "公司主体",
+          "icon": "ri:building-line",
+          "is_show_menu": true,
+          "is_keepalive": true
+        },
+        "permissions": [
+          {
+            "name": "list:Company",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/company/company$",
+            "method": "GET",
+            "is_active": true,
+            "meta": {
+              "title": "查询公司列表"
+            }
+          },
+          {
+            "name": "create:Company",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/company/company$",
+            "method": "POST",
+            "is_active": true,
+            "meta": {
+              "title": "新增公司"
+            }
+          },
+          {
+            "name": "retrieve:Company",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/company/company/[a-zA-Z0-9-]+$",
+            "method": "GET",
+            "is_active": true,
+            "meta": {
+              "title": "查看公司详情"
+            }
+          },
+          {
+            "name": "update:Company",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/company/company/[a-zA-Z0-9-]+$",
+            "method": "PUT",
+            "is_active": true,
+            "meta": {
+              "title": "更新公司信息"
+            }
+          },
+          {
+            "name": "delete:Company",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/company/company/[a-zA-Z0-9-]+$",
+            "method": "DELETE",
+            "is_active": true,
+            "meta": {
+              "title": "删除公司"
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

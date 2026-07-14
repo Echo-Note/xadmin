@@ -81,23 +81,7 @@
             "meta": {
               "title": "删除云平台实例"
             }
-          }
-        ]
-      },
-      {
-        "name": "CloudCredential",
-        "menu_type": 1,
-        "rank": 2,
-        "path": "/cloud/credential/index",
-        "component": "cloud/credential/index",
-        "is_active": true,
-        "meta": {
-          "title": "云平台凭据",
-          "icon": "ri:key-2-line",
-          "is_show_menu": true,
-          "is_keepalive": true
-        },
-        "permissions": [
+          },
           {
             "name": "list:Credential",
             "menu_type": 2,
@@ -106,7 +90,7 @@
             "method": "GET",
             "is_active": true,
             "meta": {
-              "title": "查询凭据列表"
+              "title": "平台详情-查询凭据列表"
             }
           },
           {
@@ -117,7 +101,7 @@
             "method": "POST",
             "is_active": true,
             "meta": {
-              "title": "新增凭据"
+              "title": "平台详情-新增凭据"
             }
           },
           {
@@ -128,7 +112,7 @@
             "method": "GET",
             "is_active": true,
             "meta": {
-              "title": "查看凭据详情"
+              "title": "平台详情-查看凭据详情"
             }
           },
           {
@@ -139,7 +123,7 @@
             "method": "PUT",
             "is_active": true,
             "meta": {
-              "title": "更新凭据"
+              "title": "平台详情-更新凭据"
             }
           },
           {
@@ -150,7 +134,7 @@
             "method": "DELETE",
             "is_active": true,
             "meta": {
-              "title": "删除凭据"
+              "title": "平台详情-删除凭据"
             }
           },
           {
@@ -161,7 +145,7 @@
             "method": "POST",
             "is_active": true,
             "meta": {
-              "title": "解密查看凭据明文"
+              "title": "平台详情-解密查看凭据明文"
             }
           }
         ]
