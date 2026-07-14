@@ -64,6 +64,8 @@ INSTALLED_APPS = [
     "apps.notifications.apps.NotificationsConfig",  # 消息通知相关
     'apps.captcha.apps.CaptchaConfig',  # 图片验证码
     'apps.message.apps.MessageConfig',  # websocket 消息
+    'apps.company.apps.CompanyConfig',  # 公司主体管理（被其他 app 依赖）
+    'apps.cloud_platform.apps.CloudPlatformConfig',  # 云平台管理
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
