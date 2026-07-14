@@ -18,3 +18,4 @@
 
 # Node.js 依赖
 node_modules/
+.django-test-env
