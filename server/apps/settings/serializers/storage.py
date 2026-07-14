@@ -73,14 +73,14 @@ class StorageMediaSerializer(serializers.Serializer):
 
     # 认证
     STORAGE_S3_ACCESS_KEY = serializers.CharField(
-        required=False, allow_blank=True, write_only=True, default="",
+        required=False, allow_blank=True, default="",
         label=_("★ 访问密钥 ID"),
-        help_text=_("S3 模式必填。"),
+        help_text=_("S3 模式必填。仅管理员可查看。"),
     )
     STORAGE_S3_SECRET_KEY = serializers.CharField(
-        required=False, allow_blank=True, write_only=True, default="",
+        required=False, allow_blank=True, default="",
         label=_("★ 访问密钥 Secret"),
-        help_text=_("S3 模式必填。"),
+        help_text=_("S3 模式必填。仅管理员可查看。"),
     )
 
     # 连接
@@ -188,14 +188,14 @@ class StorageStaticSerializer(serializers.Serializer):
         label=_("区域（留空则复用媒体文件配置）"),
     )
     STATIC_S3_ACCESS_KEY = serializers.CharField(
-        required=False, allow_blank=True, write_only=True, default="",
+        required=False, allow_blank=True, default="",
         label=_("★ 访问密钥 ID（留空则复用媒体文件密钥）"),
-        help_text=_("S3 模式必填。通常与媒体文件共用同一密钥。"),
+        help_text=_("S3 模式必填。通常与媒体文件共用同一密钥。仅管理员可查看。"),
     )
     STATIC_S3_SECRET_KEY = serializers.CharField(
-        required=False, allow_blank=True, write_only=True, default="",
+        required=False, allow_blank=True, default="",
         label=_("★ 访问密钥 Secret（留空则复用媒体文件密钥）"),
-        help_text=_("S3 模式必填。通常与媒体文件共用同一密钥。"),
+        help_text=_("S3 模式必填。通常与媒体文件共用同一密钥。仅管理员可查看。"),
     )
     STATIC_S3_CUSTOM_DOMAIN = serializers.CharField(
         required=False, allow_blank=True, default="",

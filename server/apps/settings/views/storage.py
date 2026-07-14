@@ -6,6 +6,12 @@ from apps.settings.views.settings import BaseSettingViewSet
 
 logger = get_logger(__name__)
 
+# 需要加密存储的敏感字段
+ENCRYPTED_STORAGE_FIELDS = {
+    "STORAGE_S3_ACCESS_KEY", "STORAGE_S3_SECRET_KEY",
+    "STATIC_S3_ACCESS_KEY", "STATIC_S3_SECRET_KEY",
+}
+
 
 class StorageSettingViewSet(BaseSettingViewSet):
     """存储设置 — 媒体/静态文件分离管理（?category=media|static）。"""
@@ -17,6 +23,19 @@ class StorageSettingViewSet(BaseSettingViewSet):
         "media": StorageMediaSerializer,
         "static": StorageStaticSerializer,
     }
+
+    def parse_serializer_data(self, serializer) -> list:
+        """解析序列化器数据，将密钥字段标记为加密存储。"""
+        data = []
+        for name, value in serializer.validated_data.items():
+            encrypted = name in ENCRYPTED_STORAGE_FIELDS
+            if encrypted and value in ['', None]:
+                continue
+            data.append({
+                'name': name, 'value': value,
+                'encrypted': encrypted, 'category': self.category
+            })
+        return data
 
     def perform_update(self, serializer: object) -> None:
         """更新后递增配置版本号，使 S3 后端感知变更。"""
