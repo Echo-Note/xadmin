@@ -4664,5 +4664,75 @@
       "method": "GET",
       "model": []
     }
+  },
+  {
+    "model": "system.menu",
+    "pk": "3369c242-cbfb-47db-984a-e955a1486ab1",
+    "fields": {
+      "created_time": "2026-07-14T00:00:00.000Z",
+      "updated_time": "2026-07-14T00:00:00.000Z",
+      "description": null,
+      "creator": 1,
+      "modifier": 1,
+      "dept_belong": null,
+      "parent": "ea094317-8c50-429c-90a6-17dc3c8b366c",
+      "menu_type": 1,
+      "name": "SettingStorage",
+      "rank": 165,
+      "path": "/settings/storage",
+      "component": "settings/storage",
+      "is_active": true,
+      "meta": "a27512a0-77d8-471a-b8b9-6b3ef942d225",
+      "method": "",
+      "model": []
+    }
+  },
+  {
+    "model": "system.menu",
+    "pk": "54dd83e5-87ad-4e01-adf4-40103ac35880",
+    "fields": {
+      "created_time": "2026-07-14T00:00:00.000Z",
+      "updated_time": "2026-07-14T00:00:00.000Z",
+      "description": null,
+      "creator": 1,
+      "modifier": 1,
+      "dept_belong": null,
+      "parent": "3369c242-cbfb-47db-984a-e955a1486ab1",
+      "menu_type": 2,
+      "name": "retrieve:SettingStorage",
+      "rank": 166,
+      "path": "api/settings/storage$",
+      "component": "",
+      "is_active": true,
+      "meta": "0b639c6a-fa6b-4614-a910-5d70fe35d87e",
+      "method": "GET",
+      "model": [
+        "23a586ba-6c71-4664-b1c0-edf41e6a3f52"
+      ]
+    }
+  },
+  {
+    "model": "system.menu",
+    "pk": "e9f60def-a3d4-499c-a53f-3df1e1f5ebc5",
+    "fields": {
+      "created_time": "2026-07-14T00:00:00.000Z",
+      "updated_time": "2026-07-14T00:00:00.000Z",
+      "description": null,
+      "creator": 1,
+      "modifier": 1,
+      "dept_belong": null,
+      "parent": "3369c242-cbfb-47db-984a-e955a1486ab1",
+      "menu_type": 2,
+      "name": "partialUpdate:SettingStorage",
+      "rank": 167,
+      "path": "api/settings/storage$",
+      "component": "",
+      "is_active": true,
+      "meta": "47ed7a2a-10d2-4741-b55f-1128426e18bd",
+      "method": "PATCH",
+      "model": [
+        "23a586ba-6c71-4664-b1c0-edf41e6a3f52"
+      ]
+    }
   }
 ]

@@ -75,6 +75,8 @@ dependencies = [
     "pyzipper==0.3.6",
     # ---- 短信 / 通知 ----
     "alibabacloud-dysmsapi20170525==4.3.0",
+    # ---- 云存储 ----
+    "django-storages[s3]==1.14.6",
     # ---- 工具库 ----
     "requests==2.32.5",
     "chardet==5.2.0",
@@ -91,7 +93,17 @@ dev = [
     "ipython>=8.30.0",
     "ipdb>=0.13.13",
     "django-stubs>=5.1.0",
+    "pytest>=8.0",
+    "pytest-django>=4.8",
 ]
+
+[test]
+requires = ["pytest>=8.0", "pytest-django>=4.8"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "server.settings.test"
+addopts = "-v --tb=short"
+testpaths = ["apps"]
 
 # Django 应用项目，不需要作为 Python 包构建发布
 [tool.uv]

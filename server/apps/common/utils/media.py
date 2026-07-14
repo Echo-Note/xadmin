@@ -12,13 +12,15 @@ import posixpath
 from pathlib import Path
 
 from django.apps import apps
-from django.http import FileResponse, Http404, HttpRequest, HttpResponse, HttpResponseNotModified
+from django.core.files.storage import default_storage
+from django.http import FileResponse, Http404, HttpRequest, HttpResponse, HttpResponseNotModified, HttpResponseRedirect
 from django.utils._os import safe_join
 from django.utils.http import http_date
 from django.utils.translation import gettext_lazy as _
 from django.views.static import directory_index, was_modified_since
 
 from apps.common.fields.image import ProcessedImageField, get_thumbnail
+from apps.common.storage import is_local_storage
 
 
 def get_media_path(path: str) -> str | None:
@@ -66,6 +68,8 @@ def media_serve(
 ) -> HttpResponse:
     """提供媒体文件服务，支持目录索引与缩略图按需生成。
 
+    当使用远程 S3 存储时，重定向到 S3 签名 URL。
+
     Args:
         request: HTTP 请求对象。
         path: 媒体文件相对路径。
@@ -73,8 +77,16 @@ def media_serve(
         show_indexes: 是否允许展示目录索引。
 
     Returns:
-        文件响应或目录索引响应。
+        文件响应、重定向响应或目录索引响应。
     """
+    # 远程存储：重定向到 S3 URL
+    if not is_local_storage():
+        try:
+            url = default_storage.url(path)
+            return HttpResponseRedirect(url)
+        except Exception:
+            raise Http404(_('"%(path)s" does not exist in remote storage') % {'path': path})
+
     path = posixpath.normpath(path).lstrip('/')
     fullpath = Path(safe_join(document_root, path))
     if fullpath.is_dir():
@@ -86,7 +98,7 @@ def media_serve(
         if media_path:
             fullpath = Path(safe_join(document_root, media_path))
         else:
-            raise Http404(_('“%(path)s” does not exist') % {'path': fullpath})
+            raise Http404(_('"%(path)s" does not exist') % {'path': fullpath})
     # Respect the If-Modified-Since header.
     statobj = fullpath.stat()
     if not was_modified_since(

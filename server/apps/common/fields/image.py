@@ -8,7 +8,6 @@
 import os
 
 from django.core.files import File
-from django.core.files.storage import default_storage, FileSystemStorage
 from django.db import models
 from django.db.models.fields.files import ImageFieldFile
 from imagekit.cachefiles import ImageCacheFile
@@ -17,6 +16,8 @@ from imagekit.specs import SpecHost
 from imagekit.utils import generate
 from pilkit.processors import ResizeToFill
 from pilkit.utils import suggest_extension
+
+from apps.common.storage import is_local_storage
 
 
 def source_name(generator: SpecHost, index: int) -> str:
@@ -61,9 +62,20 @@ def get_thumbnail(source: ImageFieldFile, index: int, force: bool = False) -> st
 
 
 class ProcessedImageFieldFile(ImageFieldFile):
-    """处理后的图片字段文件对象。"""
+    """处理后的图片字段文件对象。
 
-    is_local_storage = isinstance(default_storage, FileSystemStorage)
+    通过 is_local_storage() 动态检测存储类型，
+    支持本地文件存储与远程 S3 存储的运行时切换。
+    """
+
+    @property
+    def is_local_storage(self) -> bool:
+        """动态检测是否使用本地文件存储。
+
+        Returns:
+            True 表示使用本地文件存储。
+        """
+        return is_local_storage()
 
     def save(self, name: str, content: File, save: bool = True) -> str:
         """保存图片文件，保存前执行图片处理。
@@ -84,7 +96,13 @@ class ProcessedImageFieldFile(ImageFieldFile):
         return super().save(new_name, content, save)
 
     def delete(self, save: bool = True) -> None:
-        """删除图片文件及其缩略图。"""
+        """删除图片文件及其缩略图。
+
+        S3 存储时仅删除主文件，不处理缩略图（S3 不支持本地路径操作）。
+
+        Args:
+            save: 是否保存关联模型实例。
+        """
         # Clear the image dimensions cache
         if hasattr(self, "_dimensions_cache"):
             del self._dimensions_cache
@@ -94,14 +112,20 @@ class ProcessedImageFieldFile(ImageFieldFile):
                 for i in self.field.scales:
                     self.name = f"{name.split('.')[0]}_{i}.jpg"
                     super().delete(False)
-            except Exception as e:
+            except Exception:
                 pass
         self.name = name
         super().delete(save)
 
     @property
     def url(self) -> str:
-        """获取图片访问 URL，本地存储 PNG 替换为缩略图。"""
+        """获取图片访问 URL，本地存储 PNG 替换为缩略图。
+
+        S3 远程存储时直接返回原始 URL。
+
+        Returns:
+            图片访问 URL。
+        """
         url: str = super().url
         if self.is_local_storage and url.endswith('.png'):
             return url.replace('.png', '_1.jpg')

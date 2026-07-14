@@ -151,6 +151,37 @@ class Config(dict):
         'PERMISSION_DATA_ENABLED': True,  # 数据权限控制
         'REFERER_CHECK_ENABLED': False,  # referer 校验
         'EXPORT_MAX_LIMIT': 20000,  # 限制导出数据数量
+        # 存储配置
+        'STORAGE_BACKEND': 'local',  # local / s3（媒体文件）
+        'STATIC_STORAGE_BACKEND': 'local',  # local / s3（静态文件）
+        'STORAGE_S3_ENDPOINT_URL': '',
+        'STORAGE_S3_ACCESS_KEY': '',
+        'STORAGE_S3_SECRET_KEY': '',
+        'STORAGE_S3_BUCKET_NAME': '',
+        'STORAGE_S3_REGION_NAME': '',
+        'STORAGE_S3_USE_SSL': True,
+        'STORAGE_S3_VERIFY': True,
+        'STORAGE_S3_SIGNATURE_VERSION': 's3v4',
+        'STORAGE_S3_ADDRESSING_STYLE': 'path',
+        'STORAGE_S3_CUSTOM_DOMAIN': '',
+        'STORAGE_S3_DEFAULT_ACL': '',
+        'STORAGE_S3_QUERYSTRING_AUTH': True,
+        'STORAGE_S3_QUERYSTRING_EXPIRE': 3600,
+        'STORAGE_S3_FILE_OVERWRITE': True,
+        'STORAGE_S3_LOCATION': 'media/',
+        'STORAGE_S3_MAX_MEMORY_SIZE': 5242880,
+        'STORAGE_S3_GZIP': False,
+        'STORAGE_S3_GZIP_CONTENT_TYPES': [],
+        # 静态文件独立 S3 配置（留空则回退到 STORAGE_S3_* 媒体文件配置）
+        'STATIC_S3_BUCKET_NAME': '',
+        'STATIC_S3_ENDPOINT_URL': '',
+        'STATIC_S3_ACCESS_KEY': '',
+        'STATIC_S3_SECRET_KEY': '',
+        'STATIC_S3_REGION_NAME': '',
+        'STATIC_S3_CUSTOM_DOMAIN': '',
+        'STATIC_S3_LOCATION': 'static',
+        'STORAGE_S3_URL_PROTOCOL': 'https',
+        'STORAGE_CONFIG_VERSION': 0,
         # 验证码配置
         'VERIFY_CODE_TTL': 5 * 60,  # Unit: second
         'VERIFY_CODE_LIMIT': 60,

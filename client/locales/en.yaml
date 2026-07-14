@@ -226,6 +226,7 @@ menus:
   sysManagement: System Manage
   systemSettings: System Settings
   basicSettings: Basic Settings
+  storageSettings: Storage Settings
   messageSettings: Message Settings
   smsSettings: SMS Settings
   securitySettings: Security Settings
@@ -590,6 +591,11 @@ welcome:
 
 settingBasic:
   title: Basic Settings
+
+settingStorage:
+  title: Storage Settings
+  media: Media Files
+  static: Static Files
 
 settingMessage:
   mailTitle: Email Server

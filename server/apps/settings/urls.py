@@ -17,6 +17,7 @@ from apps.settings.views.security import SecurityPasswordRuleViewSet, SecurityLo
     SecurityBindEmailAuthViewSet, SecurityBindPhoneAuthViewSet, SecurityVerifyCodeViewSet, SecurityCaptchaCodeViewSet
 from apps.settings.views.settings import SettingViewSet
 from apps.settings.views.sms import SmsSettingViewSet, SmsConfigViewSet
+from apps.settings.views.storage import StorageSettingViewSet
 
 app_name = "settings"
 
@@ -27,6 +28,7 @@ no_detail_router = NoDetailRouter(False)
 no_detail_router.register('email', EmailServerSettingViewSet, basename='email-server')
 
 no_detail_router.register('basic', BasicSettingViewSet, basename='basic')
+no_detail_router.register('storage', StorageSettingViewSet, basename='storage')
 no_detail_router.register('password', SecurityPasswordRuleViewSet, basename='security-password')
 no_detail_router.register('verify', SecurityVerifyCodeViewSet, basename='verify-code')
 no_detail_router.register('captcha', SecurityCaptchaCodeViewSet, basename='captcha-code')

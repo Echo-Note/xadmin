@@ -5448,5 +5448,80 @@
       "fixed_tag": false,
       "dynamic_level": 0
     }
+  },
+  {
+    "model": "system.menumeta",
+    "pk": "a27512a0-77d8-471a-b8b9-6b3ef942d225",
+    "fields": {
+      "created_time": "2026-07-14T00:00:00.000Z",
+      "updated_time": "2026-07-14T00:00:00.000Z",
+      "description": null,
+      "creator": 1,
+      "modifier": 1,
+      "dept_belong": null,
+      "title": "menus.storageSettings",
+      "icon": "ep:coin",
+      "r_svg_name": "",
+      "is_show_menu": true,
+      "is_show_parent": false,
+      "is_keepalive": false,
+      "frame_url": "",
+      "frame_loading": false,
+      "transition_enter": "",
+      "transition_leave": "",
+      "is_hidden_tag": false,
+      "fixed_tag": false,
+      "dynamic_level": 0
+    }
+  },
+  {
+    "model": "system.menumeta",
+    "pk": "0b639c6a-fa6b-4614-a910-5d70fe35d87e",
+    "fields": {
+      "created_time": "2026-07-14T00:00:00.000Z",
+      "updated_time": "2026-07-14T00:00:00.000Z",
+      "description": null,
+      "creator": 1,
+      "modifier": 1,
+      "dept_belong": null,
+      "title": "menus.retrieveSettingStorage",
+      "icon": "",
+      "r_svg_name": "",
+      "is_show_menu": false,
+      "is_show_parent": false,
+      "is_keepalive": false,
+      "frame_url": "",
+      "frame_loading": false,
+      "transition_enter": "",
+      "transition_leave": "",
+      "is_hidden_tag": false,
+      "fixed_tag": false,
+      "dynamic_level": 0
+    }
+  },
+  {
+    "model": "system.menumeta",
+    "pk": "47ed7a2a-10d2-4741-b55f-1128426e18bd",
+    "fields": {
+      "created_time": "2026-07-14T00:00:00.000Z",
+      "updated_time": "2026-07-14T00:00:00.000Z",
+      "description": null,
+      "creator": 1,
+      "modifier": 1,
+      "dept_belong": null,
+      "title": "menus.partialUpdateSettingStorage",
+      "icon": "",
+      "r_svg_name": "",
+      "is_show_menu": false,
+      "is_show_parent": false,
+      "is_keepalive": false,
+      "frame_url": "",
+      "frame_loading": false,
+      "transition_enter": "",
+      "transition_leave": "",
+      "is_hidden_tag": false,
+      "fixed_tag": false,
+      "dynamic_level": 0
+    }
   }
 ]

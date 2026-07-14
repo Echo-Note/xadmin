@@ -6,6 +6,9 @@ export const settingsApi = new BaseApi("/api/settings/setting");
 // 基本配置
 export const settingsBasicApi = new ViewBaseApi("/api/settings/basic");
 
+// 存储配置
+export const settingsStorageApi = new ViewBaseApi("/api/settings/storage");
+
 // 密码设置
 export const settingsPasswordApi = new ViewBaseApi("/api/settings/password");
 

@@ -226,6 +226,7 @@ menus:
   sysManagement: 系统管理
   systemSettings: 系统设置
   basicSettings: 基本设置
+  storageSettings: 存储设置
   messageSettings: 消息通知
   smsSettings: 短信设置
   securitySettings: 安全设置
@@ -590,6 +591,11 @@ welcome:
 
 settingBasic:
   title: 基本设置
+
+settingStorage:
+  title: 存储设置
+  media: 媒体文件
+  static: 静态文件
 
 settingMessage:
   mailTitle: 邮件服务器
