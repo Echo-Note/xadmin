@@ -5,8 +5,7 @@
 # author : ly_13
 # date : 12/18/2023
 """数据库路由器，控制模型在多数据库环境下的读写与迁移路由。"""
-from typing import type
-
+# 注意：type[Model] 语法在 Python 3.9+ 原生支持，无需从 typing 导入 type
 from django.db.models import Model
 
 
