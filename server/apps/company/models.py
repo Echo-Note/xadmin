@@ -6,7 +6,7 @@ Company 作为独立 app，可被 cloud_platform 等其他应用通过外键引�
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.common.core.models import DbAuditModel, DbUuidModel
+from apps.common.core.models import DbAuditModel, DbUuidModel, upload_directory_path
 from apps.common.fields.encrypted import EncryptedTextField
 from apps.company.choices import CompanyTypeChoices
 
@@ -103,34 +103,28 @@ class Company(DbAuditModel, DbUuidModel):
     )
 
     # ---------- 证照文件 ----------
-    business_license = models.ForeignKey(
-        to='system.UploadFile',
-        on_delete=models.SET_NULL,
+    business_license = models.FileField(
+        verbose_name=_('营业执照'),
+        upload_to=upload_directory_path,
         null=True,
         blank=True,
-        related_name='company_business_license',
-        verbose_name=_('营业执照'),
-        db_comment='营业执照扫描件或照片（关联UploadFile）',
+        db_comment='营业执照扫描件或照片',
         help_text=_('公司营业执照扫描件或照片'),
     )
-    legal_representative_id_front = models.ForeignKey(
-        to='system.UploadFile',
-        on_delete=models.SET_NULL,
+    legal_representative_id_front = models.FileField(
+        verbose_name=_('法人身份证正面'),
+        upload_to=upload_directory_path,
         null=True,
         blank=True,
-        related_name='company_id_front',
-        verbose_name=_('法人身份证正面'),
-        db_comment='法定代表人身份证正面照片（关联UploadFile）',
+        db_comment='法定代表人身份证正面照片',
         help_text=_('法定代表人身份证正面照片'),
     )
-    legal_representative_id_back = models.ForeignKey(
-        to='system.UploadFile',
-        on_delete=models.SET_NULL,
+    legal_representative_id_back = models.FileField(
+        verbose_name=_('法人身份证反面'),
+        upload_to=upload_directory_path,
         null=True,
         blank=True,
-        related_name='company_id_back',
-        verbose_name=_('法人身份证反面'),
-        db_comment='法定代表人身份证反面照片（关联UploadFile）',
+        db_comment='法定代表人身份证反面照片',
         help_text=_('法定代表人身份证反面照片'),
     )
 

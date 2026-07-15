@@ -122,23 +122,14 @@ class CompanySerializer(BaseModelSerializer):
                 'help_text': _('公司是否启用，启用后可在业务中使用'),
             },
             'business_license': {
-                'attrs': ['pk', 'filename', 'filepath', 'access_url'],
-                'required': False,
-                'format': '{filename}',
                 'label': _('营业执照'),
                 'help_text': _('公司营业执照扫描件或照片'),
             },
             'legal_representative_id_front': {
-                'attrs': ['pk', 'filename', 'filepath', 'access_url'],
-                'required': False,
-                'format': '{filename}',
                 'label': _('法人身份证正面'),
                 'help_text': _('法定代表人身份证正面照片'),
             },
             'legal_representative_id_back': {
-                'attrs': ['pk', 'filename', 'filepath', 'access_url'],
-                'required': False,
-                'format': '{filename}',
                 'label': _('法人身份证反面'),
                 'help_text': _('法定代表人身份证反面照片'),
             },

@@ -1,28 +1,28 @@
 #!/usr/bin/env python
-# -*- coding:utf-8 -*-
 # project : server
 # filename : modelset
 # author : ly_13
 # date : 6/2/2023
 """视图集模块，提供缓存、上传、排序、批量操作及增删改查等通用视图混入。"""
+
 import importlib
 import itertools
 import json
 import math
-import os
 import uuid
+from collections.abc import Callable
 from hashlib import md5
-from typing import Any, Callable, Optional
+from typing import Any
 
 from django.conf import settings
 from django.db import models, transaction
-from django.forms.widgets import SelectMultiple, DateTimeInput
+from django.forms.widgets import DateTimeInput, SelectMultiple
 from django.utils.translation import gettext_lazy as _
 from django_filters.utils import get_model_field
 from django_filters.widgets import DateRangeWidget
-from drf_spectacular.plumbing import build_object_type, build_basic_type, build_array_type
+from drf_spectacular.plumbing import build_array_type, build_basic_type, build_object_type
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiRequest, OpenApiParameter
+from drf_spectacular.utils import OpenApiParameter, OpenApiRequest, OpenApiResponse, extend_schema
 from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.fields import CharField
@@ -60,10 +60,12 @@ def get_upload_input_type_suffix(value: Any, default: str) -> str:
     if hasattr(value, 'child_relation'):
         value = value.child_relation
     try:
-        if (value.queryset.model._meta.label == "system.UploadFile"
-                and isinstance(value, BasePrimaryKeyRelatedField)
-                and default in ['object_related_field', 'm2m_related_field']):
-            return "_file"
+        if (
+            value.queryset.model._meta.label == 'system.UploadFile'
+            and isinstance(value, BasePrimaryKeyRelatedField)
+            and default in ['object_related_field', 'm2m_related_field']
+        ):
+            return '_file'
     except Exception:
         pass
     return ''
@@ -86,17 +88,18 @@ def get_format_intput_type(value: Any, default: str = '') -> str:
     if hasattr(value, 'input_type') and value.input_type is not None:
         input_type = value.input_type
     if hasattr(value, 'input_type_prefix') and value.input_type_prefix is not None:
-        input_type_prefix = f"{value.input_type_prefix}_" if value.input_type_prefix else ''
+        input_type_prefix = f'{value.input_type_prefix}_' if value.input_type_prefix else ''
     if hasattr(value, 'input_type_suffix') and value.input_type_suffix is not None:
-        input_type_suffix = f"_{value.input_type_suffix}" if value.input_type_suffix else ''
+        input_type_suffix = f'_{value.input_type_suffix}' if value.input_type_suffix else ''
     input_type_str = input_type_prefix + input_type + input_type_suffix
     if input_type_str:
         return input_type_str
     return default
 
 
-def run_view_by_celery_task(view: Any, request: Request, kwargs: dict, data: list,
-                            batch_length: int = 100) -> Response | None:
+def run_view_by_celery_task(
+    view: Any, request: Request, kwargs: dict, data: list, batch_length: int = 100
+) -> Response | None:
     """通过 Celery 异步执行视图任务，批量提交数据。
 
     Args:
@@ -109,43 +112,47 @@ def run_view_by_celery_task(view: Any, request: Request, kwargs: dict, data: lis
     Returns:
         异步任务提交成功时返回 ``ApiResponse``，需要同步执行时返回 None。
     """
-    task = kwargs.get("task", request.query_params.get('task', 'true').lower() in ['true', '1', 'yes'])  # 默认为任务异步导入
+    task = kwargs.get(
+        'task', request.query_params.get('task', 'true').lower() in ['true', '1', 'yes']
+    )  # 默认为任务异步导入
     if task:
-        view_str = f"{view.__class__.__module__}.{view.__class__.__name__}"
+        view_str = f'{view.__class__.__module__}.{view.__class__.__name__}'
         meta = request.META
         task_id = uuid.uuid4()
         if isinstance(data, dict):
             data = [data]
-        meta["task_count"] = math.ceil(len(data) / batch_length)
-        meta["action"] = view.action
+        meta['task_count'] = math.ceil(len(data) / batch_length)
+        meta['action'] = view.action
         try:
             # 检查Celery是否可用，如果不可用则直接执行任务
             from server.celery import app
+
             inspect = app.control.inspect()
             active_workers = inspect.active()
             if active_workers is None or not active_workers:
                 # 没有活跃的worker，直接执行任务
-                logger.warning("No active Celery workers found, executing task directly")
+                logger.warning('No active Celery workers found, executing task directly')
                 return None  # 返回None表示需要直接执行
             for index, batch in enumerate(itertools.batched(data, batch_length)):
-                meta["task_id"] = f"{task_id}_{index}"
-                meta["task_index"] = index
+                meta['task_id'] = f'{task_id}_{index}'
+                meta['task_index'] = index
                 res = background_task_view_set_job.apply_async(
-                    args=(view_str, meta, json.dumps(batch), view.action_map),
-                    task_id=meta["task_id"])
-                logger.info(f"add {view_str} task success. {res}")
-            return ApiResponse(detail=_("Task add success"))
+                    args=(view_str, meta, json.dumps(batch), view.action_map), task_id=meta['task_id']
+                )
+                logger.info(f'add {view_str} task success. {res}')
+            return ApiResponse(detail=_('Task add success'))
         except Exception as e:
-            logger.error(f"Celery task submission failed: {e}, executing task directly")
+            logger.error(f'Celery task submission failed: {e}, executing task directly')
             return None  # 如果提交任务失败，也返回None表示需要直接执行
     return None  # 如果task参数为false，直接执行
 
 
-class CacheDetailResponseMixin(object):
+class CacheDetailResponseMixin:
     """详情视图缓存混入，提供基于用户和视图的缓存键生成及失效。"""
 
-    def get_cache_key(self, view_instance: Any, view_method: Callable, request: Request,
-                      args: tuple, kwargs: dict) -> str:
+    def get_cache_key(
+        self, view_instance: Any, view_method: Callable, request: Request, args: tuple, kwargs: dict
+    ) -> str:
         """生成详情视图的缓存键。
 
         Args:
@@ -159,7 +166,7 @@ class CacheDetailResponseMixin(object):
             缓存键字符串。
         """
         func_name = f'{view_instance.__class__.__name__}_{view_method.__name__}'
-        return f"{func_name}_{request.user.pk}"
+        return f'{func_name}_{request.user.pk}'
 
     @classmethod
     def invalid_cache(cls, pk: Any, methods: list | None = None) -> None:
@@ -175,11 +182,12 @@ class CacheDetailResponseMixin(object):
             cache_response.invalid_cache(f'{cls.__name__}_{method}_{pk}')
 
 
-class CacheListResponseMixin(object):
+class CacheListResponseMixin:
     """列表视图缓存混入，提供基于用户和查询参数的缓存键生成及失效。"""
 
-    def get_cache_key(self, view_instance: Any, view_method: Callable, request: Request,
-                      args: tuple, kwargs: dict) -> str:
+    def get_cache_key(
+        self, view_instance: Any, view_method: Callable, request: Request, args: tuple, kwargs: dict
+    ) -> str:
         """生成列表视图的缓存键，包含查询参数的哈希值。
 
         Args:
@@ -193,7 +201,7 @@ class CacheListResponseMixin(object):
             缓存键字符串。
         """
         func_name = f'{view_instance.__class__.__name__}_{view_method.__name__}'
-        return f"{func_name}_{request.user.pk}_{md5(json.dumps(request.query_params, sort_keys=True).encode('utf-8')).hexdigest()}"
+        return f'{func_name}_{request.user.pk}_{md5(json.dumps(request.query_params, sort_keys=True).encode("utf-8")).hexdigest()}'
 
     @classmethod
     def invalid_cache(cls, pk: Any, methods: list | None = None) -> None:
@@ -209,7 +217,7 @@ class CacheListResponseMixin(object):
             cache_response.invalid_cache(f'{cls.__name__}_{method}_{pk}')
 
 
-class UploadFileAction(object):
+class UploadFileAction:
     """文件上传视图混入，提供头像/图片上传接口。"""
 
     FILE_UPLOAD_TYPE = ['png', 'jpeg', 'jpg', 'gif']
@@ -221,10 +229,8 @@ class UploadFileAction(object):
         return SysConfig.PICTURE_UPLOAD_SIZE
 
     @extend_schema(
-        request=OpenApiRequest(
-            build_object_type(properties={'file': build_basic_type(OpenApiTypes.BINARY)})
-        ),
-        responses=get_default_response_schema()
+        request=OpenApiRequest(build_object_type(properties={'file': build_basic_type(OpenApiTypes.BINARY)})),
+        responses=get_default_response_schema(),
     )
     @action(methods=['post'], detail=True, parser_classes=(MultiPartParser,))
     def upload(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -234,262 +240,22 @@ class UploadFileAction(object):
         instance = self.get_object()
         file_obj = files[0]
         try:
-            file_type = file_obj.name.split(".")[-1]
+            file_type = file_obj.name.split('.')[-1]
             if file_type not in self.FILE_UPLOAD_TYPE:
                 raise
             if file_obj.size > self.FILE_UPLOAD_SIZE:
-                return ApiResponse(code=1003, detail=_("Image size cannot exceed {}").format(self.FILE_UPLOAD_SIZE))
-        except Exception as e:
-            return ApiResponse(code=1002,
-                               detail=_("Wrong image type, the type should be {}").format(
-                                   ','.join(self.FILE_UPLOAD_TYPE)))
+                return ApiResponse(code=1003, detail=_('Image size cannot exceed {}').format(self.FILE_UPLOAD_SIZE))
+        except Exception:
+            return ApiResponse(
+                code=1002, detail=_('Wrong image type, the type should be {}').format(','.join(self.FILE_UPLOAD_TYPE))
+            )
         setattr(instance, self.FILE_UPLOAD_FIELD, file_obj)
         instance.modifier = request.user
         instance.save(update_fields=[self.FILE_UPLOAD_FIELD, 'modifier'])
         return ApiResponse()
 
 
-class FileUploadMixin(object):
-    """文件上传视图混入类，为指定的 FileField/ImageField 字段生成独立上传接口。
-
-    通过 ``FILE_UPLOAD_FIELDS`` 手动指定需要上传接口的文件字段名列表，
-    每个字段自动生成 ``{field}_upload`` action 方法。
-
-    功能特点：
-    1. **手动指定字段**：通过 ``FILE_UPLOAD_FIELDS`` 列出文件字段名
-    2. **内容寻址去重（幂等性）**：按文件 MD5 哈希生成存储路径，
-       相同文件自动共享物理文件
-    3. **可选关联实例**：设置 ``FILE_UPLOAD_REQUIRE_INSTANCE = True``，
-       通过 ``?id=`` 参数绑定到已有实例
-
-    配置属性：
-    - ``FILE_UPLOAD_FIELDS``：需要生成上传接口的文件字段名列表（必填）
-    - ``FILE_UPLOAD_REQUIRE_INSTANCE``：是否关联实例，默认 False
-    - ``FILE_UPLOAD_ALLOW_MULTIPLE``：是否多文件上传，默认 False
-    - ``FILE_UPLOAD_TYPE``：允许的文件扩展名列表，None 不限制
-    - ``FILE_UPLOAD_MAX_SIZE``：文件大小限制（字节），默认 ``settings.FILE_UPLOAD_SIZE``
-
-    使用示例::
-
-        from apps.common.core.modelset import FileUploadMixin, BaseModelSet
-
-        class BookViewSet(FileUploadMixin, BaseModelSet):
-            queryset = Book.objects.all()
-            FILE_UPLOAD_FIELDS = ['file', 'img']
-            FILE_UPLOAD_TYPE = ['png', 'jpg', 'pdf']
-
-            # 自动生成：
-            #   POST /api/book/file-upload/  → 上传 file 字段
-            #   POST /api/book/img-upload/   → 上传 img 字段
-    """
-
-    FILE_UPLOAD_FIELDS: list = []
-    FILE_UPLOAD_REQUIRE_INSTANCE: bool = False
-    FILE_UPLOAD_ALLOW_MULTIPLE: bool = False
-    FILE_UPLOAD_TYPE: Optional[list] = None
-    FILE_UPLOAD_MAX_SIZE = settings.FILE_UPLOAD_SIZE
-
-    get_object: Callable
-    get_queryset: Callable
-
-    # ---------- 动态 action 生成 ----------
-
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        """子类初始化时，为 ``FILE_UPLOAD_FIELDS`` 中的每个字段创建上传 action。"""
-        super().__init_subclass__(**kwargs)
-        for field_name in cls.FILE_UPLOAD_FIELDS:
-            setattr(cls, f'{field_name}_upload', cls._build_upload_action(field_name))
-
-    @staticmethod
-    def _build_upload_action(field_name: str) -> Callable:
-        """为指定字段构建上传 action（detail=False）。
-
-        Args:
-            field_name: 模型 FileField/ImageField 字段名。
-
-        Returns:
-            装饰好的上传方法。
-        """
-        @action(
-            methods=['post'],
-            detail=False,
-            parser_classes=(MultiPartParser,),
-            url_path=f'{field_name}-upload',
-            url_name=f'{field_name}-upload',
-        )
-        def upload_action(self, request: Request, *args: Any, **kwargs: Any) -> Any:
-            return self._handle_upload(request, field_name)
-
-        upload_action.__name__ = f'{field_name}_upload'
-        upload_action.__qualname__ = f'FileUploadMixin.{field_name}_upload'
-        return upload_action
-
-    # ---------- 上传逻辑 ----------
-
-    def _handle_upload(self, request: Request, field_name: str) -> Any:
-        """处理文件上传：校验 → 去重 → 存储 → 返回文件信息。
-
-        可选：若 ``FILE_UPLOAD_REQUIRE_INSTANCE`` 为 True，通过 id 参数
-        获取实例并更新对应字段。
-
-        Args:
-            request: DRF 请求对象。
-            field_name: 目标文件字段名。
-
-        Returns:
-            ApiResponse 响应对象。
-        """
-        # 1. 获取上传文件
-        uploaded_files = self._get_uploaded_files(request, field_name)
-        if not uploaded_files:
-            return ApiResponse(code=1001, detail=_("请选择要上传的文件"))
-
-        if not self.FILE_UPLOAD_ALLOW_MULTIPLE and len(uploaded_files) > 1:
-            return ApiResponse(code=1001, detail=_("不支持多文件上传"))
-
-        # 2. 解析目标字段
-        error = self._resolve_field(field_name)
-        if error:
-            return error
-        target_field = self._target_field
-
-        # 3. 获取关联实例（可选）
-        instance = self._get_instance(request) if self.FILE_UPLOAD_REQUIRE_INSTANCE else None
-
-        # 4. 逐个处理文件
-        storage = target_field.storage
-        upload_results: list = []
-        failed_count = 0
-
-        for uploaded_file in uploaded_files:
-            try:
-                if error := self._validate_file(uploaded_file):
-                    failed_count += 1
-                    upload_results.append({
-                        'file_name': uploaded_file.name, 'file_size': uploaded_file.size,
-                        'success': False, 'error': error,
-                    })
-                    continue
-
-                # 内容寻址去重
-                content_hash = self._compute_file_hash(uploaded_file)
-                ext = os.path.splitext(uploaded_file.name)[-1] or ''
-                hashed_name = f"{content_hash}{ext}"
-
-                if instance:
-                    storage_path = target_field.generate_filename(instance, hashed_name)
-                else:
-                    labels = self.get_queryset().model._meta.label_lower.split('.')
-                    storage_path = os.path.join(labels[0], labels[1], field_name, hashed_name)
-
-                if not storage.exists(storage_path):
-                    storage.save(storage_path, uploaded_file)
-                else:
-                    uploaded_file.close()
-
-                upload_results.append({
-                    'field': field_name, 'file_name': uploaded_file.name,
-                    'file_size': uploaded_file.size, 'hash': content_hash,
-                    'path': storage_path, 'success': True,
-                })
-
-            except Exception as e:
-                failed_count += 1
-                upload_results.append({
-                    'file_name': uploaded_file.name, 'file_size': uploaded_file.size,
-                    'success': False, 'error': str(e),
-                })
-                logger.error(f"文件上传失败: {e}")
-
-        # 5. 关联实例时更新字段
-        if instance and len(upload_results) == 1 and upload_results[0]['success']:
-            saved_path = upload_results[0]['path']
-            try:
-                setattr(instance, target_field.attname, saved_path)
-                update_fields = [target_field.name]
-                if hasattr(instance, 'modifier'):
-                    instance.modifier = request.user
-                    update_fields.append('modifier')
-                instance.save(update_fields=update_fields)
-            except Exception as e:
-                logger.error(f"更新实例文件字段失败: {e}")
-
-        # 6. 构建响应
-        if len(uploaded_files) == 1:
-            result = upload_results[0]
-            if result['success']:
-                return ApiResponse(data=result)
-            return ApiResponse(code=1001, detail=f"上传失败：{result.get('error')}")
-        else:
-            success_count = len([r for r in upload_results if r['success']])
-            detail = _("所有文件上传成功（共{}个）").format(len(uploaded_files)) if failed_count == 0 else \
-                _("部分文件上传成功（成功{}个，失败{}个）").format(success_count, failed_count)
-            return ApiResponse(data={
-                'results': upload_results, 'total_count': len(uploaded_files),
-                'success_count': success_count, 'failed_count': failed_count,
-            }, detail=detail)
-
-    # ---------- 辅助方法 ----------
-
-    def _get_uploaded_files(self, request: Request, field_name: str) -> list:
-        """从请求中提取上传文件列表。"""
-        files = []
-        single = request.FILES.get(field_name)
-        if single:
-            files.append(single)
-        if self.FILE_UPLOAD_ALLOW_MULTIPLE:
-            multiple = request.FILES.getlist(field_name)
-            if len(multiple) > 1:
-                files = multiple
-            extra = request.FILES.getlist('files')
-            if extra:
-                files.extend(extra)
-        return files
-
-    def _resolve_field(self, field_name: str) -> Optional[Any]:
-        """解析并缓存目标字段对象。"""
-        model = self.get_queryset().model
-        try:
-            field = model._meta.get_field(field_name)
-            if not isinstance(field, (models.FileField, models.ImageField)):
-                return ApiResponse(code=1001, detail=_("字段 '{}' 不是文件类型").format(field_name))
-        except Exception:
-            return ApiResponse(code=1001, detail=_("字段 '{}' 不存在").format(field_name))
-        self._target_field = field
-        return None
-
-    def _get_instance(self, request: Request) -> Optional[Any]:
-        """获取关联实例（通过 id 参数）。"""
-        instance_id = request.data.get('id') or request.query_params.get('id')
-        if not instance_id:
-            return None
-        try:
-            return self.get_queryset().get(pk=instance_id)
-        except self.get_queryset().model.DoesNotExist:
-            return None
-
-    def _validate_file(self, uploaded_file: Any) -> Optional[str]:
-        """验证文件类型和大小，返回错误信息或 None。"""
-        if self.FILE_UPLOAD_TYPE is not None:
-            file_ext = uploaded_file.name.split('.')[-1].lower()
-            if file_ext not in self.FILE_UPLOAD_TYPE:
-                return _("不支持的文件类型，允许：{}").format(','.join(self.FILE_UPLOAD_TYPE))
-        if self.FILE_UPLOAD_MAX_SIZE and uploaded_file.size > self.FILE_UPLOAD_MAX_SIZE:
-            return _("文件大小不能超过 {}").format(self.FILE_UPLOAD_MAX_SIZE)
-        return None
-
-    @staticmethod
-    def _compute_file_hash(file_obj: Any) -> str:
-        """计算文件 MD5 哈希。"""
-        md5_hash = md5()
-        file_obj.seek(0)
-        for chunk in file_obj.chunks():
-            md5_hash.update(chunk)
-        file_obj.seek(0)
-        return md5_hash.hexdigest()
-
-
-class RankAction(object):
+class RankAction:
     """排序视图混入，提供批量排序接口。"""
 
     filter_queryset: Callable
@@ -497,7 +263,7 @@ class RankAction(object):
 
     @extend_schema(
         request=OpenApiRequest(build_array_type(build_basic_type(OpenApiTypes.STR))),
-        responses=get_default_response_schema()
+        responses=get_default_response_schema(),
     )
     @action(methods=['post'], detail=False, url_path='rank')
     def rank(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -506,10 +272,10 @@ class RankAction(object):
         for pk in request.data:
             self.filter_queryset(self.get_queryset()).filter(pk=pk).update(rank=rank)
             rank += 1
-        return ApiResponse(detail=_("Sorting saved successfully"))
+        return ApiResponse(detail=_('Sorting saved successfully'))
 
 
-class ChoicesAction(object):
+class ChoicesAction:
     """字段选项视图混入，提供获取模型字段 choices 的接口。"""
 
     choices_models: list
@@ -547,7 +313,7 @@ class ChoicesAction(object):
         return ApiResponse(choices_dict=result)
 
 
-class AppChoicesAction(object):
+class AppChoicesAction:
     """应用级枚举选项视图混入，提供获取 app 下 choices.py 模块中所有枚举的接口。
 
     自动发现 ViewSet 所属 app 的 ``choices.py`` 模块，
@@ -602,7 +368,7 @@ class AppChoicesAction(object):
                     }
                 )
             }
-        )
+        ),
     )
     @action(methods=['get'], detail=False, url_path='app-choices')
     def app_choices(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -617,21 +383,23 @@ class AppChoicesAction(object):
             module = importlib.import_module(f'apps.{app_label}.choices')
             for name in dir(module):
                 obj = getattr(module, name)
-                if (isinstance(obj, type)
-                        and issubclass(obj, models.Choices)
-                        and obj not in (models.Choices, models.TextChoices, models.IntegerChoices)
-                        and obj.__module__ == module.__name__):
+                if (
+                    isinstance(obj, type)
+                    and issubclass(obj, models.Choices)
+                    and obj not in (models.Choices, models.TextChoices, models.IntegerChoices)
+                    and obj.__module__ == module.__name__
+                ):
                     if target_name and name != target_name:
                         continue
                     result[name] = get_choices_dict(obj.choices)
         except ModuleNotFoundError:
             pass  # app 没有 choices.py 模块
         except Exception as e:
-            logger.error(f"get app-choices failed: {e}")
+            logger.error(f'get app-choices failed: {e}')
         return ApiResponse(data=result)
 
 
-class SearchFieldsAction(object):
+class SearchFieldsAction:
     """搜索字段视图混入，提供获取查询字段定义的接口。"""
 
     filterset_class: Callable
@@ -655,7 +423,7 @@ class SearchFieldsAction(object):
                                         'label': build_basic_type(OpenApiTypes.STR),
                                     }
                                 )
-                            )
+                            ),
                         }
                     )
                 )
@@ -670,7 +438,8 @@ class SearchFieldsAction(object):
             filterset_class = self.filterset_class.get_filters()
             filter_fields = self.filterset_class.get_fields().keys()
             for field_name, value in filterset_class.items():
-                if field_name not in filter_fields: continue
+                if field_name not in filter_fields:
+                    continue
                 widget = value.field.widget
                 if isinstance(widget, SelectMultiple):
                     widget.input_type = 'select-multiple'
@@ -683,18 +452,23 @@ class SearchFieldsAction(object):
                 #     widget.choices = []
                 widget.input_type = get_format_intput_type(value, widget.input_type)
                 choices = list(getattr(widget, 'choices', []))
-                if choices and len(choices) > 0 and choices[0][0] == "":
+                if choices and len(choices) > 0 and choices[0][0] == '':
                     choices.pop(0)
                 field = get_model_field(self.filterset_class._meta.model, value.field_name)
-                results.append({
-                    'key': field_name,
-                    'label': value.label if value.label else (
-                        getattr(field, 'verbose_name', field.name) if field else field_name),
-                    'help_text': value.field.help_text if value.field.help_text else getattr(field, 'help_text', None),
-                    'input_type': widget.input_type,
-                    'choices': get_choices_dict(choices),
-                    'default': [] if 'multiple' in widget.input_type else ""
-                })
+                results.append(
+                    {
+                        'key': field_name,
+                        'label': value.label
+                        if value.label
+                        else (getattr(field, 'verbose_name', field.name) if field else field_name),
+                        'help_text': value.field.help_text
+                        if value.field.help_text
+                        else getattr(field, 'help_text', None),
+                        'input_type': widget.input_type,
+                        'choices': get_choices_dict(choices),
+                        'default': [] if 'multiple' in widget.input_type else '',
+                    }
+                )
             order_choices = []
             ordering_fields = list(getattr(self, 'ordering_fields', []))
             for choice in ordering_fields:
@@ -706,25 +480,27 @@ class SearchFieldsAction(object):
                 field = get_model_field(self.filterset_class._meta.model, choice)
                 if field:
                     label = getattr(field, 'verbose_name', choice)
-                des = (f"-{choice}", f"{label} descending")
-                ase = (choice, f"{label} ascending")
+                des = (f'-{choice}', f'{label} descending')
+                ase = (choice, f'{label} ascending')
                 if is_des:
                     des, ase = ase, des
                 order_choices.extend([des, ase])
             if order_choices:
-                results.append({
-                    'label': 'ordering',
-                    'key': "ordering",
-                    'input_type': 'select-ordering',
-                    'choices': get_choices_dict(order_choices),
-                    'default': order_choices[0][0]
-                })
+                results.append(
+                    {
+                        'label': 'ordering',
+                        'key': 'ordering',
+                        'input_type': 'select-ordering',
+                        'choices': get_choices_dict(order_choices),
+                        'default': order_choices[0][0],
+                    }
+                )
         except Exception as e:
-            logger.error(f"get search-field failed {e}")
+            logger.error(f'get search-field failed {e}')
         return ApiResponse(data=results)
 
 
-class SearchColumnsAction(object):
+class SearchColumnsAction:
     """展示字段视图混入，提供获取表格列定义的接口。"""
 
     filterset_class: Callable
@@ -754,7 +530,7 @@ class SearchColumnsAction(object):
                                         'label': build_basic_type(OpenApiTypes.STR),
                                     }
                                 )
-                            )
+                            ),
                         }
                     )
                 )
@@ -790,12 +566,12 @@ class SearchColumnsAction(object):
             """
             if hasattr(value, 'child_relation') and isinstance(value.child_relation, BasePrimaryKeyRelatedField):
                 info['multiple'] = True
-                setattr(value.child_relation, 'is_column', True)
+                value.child_relation.is_column = True
                 tp = get_format_intput_type(value.child_relation, info['type'])
             else:
                 tp = get_format_intput_type(value, info['type'])
             if tp and tp.endswith('related_field'):
-                setattr(value, 'is_column', True)
+                value.is_column = True
                 info['choices'] = json.loads(json.dumps(value.choices, cls=encoders.JSONEncoder))
                 # info['choices'] = [{'value': k, 'label': v} for k, v in value.choices.items()]
             return tp
@@ -823,7 +599,7 @@ class SearchColumnsAction(object):
             else:
                 field = None
             info['key'] = key
-            if info.get("help_text", None) is None and hasattr(field, 'help_text'):
+            if info.get('help_text', None) is None and hasattr(field, 'help_text'):
                 info['help_text'] = field.help_text
 
             if value.field_name.replace('_', ' ').capitalize() == info['label'] and hasattr(field, 'verbose_name'):
@@ -845,7 +621,7 @@ class SearchColumnsAction(object):
         return ApiResponse(data=results)
 
 
-class BaseViewSet(object):
+class BaseViewSet:
     """基础视图集，提供通用的查询、分页、序列化器选择逻辑。"""
 
     action: Callable
@@ -897,14 +673,14 @@ class BaseViewSet(object):
 
     def get_serializer_class(self) -> Any:
         """根据当前 action 动态选择序列化器类。"""
-        action_serializer_name = f"{self.action}_serializer_class"
+        action_serializer_name = f'{self.action}_serializer_class'
         action_serializer_class = getattr(self, action_serializer_name, None)
         if action_serializer_class:
             return action_serializer_class
         return super().get_serializer_class()
 
 
-class BatchDestroyAction(object):
+class BatchDestroyAction:
     """批量删除视图混入，提供按主键列表批量删除的接口。"""
 
     filter_queryset: Callable
@@ -913,7 +689,7 @@ class BatchDestroyAction(object):
 
     @extend_schema(
         request=OpenApiRequest(build_array_type(build_basic_type(OpenApiTypes.STR))),
-        responses=get_default_response_schema()
+        responses=get_default_response_schema(),
     )
     @action(methods=['post'], detail=False, url_path='batch-destroy')
     def batch_destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -931,8 +707,8 @@ class BatchDestroyAction(object):
                 if deleted:
                     count += 1
             except Exception as e:
-                logger.error(f"failed to destroy instance {instance} with error {e}")
-        return ApiResponse(detail=_("Operation successful. Batch deleted {} data").format(count))
+                logger.error(f'failed to destroy instance {instance} with error {e}')
+        return ApiResponse(detail=_('Operation successful. Batch deleted {} data').format(count))
 
 
 class CreateAction(mixins.CreateModelMixin):
@@ -993,9 +769,7 @@ class OnlyExportDataAction(ListAction):
         parameters=[
             OpenApiParameter(name='type', required=True, enum=['xlsx', 'csv']),
         ],
-        responses={
-            200: OpenApiResponse(build_basic_type(OpenApiTypes.BINARY))
-        }
+        responses={200: OpenApiResponse(build_basic_type(OpenApiTypes.BINARY))},
     )
     @action(methods=['get'], detail=False, url_path='export-data')
     def export_data(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -1022,16 +796,16 @@ class ImportExportDataAction(CreateAction, UpdateAction, OnlyExportDataAction):
         request=OpenApiRequest(
             build_basic_type(OpenApiTypes.BINARY),
         ),
-        responses={
-            200: OpenApiResponse(build_basic_type(OpenApiTypes.BINARY))
-        }
+        responses={200: OpenApiResponse(build_basic_type(OpenApiTypes.BINARY))},
     )
     @action(methods=['post'], detail=False, url_path='import-data')
     @transaction.atomic
     def import_data(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         """导入{cls}数据"""
 
-        task = kwargs.get("task", request.query_params.get('task', 'true').lower() in ['true', '1', 'yes'])  # 默认为任务异步导入
+        task = kwargs.get(
+            'task', request.query_params.get('task', 'true').lower() in ['true', '1', 'yes']
+        )  # 默认为任务异步导入
         data = request.data
 
         # 处理数据格式，确保是列表格式
@@ -1077,8 +851,8 @@ class ImportExportDataAction(CreateAction, UpdateAction, OnlyExportDataAction):
                         continue
                     self.perform_update(serializer)
                     count += 1
-            return ApiResponse(detail=_("Operation successful. Import {} data").format(count))
-        return ApiResponse(detail=_("Operation failed. Abnormal data"), code=1001)
+            return ApiResponse(detail=_('Operation successful. Import {} data').format(count))
+        return ApiResponse(detail=_('Operation failed. Abnormal data'), code=1001)
 
 
 class DetailUpdateModelSet(BaseViewSet, UpdateAction, DetailAction, GenericViewSet):
@@ -1087,23 +861,45 @@ class DetailUpdateModelSet(BaseViewSet, UpdateAction, DetailAction, GenericViewS
     pass
 
 
-class OnlyListModelSet(BaseViewSet, ListAction, SearchFieldsAction, SearchColumnsAction, AppChoicesAction, GenericViewSet):
+class OnlyListModelSet(
+    BaseViewSet, ListAction, SearchFieldsAction, SearchColumnsAction, AppChoicesAction, GenericViewSet
+):
     """仅支持列表查询及搜索字段查询的视图集。"""
 
     pass
 
 
 # 全部 ViewSet 包含增删改查
-class BaseModelSet(BaseViewSet, CreateAction, DestroyAction, UpdateAction, ListAction, DetailAction, SearchFieldsAction,
-                   SearchColumnsAction, AppChoicesAction, BatchDestroyAction, GenericViewSet):
+class BaseModelSet(
+    BaseViewSet,
+    CreateAction,
+    DestroyAction,
+    UpdateAction,
+    ListAction,
+    DetailAction,
+    SearchFieldsAction,
+    SearchColumnsAction,
+    AppChoicesAction,
+    BatchDestroyAction,
+    GenericViewSet,
+):
     """全部功能视图集，包含增删改查及搜索字段等。"""
 
     pass
 
 
 # 只允许读和删除，不允许创建和修改
-class ListDeleteModelSet(BaseViewSet, DestroyAction, ListAction, DetailAction, SearchFieldsAction, SearchColumnsAction,
-                         AppChoicesAction, BatchDestroyAction, GenericViewSet):
+class ListDeleteModelSet(
+    BaseViewSet,
+    DestroyAction,
+    ListAction,
+    DetailAction,
+    SearchFieldsAction,
+    SearchColumnsAction,
+    AppChoicesAction,
+    BatchDestroyAction,
+    GenericViewSet,
+):
     """仅支持读和删除的视图集。"""
 
     pass
