@@ -18,18 +18,18 @@ class Company(DbAuditModel):
 
     name = models.CharField(
         max_length=128, verbose_name=_("公司名称"), unique=True,
-        db_comment=_("公司全称，唯一标识一个公司主体"),
+        db_comment="公司全称，唯一标识一个公司主体",
         help_text=_("公司全称，用于唯一标识一个公司主体"),
     )
     short_name = models.CharField(
         max_length=64, verbose_name=_("简称"),
         null=True, blank=True,
-        db_comment=_("公司简称，方便列表展示"),
+        db_comment="公司简称，方便列表展示",
         help_text=_("公司简称，方便列表展示"),
     )
     is_active = models.BooleanField(
         default=True, verbose_name=_("启用状态"),
-        db_comment=_("公司是否启用"),
+        db_comment="公司是否启用",
         help_text=_("公司是否启用，启用后可在业务中使用"),
     )
 
