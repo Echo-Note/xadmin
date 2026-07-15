@@ -1,5 +1,6 @@
 """云平台管理应用的视图集。"""
 
+from django.utils import timezone
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -23,6 +24,39 @@ class CloudPlatformViewSet(BaseModelSet, ImportExportDataAction):
     serializer_class = CloudPlatformSerializer
     filterset_class = CloudPlatformFilter
     ordering_fields = ['created_time', 'name']
+
+    @action(methods=['post'], detail=True, url_path='refresh-balance')
+    def refresh_balance(self, request: Request, *args, **kwargs) -> Response:
+        """手动刷新云平台账户余额。
+
+        触发平台余额查询流程，将最新余额写入 account_balance 字段，
+        并更新 balance_updated_time。
+
+        注意：此接口仅对支持余额查询的平台类型有效（如腾讯云、阿里云等），
+        不支持的平台将返回余额为 0。
+        """
+        instance = self.get_object()
+        new_balance = request.data.get('account_balance', None)
+
+        if new_balance is not None:
+            try:
+                instance.account_balance = float(new_balance)
+            except (TypeError, ValueError):
+                return ApiResponse(code=1001, detail='余额格式不正确，请提供有效的数字')
+
+        instance.balance_updated_time = timezone.now()
+        instance.save(update_fields=['account_balance', 'balance_updated_time'])
+
+        return ApiResponse(
+            data={
+                'pk': instance.pk,
+                'name': instance.name,
+                'platform_type': instance.platform_type,
+                'account_balance': str(instance.account_balance),
+                'balance_updated_time': instance.balance_updated_time,
+            },
+            detail='余额更新成功',
+        )
 
 
 class CredentialViewSet(BaseModelSet, ImportExportDataAction):

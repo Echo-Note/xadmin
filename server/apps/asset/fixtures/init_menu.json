@@ -1,0 +1,370 @@
+[
+  {
+    "name": "AssetManagement",
+    "menu_type": 0,
+    "rank": 92,
+    "path": "/asset",
+    "component": "",
+    "is_active": true,
+    "meta": {
+      "title": "资产管理",
+      "icon": "ri:server-line",
+      "is_show_menu": true,
+      "is_keepalive": true
+    },
+    "children": [
+      {
+        "name": "CloudServer",
+        "menu_type": 1,
+        "rank": 1,
+        "path": "/asset/cloud-server/index",
+        "component": "asset/cloud-server/index",
+        "is_active": true,
+        "meta": {
+          "title": "云服务器",
+          "icon": "ri:cloudy-fill",
+          "is_show_menu": true,
+          "is_keepalive": true
+        },
+        "permissions": [
+          {
+            "name": "list:CloudServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/cloud-server$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查询云服务器列表" }
+          },
+          {
+            "name": "create:CloudServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/cloud-server$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "新增云服务器" }
+          },
+          {
+            "name": "retrieve:CloudServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/cloud-server/[a-zA-Z0-9-]+$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查看云服务器详情" }
+          },
+          {
+            "name": "update:CloudServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/cloud-server/[a-zA-Z0-9-]+$",
+            "method": "PUT",
+            "is_active": true,
+            "meta": { "title": "更新云服务器" }
+          },
+          {
+            "name": "destroy:CloudServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/cloud-server/[a-zA-Z0-9-]+$",
+            "method": "DELETE",
+            "is_active": true,
+            "meta": { "title": "删除云服务器" }
+          },
+          {
+            "name": "export:CloudServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/cloud-server/export-data$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "导出云服务器数据" }
+          },
+          {
+            "name": "import:CloudServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/cloud-server/import-data$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "导入云服务器数据" }
+          },
+          {
+            "name": "batchDestroy:CloudServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/cloud-server/batch-destroy$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "批量删除云服务器" }
+          }
+        ]
+      },
+      {
+        "name": "Domain",
+        "menu_type": 1,
+        "rank": 2,
+        "path": "/asset/domain/index",
+        "component": "asset/domain/index",
+        "is_active": true,
+        "meta": {
+          "title": "域名",
+          "icon": "ri:global-line",
+          "is_show_menu": true,
+          "is_keepalive": true
+        },
+        "permissions": [
+          {
+            "name": "list:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/domain$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查询域名列表" }
+          },
+          {
+            "name": "create:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/domain$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "新增域名" }
+          },
+          {
+            "name": "retrieve:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/domain/[a-zA-Z0-9-]+$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查看域名详情" }
+          },
+          {
+            "name": "update:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/domain/[a-zA-Z0-9-]+$",
+            "method": "PUT",
+            "is_active": true,
+            "meta": { "title": "更新域名" }
+          },
+          {
+            "name": "destroy:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/domain/[a-zA-Z0-9-]+$",
+            "method": "DELETE",
+            "is_active": true,
+            "meta": { "title": "删除域名" }
+          },
+          {
+            "name": "export:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/domain/export-data$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "导出域名数据" }
+          },
+          {
+            "name": "import:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/domain/import-data$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "导入域名数据" }
+          },
+          {
+            "name": "batchDestroy:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/domain/batch-destroy$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "批量删除域名" }
+          }
+        ]
+      },
+      {
+        "name": "LocalServer",
+        "menu_type": 1,
+        "rank": 3,
+        "path": "/asset/local-server/index",
+        "component": "asset/local-server/index",
+        "is_active": true,
+        "meta": {
+          "title": "本地服务器",
+          "icon": "ri:computer-line",
+          "is_show_menu": true,
+          "is_keepalive": true
+        },
+        "permissions": [
+          {
+            "name": "list:LocalServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-server$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查询本地服务器列表" }
+          },
+          {
+            "name": "create:LocalServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-server$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "新增本地服务器" }
+          },
+          {
+            "name": "retrieve:LocalServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-server/[a-zA-Z0-9-]+$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查看本地服务器详情" }
+          },
+          {
+            "name": "update:LocalServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-server/[a-zA-Z0-9-]+$",
+            "method": "PUT",
+            "is_active": true,
+            "meta": { "title": "更新本地服务器" }
+          },
+          {
+            "name": "destroy:LocalServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-server/[a-zA-Z0-9-]+$",
+            "method": "DELETE",
+            "is_active": true,
+            "meta": { "title": "删除本地服务器" }
+          },
+          {
+            "name": "export:LocalServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-server/export-data$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "导出本地服务器数据" }
+          },
+          {
+            "name": "import:LocalServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-server/import-data$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "导入本地服务器数据" }
+          },
+          {
+            "name": "batchDestroy:LocalServer",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-server/batch-destroy$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "批量删除本地服务器" }
+          }
+        ]
+      },
+      {
+        "name": "LocalVM",
+        "menu_type": 1,
+        "rank": 4,
+        "path": "/asset/local-vm/index",
+        "component": "asset/local-vm/index",
+        "is_active": true,
+        "meta": {
+          "title": "本地虚拟主机",
+          "icon": "ri:stack-line",
+          "is_show_menu": true,
+          "is_keepalive": true
+        },
+        "permissions": [
+          {
+            "name": "list:LocalVM",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-vm$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查询本地虚拟主机列表" }
+          },
+          {
+            "name": "create:LocalVM",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-vm$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "新增本地虚拟主机" }
+          },
+          {
+            "name": "retrieve:LocalVM",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-vm/[a-zA-Z0-9-]+$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查看本地虚拟主机详情" }
+          },
+          {
+            "name": "update:LocalVM",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-vm/[a-zA-Z0-9-]+$",
+            "method": "PUT",
+            "is_active": true,
+            "meta": { "title": "更新本地虚拟主机" }
+          },
+          {
+            "name": "destroy:LocalVM",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-vm/[a-zA-Z0-9-]+$",
+            "method": "DELETE",
+            "is_active": true,
+            "meta": { "title": "删除本地虚拟主机" }
+          },
+          {
+            "name": "export:LocalVM",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-vm/export-data$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "导出本地虚拟主机数据" }
+          },
+          {
+            "name": "import:LocalVM",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-vm/import-data$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "导入本地虚拟主机数据" }
+          },
+          {
+            "name": "batchDestroy:LocalVM",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/local-vm/batch-destroy$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "批量删除本地虚拟主机" }
+          }
+        ]
+      }
+    ]
+  }
+]

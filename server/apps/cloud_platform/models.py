@@ -64,6 +64,24 @@ class CloudPlatform(DbAuditModel, DbUuidModel):
         db_comment='平台启用状态：True启用/False禁用',
     )
 
+    # --- 账户余额字段 ---
+    account_balance = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=0,
+        blank=True,
+        verbose_name=_('账户余额（元）'),
+        help_text=_('云平台账户实时余额，仅支持余额查询的平台有效，单位为元'),
+        db_comment='云平台账户实时余额（元），不支持余额查询的平台为0',
+    )
+    balance_updated_time = models.DateTimeField(
+        verbose_name=_('余额更新时间'),
+        null=True,
+        blank=True,
+        help_text=_('最近一次余额查询的时间，为空表示从未查询'),
+        db_comment='最近一次余额查询时间',
+    )
+
     class Meta:
         """元数据配置。"""
 

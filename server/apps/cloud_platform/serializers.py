@@ -14,6 +14,21 @@ class CloudPlatformSerializer(BaseModelSerializer):
         """序列化器元数据配置。"""
 
         model = models.CloudPlatform
+        tabs = [
+            TabsColumn(
+                '基本信息',
+                [
+                    'name',
+                    'platform_type',
+                    'company',
+                    'endpoint',
+                    'region',
+                    'is_active',
+                    'description',
+                ],
+            ),
+            TabsColumn('账户余额', ['account_balance', 'balance_updated_time']),
+        ]
         fields = [
             'pk',
             'name',
@@ -22,6 +37,8 @@ class CloudPlatformSerializer(BaseModelSerializer):
             'endpoint',
             'region',
             'is_active',
+            'account_balance',
+            'balance_updated_time',
             'description',
             'created_time',
             'updated_time',
@@ -32,6 +49,7 @@ class CloudPlatformSerializer(BaseModelSerializer):
             'company',
             'endpoint',
             'region',
+            'account_balance',
             'is_active',
             'created_time',
         ]
@@ -67,6 +85,15 @@ class CloudPlatformSerializer(BaseModelSerializer):
             'is_active': {
                 'label': _('启用状态'),
                 'help_text': _('平台是否启用，禁用后不可用于新建凭据'),
+            },
+            'account_balance': {
+                'label': '账户余额（元）',
+                'help_text': '云平台账户实时余额，仅支持余额查询的平台有效，单位为元',
+            },
+            'balance_updated_time': {
+                'read_only': True,
+                'label': '余额更新时间',
+                'help_text': '最近一次余额查询的时间，为空表示从未查询',
             },
             'description': {
                 'label': _('Description'),
