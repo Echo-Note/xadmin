@@ -46,16 +46,16 @@ if [ -n "$SERVER_STAGED" ]; then
     # 提取相对于 server/ 的文件路径
     PY_FILES=$(echo "$SERVER_STAGED" | sed 's|^server/||' | tr '\n' ' ')
 
-    # ruff check（lint）
-    if ! uv run ruff check $PY_FILES; then
+    # ruff check（lint）— --force-exclude 使 extend-exclude 对单文件也生效
+    if ! uv run ruff check --force-exclude $PY_FILES; then
       echo "❌ [server] ruff check 失败，请修复后重新提交，严禁跳过。"
       echo "   可运行: cd server && uv run ruff check --fix <file>"
       cd ..
       exit 1
     fi
 
-    # ruff format --check（格式检查，不修改）
-    if ! uv run ruff format --check $PY_FILES; then
+    # ruff format --check（格式检查，不修改）— --force-exclude 使 extend-exclude 对单文件也生效
+    if ! uv run ruff format --check --force-exclude $PY_FILES; then
       echo "❌ [server] ruff format 检查失败，请格式化后重新提交"
       echo "   可运行: cd server && uv run ruff format <file>"
       cd ..

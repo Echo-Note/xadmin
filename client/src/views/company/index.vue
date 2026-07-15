@@ -22,9 +22,9 @@ const auth = reactive({
 
 const addOrEditOptions = shallowRef<RePlusPageProps["addOrEditOptions"]>({
   props: {
-    minWidth: "500px",
+    minWidth: "700px",
     dialogDrawerOptions: {
-      width: "500px"
+      width: "800px"
     }
   }
 });

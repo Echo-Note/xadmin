@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-# -*- coding:utf-8 -*-
 # project : xadmin-server
 # filename : serializers
 # author : ly_13
 # date : 12/21/2023
 """基础序列化器模块，提供字段权限控制、字段展示控制及文件关联处理。"""
+
 from inspect import isfunction
-from typing import Any, List
+from typing import Any
 
 from django.conf import settings
 from django.db.models import QuerySet
@@ -66,16 +66,19 @@ class BaseModelSerializer(ModelSerializer):
         if fields is None:
             fields = _fields
 
-        if self.ignore_field_permission or ignore_field_permission or (
-                self.request and hasattr(self.request, "ignore_field_permission")):
+        if (
+            self.ignore_field_permission
+            or ignore_field_permission
+            or (self.request and hasattr(self.request, 'ignore_field_permission'))
+        ):
             return set(fields) & _fields
 
         allow_fields = []
         # 获取权限字段，如果没有配置，则为定义的所有字段
         if self.request and settings.PERMISSION_FIELD_ENABLED and not self.ignore_field_permission:
-            if hasattr(self.request, "user") and self.request.user and self.request.user.is_superuser:
+            if hasattr(self.request, 'user') and self.request.user and self.request.user.is_superuser:
                 allow_fields = _fields
-            elif hasattr(self.request, "fields"):
+            elif hasattr(self.request, 'fields'):
                 if self.request.fields and isinstance(self.request.fields, dict):
                     allow_fields = self.request.fields.get(self.Meta.model._meta.label_lower, [])
         else:
@@ -83,8 +86,14 @@ class BaseModelSerializer(ModelSerializer):
 
         return set(fields) & _fields & set(allow_fields)
 
-    def __init__(self, instance: Any = None, data: Any = empty, fields: list | set | None = None,
-                 ignore_field_permission: bool = False, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        instance: Any = None,
+        data: Any = empty,
+        fields: list | set | None = None,
+        ignore_field_permission: bool = False,
+        **kwargs: Any,
+    ) -> None:
         """
         :param instance:
         :param data:
@@ -105,7 +114,7 @@ class BaseModelSerializer(ModelSerializer):
             self.fields.pop(field_name)
 
     @staticmethod
-    def get_fields_from_tabs(tabs: List) -> List[str]:
+    def get_fields_from_tabs(tabs: list) -> list[str]:
         """从标签页配置中提取去重后的字段列表。
 
         Args:
@@ -139,7 +148,7 @@ class BaseModelSerializer(ModelSerializer):
             # 将model中的默认值同步到序列化中
             if isfunction(default):
                 default = default()
-            field_kwargs.setdefault("default", default)
+            field_kwargs.setdefault('default', default)
         return field_class, field_kwargs
 
     def create(self, validated_data: dict) -> Any:
@@ -153,18 +162,19 @@ class BaseModelSerializer(ModelSerializer):
         """
         n_file_objs = []
         for field in self.Meta.model._meta.get_fields():
-            if field.is_relation and field.related_model._meta.label == "system.UploadFile":
+            if field.is_relation and field.related_model._meta.label == 'system.UploadFile':
                 if field.name in validated_data:
                     file_data = validated_data[field.name]
                     if isinstance(file_data, (list, QuerySet)):
-                        n_file_objs.extend(validated_data.get(field.name))
+                        n_file_objs.extend([f for f in validated_data.get(field.name) if f is not None])
                     else:
-                        n_file_objs.append(validated_data.get(field.name))
+                        if validated_data.get(field.name) is not None:
+                            n_file_objs.append(validated_data.get(field.name))
 
         result = super().create(validated_data)
 
         for n_file in n_file_objs:
-            setattr(n_file, 'is_tmp', False)
+            n_file.is_tmp = False
             n_file.save(update_fields=['is_tmp'])
         return result
 
@@ -181,18 +191,25 @@ class BaseModelSerializer(ModelSerializer):
         n_file_objs = []
         d_file_objs = []
         for field in self.Meta.model._meta.get_fields():
-            if field.is_relation and field.related_model._meta.label == "system.UploadFile":
+            if field.is_relation and field.related_model._meta.label == 'system.UploadFile':
                 if field.name in validated_data:
                     file_data = validated_data[field.name]
                     if isinstance(file_data, (list, QuerySet)):
                         d_file_objs.extend(
-                            set(getattr(instance, field.name).all()) - set(validated_data.get(field.name)))
+                            set(getattr(instance, field.name).all()) - set(validated_data.get(field.name))
+                        )
                         n_file_objs.extend(
-                            set(validated_data.get(field.name)) - set(getattr(instance, field.name).all()))
+                            set(validated_data.get(field.name)) - set(getattr(instance, field.name).all())
+                        )
                     else:
                         o_file_obj = getattr(instance, field.name)
                         n_file_obj = validated_data.get(field.name)
-                        if o_file_obj.pk != n_file_obj.pk:
+                        # 处理 UploadFile 外键为 None 的情况
+                        if o_file_obj is None and n_file_obj is not None:
+                            n_file_objs.append(n_file_obj)
+                        elif o_file_obj is not None and n_file_obj is None:
+                            d_file_objs.append(o_file_obj)
+                        elif o_file_obj is not None and n_file_obj is not None and o_file_obj.pk != n_file_obj.pk:
                             d_file_objs.append(o_file_obj)
                             n_file_objs.append(n_file_obj)
 
@@ -201,15 +218,15 @@ class BaseModelSerializer(ModelSerializer):
         for d_file in d_file_objs:
             d_file.delete()
         for n_file in n_file_objs:
-            setattr(n_file, 'is_tmp', False)
+            n_file.is_tmp = False
             n_file.save(update_fields=['is_tmp'])
         return result
 
 
-class TabsColumn(object):
+class TabsColumn:
     """标签页列配置，用于定义前端表格中的标签页分组。"""
 
-    def __init__(self, label: str, fields: List[str]) -> None:
+    def __init__(self, label: str, fields: list[str]) -> None:
         """初始化标签页列。
 
         Args:
