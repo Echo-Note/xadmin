@@ -3,12 +3,13 @@
 from django_filters import rest_framework as filters
 
 from apps.asset.choices import (
+    DnsRecordTypeChoices,
     DomainStatusChoices,
     HypervisorTypeChoices,
     ServerOSTypeChoices,
     ServerStatusChoices,
 )
-from apps.asset.models import CloudServer, Domain, LocalServer, LocalVM
+from apps.asset.models import CloudServer, DnsRecord, Domain, LocalServer, LocalVM
 from apps.cloud_platform.models import CloudPlatform
 from apps.common.core.filter import BaseFilterSet
 from apps.company.models import Company
@@ -188,3 +189,24 @@ class LocalVMFilter(BaseFilterSet):
             'is_active',
             'company',
         ]
+
+
+class DnsRecordFilter(BaseFilterSet):
+    """DNS 解析记录过滤器。"""
+
+    pk = filters.CharFilter(field_name='id')
+    domain = filters.CharFilter(field_name='domain__pk', lookup_expr='exact')
+    record_type = filters.ChoiceFilter(
+        field_name='record_type',
+        lookup_expr='exact',
+        choices=DnsRecordTypeChoices.choices,
+    )
+    host = filters.CharFilter(field_name='host', lookup_expr='icontains')
+    value = filters.CharFilter(field_name='value', lookup_expr='icontains')
+    is_active = filters.BooleanFilter(field_name='is_active')
+
+    class Meta:
+        """元数据配置。"""
+
+        model = DnsRecord
+        fields = ['domain', 'record_type', 'host', 'value', 'is_active']

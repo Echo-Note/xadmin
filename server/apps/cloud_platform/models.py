@@ -1,5 +1,7 @@
 """云平台管理应用的模型定义。"""
 
+from datetime import date, timedelta
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -224,3 +226,71 @@ class Credential(DbAuditModel, DbUuidModel):
     def __str__(self) -> str:
         """返回凭据所属平台、名称和类型的组合标识。"""
         return f'{self.platform.name} - {self.credential_name} ({self.get_credential_type_display()})'
+
+
+class AccountBalance(DbAuditModel, DbUuidModel):
+    """云平台账户余额每日快照。
+
+    按日期线性存储每个平台的余额历史，自动保留最近 30 天数据。
+    每次调用 refresh-balance 接口时创建当天的快照记录，
+    并清理超过 30 天的旧记录。
+
+    约束：(platform, record_date) 唯一，同一天内多次刷新会更新同一条记录。
+    """
+
+    platform = models.ForeignKey(
+        to=CloudPlatform,
+        on_delete=models.CASCADE,
+        related_name='balance_records',
+        verbose_name='云平台',
+        help_text='所属云平台实例',
+        db_comment='云平台实例ID，关联cloudplatform表',
+    )
+    balance = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        verbose_name='余额（元）',
+        help_text='当日账户余额',
+        db_comment='当日账户余额（元）',
+    )
+    record_date = models.DateField(
+        verbose_name='记录日期',
+        help_text='余额快照对应的日期',
+        db_comment='余额快照日期',
+    )
+
+    class Meta:
+        """元数据配置。"""
+
+        verbose_name = '账户余额记录'
+        verbose_name_plural = verbose_name
+        ordering = ['platform', '-record_date']
+        db_table_comment = '云平台账户余额每日快照表，按天存储最近30天数据'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['platform', 'record_date'],
+                name='unique_platform_balance_date',
+            ),
+        ]
+
+    def __str__(self) -> str:
+        """返回平台名称和日期的组合标识。"""
+        return f'{self.platform.name} - {self.record_date}: ¥{self.balance}'
+
+    @classmethod
+    def cleanup_old_records(cls, platform_id: str, keep_days: int = 30) -> int:
+        """清理指定平台超过保留天数的旧余额记录。
+
+        Args:
+            platform_id: 云平台主键。
+            keep_days: 保留天数，默认 30。
+
+        Returns:
+            删除的记录数。
+        """
+        cutoff = date.today() - timedelta(days=keep_days)
+        deleted, _ = cls.objects.filter(
+            platform_id=platform_id,
+            record_date__lt=cutoff,
+        ).delete()
+        return deleted

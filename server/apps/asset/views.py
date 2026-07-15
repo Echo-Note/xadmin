@@ -2,13 +2,15 @@
 
 from apps.asset.filters import (
     CloudServerFilter,
+    DnsRecordFilter,
     DomainFilter,
     LocalServerFilter,
     LocalVMFilter,
 )
-from apps.asset.models import CloudServer, Domain, LocalServer, LocalVM
+from apps.asset.models import CloudServer, DnsRecord, Domain, LocalServer, LocalVM
 from apps.asset.serializers import (
     CloudServerSerializer,
+    DnsRecordSerializer,
     DomainSerializer,
     LocalServerSerializer,
     LocalVMSerializer,
@@ -50,3 +52,12 @@ class LocalVMViewSet(BaseModelSet, ImportExportDataAction):
     serializer_class = LocalVMSerializer
     filterset_class = LocalVMFilter
     ordering_fields = ['created_time', 'name', 'cpu']
+
+
+class DnsRecordViewSet(BaseModelSet, ImportExportDataAction):
+    """DNS 解析记录管理，支持导入导出。"""
+
+    queryset = DnsRecord.objects.select_related('domain')
+    serializer_class = DnsRecordSerializer
+    filterset_class = DnsRecordFilter
+    ordering_fields = ['created_time', 'record_type', 'host']

@@ -1,5 +1,7 @@
 """云平台管理应用的视图集。"""
 
+from datetime import date
+
 from django.utils import timezone
 from rest_framework.decorators import action
 from rest_framework.request import Request
@@ -7,7 +9,7 @@ from rest_framework.response import Response
 
 from apps.cloud_platform.choices import CredentialTypeChoices
 from apps.cloud_platform.filters import CloudPlatformFilter, CredentialFilter
-from apps.cloud_platform.models import CloudPlatform, Credential
+from apps.cloud_platform.models import AccountBalance, CloudPlatform, Credential
 from apps.cloud_platform.serializers import (
     CloudPlatformSerializer,
     CredentialDetailSerializer,
@@ -29,11 +31,9 @@ class CloudPlatformViewSet(BaseModelSet, ImportExportDataAction):
     def refresh_balance(self, request: Request, *args, **kwargs) -> Response:
         """手动刷新云平台账户余额。
 
-        触发平台余额查询流程，将最新余额写入 account_balance 字段，
-        并更新 balance_updated_time。
-
-        注意：此接口仅对支持余额查询的平台类型有效（如腾讯云、阿里云等），
-        不支持的平台将返回余额为 0。
+        1. 更新 CloudPlatform 的 account_balance 和 balance_updated_time
+        2. 写入当天的 AccountBalance 每日快照（同一天多次刷新会更新同一条）
+        3. 清理超过 30 天的旧快照
         """
         instance = self.get_object()
         new_balance = request.data.get('account_balance', None)
@@ -47,6 +47,17 @@ class CloudPlatformViewSet(BaseModelSet, ImportExportDataAction):
         instance.balance_updated_time = timezone.now()
         instance.save(update_fields=['account_balance', 'balance_updated_time'])
 
+        # 写入每日快照（同一天多次刷新会更新同一条记录）
+        today = date.today()
+        AccountBalance.objects.update_or_create(
+            platform=instance,
+            record_date=today,
+            defaults={'balance': instance.account_balance},
+        )
+
+        # 清理 30 天前的旧记录
+        deleted = AccountBalance.cleanup_old_records(instance.pk)
+
         return ApiResponse(
             data={
                 'pk': instance.pk,
@@ -54,8 +65,31 @@ class CloudPlatformViewSet(BaseModelSet, ImportExportDataAction):
                 'platform_type': instance.platform_type,
                 'account_balance': str(instance.account_balance),
                 'balance_updated_time': instance.balance_updated_time,
+                'snapshot_date': str(today),
+                'cleaned_records': deleted,
             },
             detail='余额更新成功',
+        )
+
+    @action(methods=['get'], detail=True, url_path='balance-history')
+    def balance_history(self, request: Request, *args, **kwargs) -> Response:
+        """查询最近 30 天余额历史。
+
+        返回按日期倒序的 (日期, 余额) 列表，用于前端绘制余额走势图。
+        """
+        instance = self.get_object()
+        records = (
+            AccountBalance.objects.filter(platform=instance)
+            .order_by('-record_date')
+            .values('record_date', 'balance')[:30]
+        )
+        history = [{'date': str(r['record_date']), 'balance': str(r['balance'])} for r in records]
+        return ApiResponse(
+            data={
+                'platform': instance.name,
+                'current_balance': str(instance.account_balance),
+                'history': history,
+            }
         )
 
 

@@ -59,3 +59,17 @@ class HypervisorTypeChoices(models.TextChoices):
     PROXMOX = 'proxmox', 'Proxmox VE'
     XCPNG = 'xcpng', 'XCP-ng'
     OTHER = 'other', '其他'
+
+
+class DnsRecordTypeChoices(models.TextChoices):
+    """DNS 记录类型枚举。"""
+
+    A = 'A', 'A'
+    AAAA = 'AAAA', 'AAAA'
+    CNAME = 'CNAME', 'CNAME'
+    MX = 'MX', 'MX'
+    TXT = 'TXT', 'TXT'
+    NS = 'NS', 'NS'
+    SRV = 'SRV', 'SRV'
+    CAA = 'CAA', 'CAA'
+    OTHER = 'other', '其他'

@@ -13,35 +13,61 @@ from typing import Any
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.deconstruct import deconstructible
+from django.utils.module_loading import import_string
 from pydantic import BaseModel
 from pydantic import ValidationError as PydanticValidationError
 
 from apps.asset.choices import (
+    DnsRecordTypeChoices,
     DomainStatusChoices,
     HypervisorTypeChoices,
     ServerOSTypeChoices,
     ServerStatusChoices,
 )
-from apps.asset.structs import CpuDetailItem, DiskDetailItem, MemoryDetailItem
 from apps.cloud_platform.models import CloudPlatform
 from apps.common.core.models import DbAuditModel, DbUuidModel
 from apps.company.models import Company
 
 
-def _validate_pydantic_list(model: type[BaseModel]) -> None:
-    """使用 Pydantic 模型逐项校验 JSON 列表的闭包工厂。
+@deconstructible
+class PydanticListValidator:
+    """使用 Pydantic 模型逐项校验 JSON 列表的可序列化校验器。
 
-    Args:
-        model: Pydantic BaseModel 子类，用于逐项校验列表元素。
+    通过 @deconstructible 确保 Django 迁移系统能正确序列化此校验器。
     """
 
-    def validate(value: Any) -> None:
+    def __init__(self, model_path: str) -> None:
+        """初始化校验器。
+
+        Args:
+            model_path: Pydantic 模型的完整路径字符串，如 'apps.asset.structs.CpuDetailItem'。
+        """
+        self.model_path = model_path
+        self._model: type[BaseModel] | None = None
+
+    @property
+    def model(self) -> type[BaseModel]:
+        """延迟加载 Pydantic 模型。"""
+        if self._model is None:
+            self._model = import_string(self.model_path)
+        return self._model
+
+    def __call__(self, value: Any) -> None:
+        """校验 JSON 数据。
+
+        Args:
+            value: JSON 列表数据。
+
+        Raises:
+            ValidationError: 校验失败。
+        """
         if not isinstance(value, list):
             return
         errors = []
         for idx, item in enumerate(value):
             try:
-                model(**item)
+                self.model(**item)
             except PydanticValidationError as e:
                 for err in e.errors():
                     loc = '.'.join(str(p) for p in err['loc'])
@@ -49,7 +75,18 @@ def _validate_pydantic_list(model: type[BaseModel]) -> None:
         if errors:
             raise ValidationError(errors)
 
-    return validate
+    def __eq__(self, other: object) -> bool:
+        """比较两个校验器是否等价。
+
+        Args:
+            other: 另一个校验器实例。
+
+        Returns:
+            是否等价。
+        """
+        if isinstance(other, PydanticListValidator):
+            return self.model_path == other.model_path
+        return False
 
 
 # =============================================================================
@@ -307,6 +344,73 @@ class Domain(DbAuditModel, DbUuidModel):
 
 
 # =============================================================================
+# DNS 解析记录
+# =============================================================================
+
+
+class DnsRecord(DbAuditModel, DbUuidModel):
+    """域名 DNS 解析记录，记录每个域名的解析配置。"""
+
+    domain = models.ForeignKey(
+        to=Domain,
+        on_delete=models.CASCADE,
+        related_name='dns_records',
+        verbose_name='所属域名',
+        help_text='该解析记录归属的域名',
+        db_comment='归属域名ID，关联domain表',
+    )
+    record_type = models.CharField(
+        max_length=16,
+        choices=DnsRecordTypeChoices,
+        verbose_name='记录类型',
+        help_text='DNS 记录类型：A/AAAA/CNAME/MX/TXT/NS/SRV/CAA',
+        db_comment='DNS记录类型枚举值',
+    )
+    host = models.CharField(
+        max_length=256,
+        verbose_name='主机记录',
+        help_text='主机记录前缀，如 @、www、mail',
+        db_comment='主机记录前缀',
+    )
+    value = models.TextField(
+        verbose_name='记录值',
+        help_text='解析目标，A记录为IP、CNAME为目标域名、MX为邮件服务器地址等',
+        db_comment='解析记录值',
+    )
+    ttl = models.PositiveIntegerField(
+        default=600,
+        verbose_name='TTL（秒）',
+        help_text='生存时间，默认 600 秒',
+        db_comment='TTL生存时间（秒）',
+    )
+    priority = models.PositiveSmallIntegerField(
+        verbose_name='优先级',
+        null=True,
+        blank=True,
+        help_text='MX/SRV 记录的优先级，值越小优先级越高',
+        db_comment='MX/SRV记录优先级',
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name='启用状态',
+        help_text='解析记录是否生效',
+        db_comment='启用状态：True启用/False禁用',
+    )
+
+    class Meta:
+        """元数据配置。"""
+
+        verbose_name = 'DNS 解析记录'
+        verbose_name_plural = verbose_name
+        ordering = ['domain', 'record_type', 'host']
+        db_table_comment = '域名DNS解析记录表，存储每个域名的解析配置'
+
+    def __str__(self) -> str:
+        """返回字符串表示。"""
+        return f'{self.domain.domain_name} - {self.host} {self.record_type} → {self.value}'
+
+
+# =============================================================================
 # 本地物理服务器
 # =============================================================================
 
@@ -441,7 +545,7 @@ class LocalServer(DbAuditModel, DbUuidModel):
         null=True,
         blank=True,
         default=list,
-        validators=[_validate_pydantic_list(CpuDetailItem)],
+        validators=[PydanticListValidator('apps.asset.structs.CpuDetailItem')],
         help_text='每颗 CPU 的详细配置列表，结构定义见 apps.asset.structs.CpuDetailItem',
         db_comment='CPU详细配置JSON列表',
     )
@@ -450,7 +554,7 @@ class LocalServer(DbAuditModel, DbUuidModel):
         null=True,
         blank=True,
         default=list,
-        validators=[_validate_pydantic_list(MemoryDetailItem)],
+        validators=[PydanticListValidator('apps.asset.structs.MemoryDetailItem')],
         help_text='每条内存的详细配置列表，结构定义见 apps.asset.structs.MemoryDetailItem',
         db_comment='内存详细配置JSON列表',
     )
@@ -459,7 +563,7 @@ class LocalServer(DbAuditModel, DbUuidModel):
         null=True,
         blank=True,
         default=list,
-        validators=[_validate_pydantic_list(DiskDetailItem)],
+        validators=[PydanticListValidator('apps.asset.structs.DiskDetailItem')],
         help_text='每块硬盘的详细配置列表，结构定义见 apps.asset.structs.DiskDetailItem',
         db_comment='硬盘详细配置JSON列表',
     )

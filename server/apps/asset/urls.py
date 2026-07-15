@@ -4,6 +4,7 @@ from rest_framework.routers import SimpleRouter
 
 from apps.asset.views import (
     CloudServerViewSet,
+    DnsRecordViewSet,
     DomainViewSet,
     LocalServerViewSet,
     LocalVMViewSet,
@@ -17,6 +18,7 @@ router.register('cloud-server', CloudServerViewSet, basename='asset_cloud_server
 router.register('domain', DomainViewSet, basename='asset_domain')
 router.register('local-server', LocalServerViewSet, basename='asset_local_server')
 router.register('local-vm', LocalVMViewSet, basename='asset_local_vm')
+router.register('dns-record', DnsRecordViewSet, basename='asset_dns_record')
 
 urlpatterns = []
 

@@ -726,3 +726,88 @@ class LocalVMSerializer(BaseModelSerializer):
                 'help_text': '更新时间',
             },
         }
+
+
+class DnsRecordSerializer(BaseModelSerializer):
+    """DNS 解析记录序列化器。"""
+
+    domain_info = serializers.SerializerMethodField(
+        read_only=True,
+        label='所属域名',
+        help_text='归属域名的摘要信息',
+    )
+
+    def get_domain_info(self, obj: models.DnsRecord) -> dict:
+        """获取归属域名的摘要信息。"""
+        return {
+            'pk': obj.domain.pk,
+            'domain_name': obj.domain.domain_name,
+        }
+
+    class Meta:
+        """元数据配置。"""
+
+        model = models.DnsRecord
+        fields = [
+            'pk',
+            'domain',
+            'domain_info',
+            'record_type',
+            'host',
+            'value',
+            'ttl',
+            'priority',
+            'is_active',
+            'description',
+            'created_time',
+            'updated_time',
+        ]
+        table_fields = [
+            'domain_info',
+            'record_type',
+            'host',
+            'value',
+            'ttl',
+            'priority',
+            'is_active',
+            'created_time',
+        ]
+        extra_kwargs = {
+            'pk': {'read_only': True, 'label': 'ID', 'help_text': '主键唯一标识'},
+            'domain': {
+                'attrs': ['pk', 'domain_name'],
+                'required': True,
+                'format': '{domain_name}',
+                'label': '所属域名',
+                'help_text': '该解析记录归属的域名',
+            },
+            'record_type': {
+                'label': '记录类型',
+                'help_text': 'DNS 记录类型：A/AAAA/CNAME/MX/TXT/NS/SRV/CAA',
+            },
+            'host': {
+                'label': '主机记录',
+                'help_text': '主机记录前缀，如 @、www、mail',
+            },
+            'value': {
+                'label': '记录值',
+                'help_text': '解析目标，A记录为IP、CNAME为目标域名等',
+            },
+            'ttl': {'label': 'TTL（秒）', 'help_text': '生存时间，默认 600 秒'},
+            'priority': {
+                'label': '优先级',
+                'help_text': 'MX/SRV 记录的优先级，值越小优先级越高',
+            },
+            'is_active': {'label': '启用状态', 'help_text': '解析记录是否生效'},
+            'description': {'label': 'Description', 'help_text': '备注信息'},
+            'created_time': {
+                'read_only': True,
+                'label': 'Created time',
+                'help_text': '创建时间',
+            },
+            'updated_time': {
+                'read_only': True,
+                'label': 'Updated time',
+                'help_text': '更新时间',
+            },
+        }
