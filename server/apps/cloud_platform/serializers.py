@@ -11,15 +11,29 @@ class CloudPlatformSerializer(BaseModelSerializer):
     """云平台实例序列化器。"""
 
     class Meta:
+        """序列化器元数据配置。"""
+
         model = models.CloudPlatform
         fields = [
-            'pk', 'name', 'platform_type', 'company',
-            'endpoint', 'region', 'is_active',
-            'description', 'created_time', 'updated_time',
+            'pk',
+            'name',
+            'platform_type',
+            'company',
+            'endpoint',
+            'region',
+            'is_active',
+            'description',
+            'created_time',
+            'updated_time',
         ]
         table_fields = [
-            'pk', 'name', 'platform_type', 'company',
-            'endpoint', 'region', 'is_active', 'created_time',
+            'name',
+            'platform_type',
+            'company',
+            'endpoint',
+            'region',
+            'is_active',
+            'created_time',
         ]
         extra_kwargs = {
             'pk': {
@@ -38,7 +52,7 @@ class CloudPlatformSerializer(BaseModelSerializer):
             'company': {
                 'attrs': ['pk', 'name', 'short_name'],
                 'required': False,
-                'format': "{name}",
+                'format': '{name}',
                 'label': _('所属公司'),
                 'help_text': _('平台归属的公司主体（个人注册或无公司归属可不填）'),
             },
@@ -75,7 +89,9 @@ class CredentialListSerializer(BaseModelSerializer):
     """凭据列表序列化器（不包含敏感字段明文，仅用于列表展示）。"""
 
     platform_info = serializers.SerializerMethodField(
-        read_only=True, label=_("所属平台"), help_text=_("凭据归属云平台的摘要信息"),
+        read_only=True,
+        label=_('所属平台'),
+        help_text=_('凭据归属云平台的摘要信息'),
     )
 
     def get_platform_info(self, obj: models.Credential) -> dict:
@@ -87,16 +103,33 @@ class CredentialListSerializer(BaseModelSerializer):
         }
 
     class Meta:
+        """序列化器元数据配置。"""
+
         model = models.Credential
         fields = [
-            'pk', 'platform', 'platform_info', 'credential_type',
-            'credential_name', 'username', 'email',
-            'token_expire_time', 'remark', 'is_active',
-            'description', 'created_time', 'updated_time',
+            'pk',
+            'platform',
+            'platform_info',
+            'credential_type',
+            'credential_name',
+            'username',
+            'email',
+            'token_expire_time',
+            'remark',
+            'is_active',
+            'description',
+            'created_time',
+            'updated_time',
         ]
         table_fields = [
-            'pk', 'platform_info', 'credential_type', 'credential_name',
-            'username', 'email', 'token_expire_time', 'is_active', 'created_time',
+            'platform_info',
+            'credential_type',
+            'credential_name',
+            'username',
+            'email',
+            'token_expire_time',
+            'is_active',
+            'created_time',
         ]
         extra_kwargs = {
             'pk': {
@@ -107,7 +140,7 @@ class CredentialListSerializer(BaseModelSerializer):
             'platform': {
                 'attrs': ['pk', 'name', 'platform_type'],
                 'required': True,
-                'format': "{name}({platform_type})",
+                'format': '{name}({platform_type})',
                 'label': _('所属平台'),
                 'help_text': _('该凭据归属的云平台实例'),
             },
@@ -160,23 +193,45 @@ class CredentialDetailSerializer(BaseModelSerializer):
     """凭据详情序列化器（含加密字段，仅详情/编辑时使用）。"""
 
     class Meta:
+        """序列化器元数据配置。"""
+
         model = models.Credential
         tabs = [
-            TabsColumn('基本信息', [
-                'platform', 'credential_type', 'credential_name',
-                'remark', 'is_active', 'description', 'token_expire_time',
-            ]),
+            TabsColumn(
+                '基本信息',
+                [
+                    'platform',
+                    'credential_type',
+                    'credential_name',
+                    'remark',
+                    'is_active',
+                    'description',
+                    'token_expire_time',
+                ],
+            ),
             TabsColumn('Access Key', ['access_key', 'access_secret']),
             TabsColumn('用户名密码', ['username', 'password', 'email']),
             TabsColumn('API Token', ['api_token']),
             TabsColumn('扩展数据', ['extra_data']),
         ]
         fields = [
-            'pk', 'platform', 'credential_type', 'credential_name',
-            'access_key', 'access_secret', 'username', 'password', 'email',
-            'api_token', 'token_expire_time',
-            'extra_data', 'remark', 'is_active', 'description',
-            'created_time', 'updated_time',
+            'pk',
+            'platform',
+            'credential_type',
+            'credential_name',
+            'access_key',
+            'access_secret',
+            'username',
+            'password',
+            'email',
+            'api_token',
+            'token_expire_time',
+            'extra_data',
+            'remark',
+            'is_active',
+            'description',
+            'created_time',
+            'updated_time',
         ]
         extra_kwargs = {
             'pk': {
@@ -187,7 +242,7 @@ class CredentialDetailSerializer(BaseModelSerializer):
             'platform': {
                 'attrs': ['pk', 'name', 'platform_type'],
                 'required': True,
-                'format': "{name}({platform_type})",
+                'format': '{name}({platform_type})',
                 'label': _('所属平台'),
                 'help_text': _('该凭据归属的云平台实例'),
             },
