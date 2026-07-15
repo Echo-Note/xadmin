@@ -26,7 +26,7 @@ from apps.asset.choices import (
     ServerStatusChoices,
 )
 from apps.cloud_platform.models import CloudPlatform
-from apps.common.core.models import DbAuditModel, DbUuidModel
+from apps.common.core.models import DbAuditModel, DbUuidModel, upload_directory_path
 from apps.company.models import Company
 
 
@@ -312,6 +312,48 @@ class Domain(DbAuditModel, DbUuidModel):
         blank=True,
         help_text='SSL 证书到期日期',
         db_comment='SSL证书到期日期',
+    )
+
+    # --- 证书与责任人 ---
+    domain_certificate = models.FileField(
+        verbose_name='域名证书',
+        upload_to=upload_directory_path,
+        null=True,
+        blank=True,
+        help_text='域名注册证书/实名认证证书扫描件',
+        db_comment='域名证书文件路径',
+    )
+    security_contact = models.CharField(
+        max_length=64,
+        verbose_name='安全责任人',
+        null=True,
+        blank=True,
+        help_text='域名安全责任人姓名',
+        db_comment='安全责任人姓名',
+    )
+    security_contact_phone = models.CharField(
+        max_length=32,
+        verbose_name='安全责任人电话',
+        null=True,
+        blank=True,
+        help_text='安全责任人联系电话',
+        db_comment='安全责任人电话',
+    )
+    service_contact = models.CharField(
+        max_length=64,
+        verbose_name='服务负责人',
+        null=True,
+        blank=True,
+        help_text='域名服务/运维负责人姓名',
+        db_comment='服务负责人姓名',
+    )
+    service_contact_phone = models.CharField(
+        max_length=32,
+        verbose_name='服务负责人电话',
+        null=True,
+        blank=True,
+        help_text='服务负责人联系电话',
+        db_comment='服务负责人电话',
     )
 
     # --- 备案信息 ---

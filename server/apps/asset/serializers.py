@@ -231,6 +231,16 @@ class DomainSerializer(BaseModelSerializer):
                 ['dns_server', 'is_ssl_enabled', 'ssl_expire_time'],
             ),
             TabsColumn(
+                '证书与责任人',
+                [
+                    'domain_certificate',
+                    'security_contact',
+                    'security_contact_phone',
+                    'service_contact',
+                    'service_contact_phone',
+                ],
+            ),
+            TabsColumn(
                 '备案信息',
                 ['icp_number', 'icp_filing_date', 'ps_filing_number', 'ps_filing_date'],
             ),
@@ -248,6 +258,11 @@ class DomainSerializer(BaseModelSerializer):
             'owner_name',
             'is_ssl_enabled',
             'ssl_expire_time',
+            'domain_certificate',
+            'security_contact',
+            'security_contact_phone',
+            'service_contact',
+            'service_contact_phone',
             'icp_number',
             'icp_filing_date',
             'ps_filing_number',
@@ -317,6 +332,26 @@ class DomainSerializer(BaseModelSerializer):
             'ssl_expire_time': {
                 'label': 'SSL 到期时间',
                 'help_text': 'SSL 证书到期日期',
+            },
+            'domain_certificate': {
+                'label': '域名证书',
+                'help_text': '域名注册证书/实名认证证书扫描件上传',
+            },
+            'security_contact': {
+                'label': '安全责任人',
+                'help_text': '域名安全责任人姓名',
+            },
+            'security_contact_phone': {
+                'label': '安全责任人电话',
+                'help_text': '安全责任人联系电话',
+            },
+            'service_contact': {
+                'label': '服务负责人',
+                'help_text': '域名服务/运维负责人姓名',
+            },
+            'service_contact_phone': {
+                'label': '服务负责人电话',
+                'help_text': '服务负责人联系电话',
             },
             'icp_number': {
                 'label': 'ICP 备案号',
