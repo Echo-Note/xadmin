@@ -17,6 +17,7 @@ class CloudPlatformFilter(BaseFilterSet):
         field_name='platform_type',
         lookup_expr='exact',
         choices=PlatformTypeChoices.choices,
+        label='平台类型',
     )
     company = filters.ModelChoiceFilter(
         field_name='company',

@@ -25,6 +25,7 @@ class CloudServerFilter(BaseFilterSet):
         field_name='platform',
         lookup_expr='exact',
         queryset=CloudPlatform.objects.filter(is_active=True),
+        label='平台类型',
     )
     instance_id = filters.CharFilter(field_name='instance_id', lookup_expr='icontains')
     public_ip = filters.CharFilter(field_name='public_ip', lookup_expr='icontains')
@@ -33,6 +34,7 @@ class CloudServerFilter(BaseFilterSet):
         field_name='os_type',
         lookup_expr='exact',
         choices=ServerOSTypeChoices.choices,
+        label='系统类型',
     )
     status = filters.ChoiceFilter(
         field_name='status',
@@ -137,6 +139,7 @@ class LocalServerFilter(BaseFilterSet):
         field_name='os_type',
         lookup_expr='exact',
         choices=ServerOSTypeChoices.choices,
+        label='系统类型',
     )
     status = filters.ChoiceFilter(
         field_name='status',
@@ -171,18 +174,20 @@ class LocalVMFilter(BaseFilterSet):
     """本地虚拟主机过滤器。"""
 
     pk = filters.CharFilter(field_name='id')
-    name = filters.CharFilter(field_name='name', lookup_expr='icontains')
-    host_server = filters.CharFilter(field_name='host_server__pk', lookup_expr='exact')
+    name = filters.CharFilter(field_name='name', lookup_expr='icontains', label='名称')
+    host_server = filters.CharFilter(field_name='host_server__pk', lookup_expr='exact', label='主机服务器')
     ip_address = filters.CharFilter(field_name='ip_address', lookup_expr='icontains')
     os_type = filters.ChoiceFilter(
         field_name='os_type',
         lookup_expr='exact',
         choices=ServerOSTypeChoices.choices,
+        label='系统类型',
     )
     hypervisor = filters.ChoiceFilter(
         field_name='hypervisor',
         lookup_expr='exact',
         choices=HypervisorTypeChoices.choices,
+        label='虚拟类型',
     )
     status = filters.ChoiceFilter(
         field_name='status',
