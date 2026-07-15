@@ -75,6 +75,7 @@ class DomainFilter(BaseFilterSet):
         field_name='platform',
         lookup_expr='exact',
         queryset=CloudPlatform.objects.filter(is_active=True),
+        label='云平台',
     )
     status = filters.ChoiceFilter(
         field_name='status',
@@ -85,10 +86,12 @@ class DomainFilter(BaseFilterSet):
     is_icp_filed = filters.BooleanFilter(
         field_name='icp_number',
         method='filter_filing_status',
+        label='ICP 备案',
     )
     is_ps_filed = filters.BooleanFilter(
         field_name='ps_filing_number',
         method='filter_filing_status',
+        label='公安备案',
     )
     is_active = filters.BooleanFilter(field_name='is_active')
 

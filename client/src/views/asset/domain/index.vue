@@ -27,6 +27,17 @@ const addOrEditOptions = shallowRef<RePlusPageProps["addOrEditOptions"]>({
     }
   }
 });
+
+// 搜索表单：每行 3 个字段（更宽的输入框）
+const plusSearchProps: RePlusPageProps["plusSearchProps"] = {
+  colProps: {
+    xs: 24,
+    sm: 24,
+    md: 8,
+    lg: 8,
+    xl: 8
+  }
+};
 </script>
 
 <template>
@@ -35,5 +46,6 @@ const addOrEditOptions = shallowRef<RePlusPageProps["addOrEditOptions"]>({
     :auth="auth"
     locale-name="domain"
     :addOrEditOptions="addOrEditOptions"
+    :plusSearchProps="plusSearchProps"
   />
 </template>
