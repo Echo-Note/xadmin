@@ -1,62 +1,34 @@
 """云平台管理应用的视图集。"""
 
-from django_filters import rest_framework as filters
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from apps.cloud_platform import models
+from apps.cloud_platform.choices import CredentialTypeChoices
+from apps.cloud_platform.filters import CloudPlatformFilter, CredentialFilter
+from apps.cloud_platform.models import CloudPlatform, Credential
 from apps.cloud_platform.serializers import (
     CloudPlatformSerializer,
     CredentialDetailSerializer,
     CredentialListSerializer,
 )
-from apps.common.core.filter import BaseFilterSet
 from apps.common.core.modelset import BaseModelSet
 from apps.common.core.response import ApiResponse
-
-
-class CloudPlatformFilter(BaseFilterSet):
-    """云平台实例过滤器。"""
-
-    name = filters.CharFilter(field_name='name', lookup_expr='icontains')
-    platform_type = filters.CharFilter(field_name='platform_type', lookup_expr='exact')
-    company = filters.CharFilter(field_name='company__pk', lookup_expr='exact')
-    is_active = filters.BooleanFilter(field_name='is_active')
-
-    class Meta:
-        model = models.CloudPlatform
-        fields = ['name', 'platform_type', 'company', 'is_active']
 
 
 class CloudPlatformViewSet(BaseModelSet):
     """云平台实例管理"""
 
-    queryset = models.CloudPlatform.objects.select_related('company').prefetch_related('credentials')
+    queryset = CloudPlatform.objects.select_related('company').prefetch_related('credentials')
     serializer_class = CloudPlatformSerializer
     filterset_class = CloudPlatformFilter
     ordering_fields = ['created_time', 'name']
 
 
-class CredentialFilter(BaseFilterSet):
-    """凭据过滤器。"""
-
-    platform = filters.CharFilter(field_name='platform__pk', lookup_expr='exact')
-    credential_type = filters.CharFilter(field_name='credential_type', lookup_expr='exact')
-    credential_name = filters.CharFilter(field_name='credential_name', lookup_expr='icontains')
-    username = filters.CharFilter(field_name='username', lookup_expr='icontains')
-    email = filters.CharFilter(field_name='email', lookup_expr='icontains')
-    is_active = filters.BooleanFilter(field_name='is_active')
-
-    class Meta:
-        model = models.Credential
-        fields = ['platform', 'credential_type', 'credential_name', 'username', 'email', 'is_active']
-
-
 class CredentialViewSet(BaseModelSet):
     """云平台凭据管理"""
 
-    queryset = models.Credential.objects.select_related('platform')
+    queryset = Credential.objects.select_related('platform')
     filterset_class = CredentialFilter
     ordering_fields = ['created_time', 'credential_name']
 
@@ -84,15 +56,15 @@ class CredentialViewSet(BaseModelSet):
         }
 
         cred_type = instance.credential_type
-        if cred_type == models.Credential.CredentialTypeChoices.ACCESS_KEY:
+        if cred_type == CredentialTypeChoices.ACCESS_KEY:
             data['access_key'] = instance.access_key
             data['access_secret'] = instance.access_secret
-        elif cred_type == models.Credential.CredentialTypeChoices.PASSWORD:
+        elif cred_type == CredentialTypeChoices.PASSWORD:
             data['username'] = instance.username
             data['password'] = instance.password
             if instance.email:
                 data['email'] = instance.email
-        elif cred_type == models.Credential.CredentialTypeChoices.API_TOKEN:
+        elif cred_type == CredentialTypeChoices.API_TOKEN:
             data['api_token'] = instance.api_token
             data['token_expire_time'] = instance.token_expire_time
 
