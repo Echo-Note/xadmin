@@ -5,6 +5,7 @@
 # author : ly_13
 # date : 6/2/2023
 """视图集模块，提供缓存、上传、排序、批量操作及增删改查等通用视图混入。"""
+import importlib
 import itertools
 import json
 import math
@@ -546,6 +547,90 @@ class ChoicesAction(object):
         return ApiResponse(choices_dict=result)
 
 
+class AppChoicesAction(object):
+    """应用级枚举选项视图混入，提供获取 app 下 choices.py 模块中所有枚举的接口。
+
+    自动发现 ViewSet 所属 app 的 ``choices.py`` 模块，
+    将其中所有 ``models.Choices`` 子类的枚举值通过接口暴露。
+
+    接口：``GET /api/{res}/app-choices/``
+
+    - 不传参数：返回所有枚举
+    - ``?name=PlatformTypeChoices``：仅返回指定名称的枚举
+
+    响应示例（不传参数）::
+
+        {
+            "code": 1000,
+            "data": {
+                "PlatformTypeChoices": [
+                    {"value": "tencent", "label": "腾讯云"},
+                    {"value": "aliyun", "label": "阿里云"}
+                ],
+                "CredentialTypeChoices": [
+                    {"value": "access_key", "label": "Access Key 密钥对"}
+                ]
+            }
+        }
+
+    若 app 无 ``choices.py`` 模块，返回空字典。
+    """
+
+    queryset: Any
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='name',
+                description='枚举类名，传则仅返回该枚举；不传则返回全部',
+                required=False,
+                type=OpenApiTypes.STR,
+            ),
+        ],
+        responses=get_default_response_schema(
+            {
+                'data': build_object_type(
+                    properties={
+                        'key': build_array_type(
+                            build_object_type(
+                                properties={
+                                    'value': build_basic_type(OpenApiTypes.STR),
+                                    'label': build_basic_type(OpenApiTypes.STR),
+                                }
+                            )
+                        )
+                    }
+                )
+            }
+        )
+    )
+    @action(methods=['get'], detail=False, url_path='app-choices')
+    def app_choices(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        """获取当前应用 choices.py 模块中定义的枚举选项
+
+        支持通过 ``name`` 查询参数获取指定枚举，不传则返回全部。
+        """
+        target_name = request.query_params.get('name')
+        result = {}
+        try:
+            app_label = self.queryset.model._meta.app_label
+            module = importlib.import_module(f'apps.{app_label}.choices')
+            for name in dir(module):
+                obj = getattr(module, name)
+                if (isinstance(obj, type)
+                        and issubclass(obj, models.Choices)
+                        and obj not in (models.Choices, models.TextChoices, models.IntegerChoices)
+                        and obj.__module__ == module.__name__):
+                    if target_name and name != target_name:
+                        continue
+                    result[name] = get_choices_dict(obj.choices)
+        except ModuleNotFoundError:
+            pass  # app 没有 choices.py 模块
+        except Exception as e:
+            logger.error(f"get app-choices failed: {e}")
+        return ApiResponse(data=result)
+
+
 class SearchFieldsAction(object):
     """搜索字段视图混入，提供获取查询字段定义的接口。"""
 
@@ -1002,7 +1087,7 @@ class DetailUpdateModelSet(BaseViewSet, UpdateAction, DetailAction, GenericViewS
     pass
 
 
-class OnlyListModelSet(BaseViewSet, ListAction, SearchFieldsAction, SearchColumnsAction, GenericViewSet):
+class OnlyListModelSet(BaseViewSet, ListAction, SearchFieldsAction, SearchColumnsAction, AppChoicesAction, GenericViewSet):
     """仅支持列表查询及搜索字段查询的视图集。"""
 
     pass
@@ -1010,7 +1095,7 @@ class OnlyListModelSet(BaseViewSet, ListAction, SearchFieldsAction, SearchColumn
 
 # 全部 ViewSet 包含增删改查
 class BaseModelSet(BaseViewSet, CreateAction, DestroyAction, UpdateAction, ListAction, DetailAction, SearchFieldsAction,
-                   SearchColumnsAction, BatchDestroyAction, GenericViewSet):
+                   SearchColumnsAction, AppChoicesAction, BatchDestroyAction, GenericViewSet):
     """全部功能视图集，包含增删改查及搜索字段等。"""
 
     pass
@@ -1018,7 +1103,7 @@ class BaseModelSet(BaseViewSet, CreateAction, DestroyAction, UpdateAction, ListA
 
 # 只允许读和删除，不允许创建和修改
 class ListDeleteModelSet(BaseViewSet, DestroyAction, ListAction, DetailAction, SearchFieldsAction, SearchColumnsAction,
-                         BatchDestroyAction, GenericViewSet):
+                         AppChoicesAction, BatchDestroyAction, GenericViewSet):
     """仅支持读和删除的视图集。"""
 
     pass

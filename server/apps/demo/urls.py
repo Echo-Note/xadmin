@@ -5,7 +5,7 @@
 # filename : urls
 # author : ly_13
 # date : 6/6/2023
-from demo.views import BookViewSet
+from apps.demo.views import BookViewSet
 from rest_framework.routers import SimpleRouter
 
 app_name = 'demo'
