@@ -48,7 +48,7 @@ if [ -n "$SERVER_STAGED" ]; then
 
     # ruff check（lint）
     if ! uv run ruff check $PY_FILES; then
-      echo "❌ [server] ruff check 失败，请修复后重新提交"
+      echo "❌ [server] ruff check 失败，请修复后重新提交，严禁跳过。"
       echo "   可运行: cd server && uv run ruff check --fix <file>"
       cd ..
       exit 1
