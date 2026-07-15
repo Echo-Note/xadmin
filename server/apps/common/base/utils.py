@@ -1,11 +1,9 @@
 #!/usr/bin/env python
-# -*- coding:utf-8 -*-
 # project : server
 # filename : utils
 # author : ly_13
 # date : 6/2/2023
 """通用基础工具模块，提供 AES 加解密、选项字典转换、菜单树构建及文件操作等工具函数。"""
-
 
 import base64
 import hashlib
@@ -23,7 +21,7 @@ from apps.common.utils import get_logger
 logger = get_logger(__name__)
 
 
-class AESCipher(object):
+class AESCipher:
     """AES-CBC 加密器，使用 SHA256 派生密钥进行加解密。"""
 
     def __init__(self, key: str) -> None:
@@ -58,9 +56,9 @@ class AESCipher(object):
             解密后的原始字符串。
         """
         enc = base64.b64decode(enc)
-        iv = enc[:AES.block_size]
+        iv = enc[: AES.block_size]
         cipher = AES.new(self.key, AES.MODE_CBC, iv)
-        return self._unpack_data(cipher.decrypt(enc[AES.block_size:]))
+        return self._unpack_data(cipher.decrypt(enc[AES.block_size :]))
 
     @staticmethod
     def _pack_data(s: bytes | str) -> bytes:
@@ -75,7 +73,8 @@ class AESCipher(object):
         if isinstance(s, str):
             s = s.encode('utf-8')
         return s + ((AES.block_size - len(s) % AES.block_size) * chr(AES.block_size - len(s) % AES.block_size)).encode(
-            'utf-8')
+            'utf-8'
+        )
 
     @staticmethod
     def _unpack_data(s: bytes) -> str:
@@ -87,7 +86,7 @@ class AESCipher(object):
         Returns:
             去填充后的字符串。
         """
-        data = s[:-ord(s[len(s) - 1:])]
+        data = s[: -ord(s[len(s) - 1 :])]
         if isinstance(data, bytes):
             data = data.decode('utf-8')
         return data
@@ -106,7 +105,7 @@ def get_signer() -> AESCipher:
 signer: AESCipher = get_signer()
 
 
-class AesBaseCrypt(object):
+class AesBaseCrypt:
     """基于类名派生密钥的 AES 加密基类。"""
 
     def __init__(self) -> None:
@@ -213,7 +212,7 @@ def redis_reverse_key_func(key: str) -> str:
 
 def menu_list_to_tree(data: list, root_field: str = 'parent') -> list:
     """将权限菜单扁平列表转换为树状结构。"""
-    mapping: dict = dict(zip([str(i['pk']) for i in data], data))
+    mapping: dict = dict(zip([str(i['pk']) for i in data], data, strict=False))
 
     # 树容器
     container: list = []
@@ -265,10 +264,10 @@ def format_menu_data(data: list) -> list:
     for d in data:
         if d.get('count', -1) < 1:
             route = {
-                'path': f"/default{d.get('path')}",
+                'path': f'/default{d.get("path")}',
                 'title': d.get('title'),
                 'meta': format_menu_meta(d.get('meta', {})),
-                'children': [d]
+                'children': [d],
             }
         else:
             route = d
@@ -287,14 +286,14 @@ def remove_file(name: str) -> None:
             os.rmdir(name)
         else:
             os.remove(name)
-        logger.info(f"remove {name} success")
+        logger.info(f'remove {name} success')
     except Exception as e:
         # FileNotFoundError is raised if the file or directory was removed
         # concurrently.
-        logger.warning(f"remove {name} failed {e}")
+        logger.warning(f'remove {name} failed {e}')
 
 
-class AESCipherV2(object):
+class AESCipherV2:
     """与前端 CryptoJS AES 加解密兼容的加密器（OpenSSL Salted 格式）。
 
     前端操作示例::
@@ -351,7 +350,7 @@ class AESCipherV2(object):
         key = key_iv[:32]
         iv = key_iv[32:]
         cipher = AES.new(key, AES.MODE_CBC, iv)
-        return base64.b64encode(b"Salted__" + salt + cipher.encrypt(self._pack_data(raw)))
+        return base64.b64encode(b'Salted__' + salt + cipher.encrypt(self._pack_data(raw)))
 
     def decrypt(self, enc: str | bytes) -> str:
         """解密 Base64 编密的 OpenSSL Salted 格式密文。
@@ -370,7 +369,7 @@ class AESCipherV2(object):
         key = key_iv[:32]
         iv = key_iv[32:]
         cipher = AES.new(key, AES.MODE_CBC, iv)
-        return self._unpack_data(cipher.decrypt(data[AES.block_size:]))
+        return self._unpack_data(cipher.decrypt(data[AES.block_size :]))
 
     @staticmethod
     def _pack_data(s: bytes | str) -> bytes:
@@ -382,8 +381,10 @@ class AESCipherV2(object):
         Returns:
             填充后的字节数据。
         """
-        return s + ((AES.block_size - len(s) % AES.block_size) * chr(AES.block_size - len(s) % AES.block_size)).encode(
-            'utf-8')
+        if isinstance(s, str):
+            s = s.encode('utf-8')
+        pad_len = AES.block_size - len(s) % AES.block_size
+        return s + bytes([pad_len]) * pad_len
 
     @staticmethod
     def _unpack_data(s: bytes) -> str:
@@ -395,7 +396,7 @@ class AESCipherV2(object):
         Returns:
             去填充后的字符串。
         """
-        data = s[:-ord(s[len(s) - 1:])]
+        data = s[: -ord(s[len(s) - 1 :])]
         if isinstance(data, bytes):
             data = data.decode('utf-8')
         return data

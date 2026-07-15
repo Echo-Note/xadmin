@@ -219,16 +219,25 @@ const handleDecrypt = async (row: CredentialRecord) => {
 };
 
 /** 凭据类型标签颜色 */
-const typeTagType = (type: string) => {
+/** 提取 credential_type 的原始值（后端返回 {value, label} 对象） */
+const typeValue = (type: any): string => {
+  if (!type) return "";
+  if (typeof type === "object") return type.value || "";
+  return type;
+};
+
+const typeTagType = (type: any) => {
   const map: Record<string, any> = {
     access_key: "success",
     password: "warning",
     api_token: "info"
   };
-  return map[type] || "";
+  return map[typeValue(type)] || "";
 };
 
-const typeLabel = (type: string) => {
+const typeLabel = (type: any) => {
+  if (!type) return "";
+  if (typeof type === "object") return type.label || "";
   const map: Record<string, string> = {
     access_key: "密钥对",
     password: "密码",
