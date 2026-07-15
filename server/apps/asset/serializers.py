@@ -230,6 +230,10 @@ class DomainSerializer(BaseModelSerializer):
                 'DNS & SSL',
                 ['dns_server', 'is_ssl_enabled', 'ssl_expire_time'],
             ),
+            TabsColumn(
+                '备案信息',
+                ['icp_number', 'icp_filing_date', 'ps_filing_number', 'ps_filing_date'],
+            ),
         ]
         fields = [
             'pk',
@@ -244,6 +248,10 @@ class DomainSerializer(BaseModelSerializer):
             'owner_name',
             'is_ssl_enabled',
             'ssl_expire_time',
+            'icp_number',
+            'icp_filing_date',
+            'ps_filing_number',
+            'ps_filing_date',
             'is_active',
             'company',
             'description',
@@ -309,6 +317,22 @@ class DomainSerializer(BaseModelSerializer):
             'ssl_expire_time': {
                 'label': 'SSL 到期时间',
                 'help_text': 'SSL 证书到期日期',
+            },
+            'icp_number': {
+                'label': 'ICP 备案号',
+                'help_text': 'ICP 备案号，如 京ICP备2023000001号',
+            },
+            'icp_filing_date': {
+                'label': 'ICP 备案日期',
+                'help_text': 'ICP 备案通过日期',
+            },
+            'ps_filing_number': {
+                'label': '公安备案号',
+                'help_text': '公安联网备案号，如 京公网安备110100000001号',
+            },
+            'ps_filing_date': {
+                'label': '公安备案日期',
+                'help_text': '公安联网备案通过日期',
             },
             'is_active': {
                 'label': '启用状态',

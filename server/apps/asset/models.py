@@ -313,6 +313,39 @@ class Domain(DbAuditModel, DbUuidModel):
         help_text='SSL 证书到期日期',
         db_comment='SSL证书到期日期',
     )
+
+    # --- 备案信息 ---
+    icp_number = models.CharField(
+        max_length=64,
+        verbose_name='ICP 备案号',
+        null=True,
+        blank=True,
+        help_text='ICP 备案号，如 京ICP备2023000001号',
+        db_comment='ICP备案号',
+    )
+    icp_filing_date = models.DateField(
+        verbose_name='ICP 备案日期',
+        null=True,
+        blank=True,
+        help_text='ICP 备案通过日期',
+        db_comment='ICP备案日期',
+    )
+    ps_filing_number = models.CharField(
+        max_length=64,
+        verbose_name='公安备案号',
+        null=True,
+        blank=True,
+        help_text='公安联网备案号，如 京公网安备110100000001号',
+        db_comment='公安备案号',
+    )
+    ps_filing_date = models.DateField(
+        verbose_name='公安备案日期',
+        null=True,
+        blank=True,
+        help_text='公安联网备案通过日期',
+        db_comment='公安备案日期',
+    )
+
     is_active = models.BooleanField(
         default=True,
         verbose_name='启用状态',
