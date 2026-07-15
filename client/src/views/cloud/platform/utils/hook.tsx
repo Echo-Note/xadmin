@@ -11,8 +11,14 @@ import type {
 export function usePlatform() {
   const api = reactive(platformApi);
 
+  const instance = getCurrentInstance();
+  const defaultAuths = getDefaultAuths(instance);
+
   const auth = reactive({
-    ...getDefaultAuths(getCurrentInstance()),
+    ...defaultAuths,
+    // 导入导出权限回退到 list/create（与后端 permission.py 行为一致）
+    exportData: defaultAuths.exportData || defaultAuths.list,
+    importData: defaultAuths.importData || defaultAuths.create,
     credentialList: hasAuth("list:Credential"),
     credentialCreate: hasAuth("create:Credential"),
     credentialUpdate: hasAuth("update:Credential"),

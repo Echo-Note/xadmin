@@ -2,10 +2,7 @@
 import { getCurrentInstance, reactive, shallowRef } from "vue";
 import { companyApi } from "@/api/company";
 import { getDefaultAuths } from "@/router/utils";
-import type {
-  PageTableColumn,
-  RePlusPageProps
-} from "@/components/RePlusPage";
+import type { PageTableColumn, RePlusPageProps } from "@/components/RePlusPage";
 
 defineOptions({
   name: "CompanyInstance"
@@ -13,8 +10,14 @@ defineOptions({
 
 const api = reactive(companyApi);
 
+const instance = getCurrentInstance();
+const defaultAuths = getDefaultAuths(instance);
+
 const auth = reactive({
-  ...getDefaultAuths(getCurrentInstance())
+  ...defaultAuths,
+  // 导入导出权限回退到 list/create（与后端 permission.py 行为一致）
+  exportData: defaultAuths.exportData || defaultAuths.list,
+  importData: defaultAuths.importData || defaultAuths.create
 });
 
 const addOrEditOptions = shallowRef<RePlusPageProps["addOrEditOptions"]>({

@@ -12,12 +12,12 @@ from apps.cloud_platform.serializers import (
     CredentialDetailSerializer,
     CredentialListSerializer,
 )
-from apps.common.core.modelset import BaseModelSet
+from apps.common.core.modelset import BaseModelSet, ImportExportDataAction
 from apps.common.core.response import ApiResponse
 
 
-class CloudPlatformViewSet(BaseModelSet):
-    """云平台实例管理"""
+class CloudPlatformViewSet(BaseModelSet, ImportExportDataAction):
+    """云平台实例管理，支持导入导出。"""
 
     queryset = CloudPlatform.objects.select_related('company').prefetch_related('credentials')
     serializer_class = CloudPlatformSerializer
@@ -25,14 +25,14 @@ class CloudPlatformViewSet(BaseModelSet):
     ordering_fields = ['created_time', 'name']
 
 
-class CredentialViewSet(BaseModelSet):
-    """云平台凭据管理"""
+class CredentialViewSet(BaseModelSet, ImportExportDataAction):
+    """云平台凭据管理，支持导入导出（敏感字段仅导入模板可见）。"""
 
     queryset = Credential.objects.select_related('platform')
     filterset_class = CredentialFilter
     ordering_fields = ['created_time', 'credential_name']
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type:
         """根据 action 返回不同粒度的序列化器。
 
         - 列表接口使用 CredentialListSerializer（不泄露敏感信息）。
@@ -71,4 +71,4 @@ class CredentialViewSet(BaseModelSet):
         if instance.extra_data:
             data['extra_data'] = instance.extra_data
 
-        return ApiResponse(data=data, detail="凭据解密成功")
+        return ApiResponse(data=data, detail='凭据解密成功')
