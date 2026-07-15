@@ -1,5 +1,6 @@
 """资产管理应用的过滤器定义。"""
 
+from django.db.models import QuerySet
 from django_filters import rest_framework as filters
 
 from apps.asset.choices import (
@@ -81,7 +82,22 @@ class DomainFilter(BaseFilterSet):
         choices=DomainStatusChoices.choices,
     )
     is_ssl_enabled = filters.BooleanFilter(field_name='is_ssl_enabled')
+    is_icp_filed = filters.BooleanFilter(
+        field_name='icp_number',
+        method='filter_filing_status',
+    )
+    is_ps_filed = filters.BooleanFilter(
+        field_name='ps_filing_number',
+        method='filter_filing_status',
+    )
     is_active = filters.BooleanFilter(field_name='is_active')
+
+    def filter_filing_status(self, queryset: QuerySet, name: str, value: bool) -> QuerySet:
+        """按备案号是否为空过滤。True=已备案（非空）。"""
+        if value:
+            return queryset.exclude(**{name: ''}).filter(**{f'{name}__isnull': False})
+        return queryset.filter(**{name: ''}) | queryset.filter(**{f'{name}__isnull': True})
+
     company = filters.ModelChoiceFilter(
         field_name='company',
         lookup_expr='exact',
@@ -99,6 +115,8 @@ class DomainFilter(BaseFilterSet):
             'platform',
             'status',
             'is_ssl_enabled',
+            'is_icp_filed',
+            'is_ps_filed',
             'is_active',
             'company',
             'expire_time',
