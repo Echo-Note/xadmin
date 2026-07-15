@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { usePlatform } from "./utils/hook";
+import CredentialDialog from "./utils/CredentialDialog.vue";
 
 defineOptions({
   name: "CloudPlatformInstance"
@@ -10,7 +11,10 @@ const {
   auth,
   addOrEditOptions,
   listColumnsFormat,
-  operationButtonsProps
+  operationButtonsProps,
+  credentialDrawerVisible,
+  currentPlatform,
+  credentialApi
 } = usePlatform();
 </script>
 
@@ -22,5 +26,11 @@ const {
     :addOrEditOptions="addOrEditOptions"
     :listColumnsFormat="listColumnsFormat"
     :operationButtonsProps="operationButtonsProps"
+  />
+  <CredentialDialog
+    v-model:visible="credentialDrawerVisible"
+    :platform="currentPlatform"
+    :credentialApi="credentialApi"
+    :auth="auth"
   />
 </template>

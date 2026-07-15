@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, reactive, onMounted, h } from "vue";
+import { ref, reactive, watch } from "vue";
 import {
   ElTable,
   ElTableColumn,
@@ -7,18 +7,20 @@ import {
   ElTag,
   ElMessageBox,
   ElMessage,
-  ElDialog,
+  ElDrawer,
   ElForm,
   ElFormItem,
   ElInput,
   ElSelect,
   ElOption,
-  ElDatePicker
+  ElDatePicker,
+  ElSwitch,
+  ElDescriptions,
+  ElDescriptionsItem,
+  ElEmpty
 } from "element-plus";
-import { credentialApi } from "@/api/cloud_platform";
-import type { BaseApi } from "@/api/base";
-import { addDialog } from "@/components/ReDialog";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import type { BaseApi } from "@/api/base";
 
 interface CredentialRecord {
   pk: string;
@@ -33,11 +35,17 @@ interface CredentialRecord {
 }
 
 const props = defineProps<{
+  visible: boolean;
   platform: Record<string, any>;
   credentialApi: BaseApi;
   auth: Record<string, boolean>;
 }>();
 
+const emit = defineEmits<{
+  (e: "update:visible", val: boolean): void;
+}>();
+
+const drawerVisible = ref(props.visible);
 const loading = ref(false);
 const tableData = ref<CredentialRecord[]>([]);
 const formVisible = ref(false);
@@ -45,6 +53,11 @@ const formTitle = ref("新增凭据");
 const formLoading = ref(false);
 const isEdit = ref(false);
 const currentPk = ref("");
+
+/** 解密明文弹窗 */
+const decryptVisible = ref(false);
+const decryptData = ref<Record<string, any>>({});
+const decryptTitle = ref("");
 
 const formData = reactive({
   credential_name: "",
@@ -66,11 +79,27 @@ const credentialTypes = [
   { value: "api_token", label: "API Token" }
 ];
 
+/** 监听 visible 变化 */
+watch(
+  () => props.visible,
+  val => {
+    drawerVisible.value = val;
+    if (val && props.platform?.pk) {
+      loadCredentials();
+    }
+  }
+);
+
+/** 监听 drawerVisible 变化，同步到父组件 */
+watch(drawerVisible, val => {
+  if (!val) emit("update:visible", false);
+});
+
 /** 加载凭据列表 */
 const loadCredentials = async () => {
   loading.value = true;
   try {
-    const res: any = await credentialApi.list({
+    const res: any = await props.credentialApi.list({
       page: 1,
       size: 1000,
       platform: props.platform.pk
@@ -117,7 +146,6 @@ const handleEdit = (row: CredentialRecord) => {
   formData.remark = row.remark || "";
   formData.is_active = row.is_active;
   formData.token_expire_time = row.token_expire_time || null;
-  // 清除敏感字段（编辑时需重新输入）
   formData.access_key = "";
   formData.access_secret = "";
   formData.username = "";
@@ -128,6 +156,10 @@ const handleEdit = (row: CredentialRecord) => {
 
 /** 保存凭据 */
 const handleSave = async () => {
+  if (!formData.credential_name) {
+    ElMessage.warning("请输入凭据名称");
+    return;
+  }
   formLoading.value = true;
   try {
     const data: any = {
@@ -140,7 +172,6 @@ const handleSave = async () => {
       token_expire_time: formData.token_expire_time || undefined
     };
 
-    // 按凭据类型填充对应字段
     if (formData.credential_type === "access_key") {
       data.access_key = formData.access_key;
       data.access_secret = formData.access_secret;
@@ -152,10 +183,10 @@ const handleSave = async () => {
     }
 
     if (isEdit.value) {
-      await credentialApi.update(currentPk.value, data);
+      await props.credentialApi.update(currentPk.value, data);
       ElMessage.success("凭据更新成功");
     } else {
-      await credentialApi.create(data);
+      await props.credentialApi.create(data);
       ElMessage.success("凭据创建成功");
     }
     formVisible.value = false;
@@ -167,48 +198,23 @@ const handleSave = async () => {
 
 /** 删除凭据 */
 const handleDelete = async (row: CredentialRecord) => {
-  await ElMessageBox.confirm(`确定删除凭据 "${row.credential_name}"？`, "确认删除", {
-    type: "warning"
-  });
-  await credentialApi.destroy(row.pk);
+  await ElMessageBox.confirm(
+    `确定删除凭据 "${row.credential_name}"？`,
+    "确认删除",
+    { type: "warning" }
+  );
+  await props.credentialApi.destroy(row.pk);
   ElMessage.success("删除成功");
   loadCredentials();
 };
 
 /** 解密查看凭据 */
 const handleDecrypt = async (row: CredentialRecord) => {
-  const res: any = await (credentialApi as any).decrypt(row.pk);
+  const res: any = await (props.credentialApi as any).decrypt(row.pk);
   if (res.code === 1000) {
-    const data = res.data;
-    const lines: string[] = [];
-    if (data.access_key) lines.push(`Access Key: ${data.access_key}`);
-    if (data.access_secret) lines.push(`Secret Key: ${data.access_secret}`);
-    if (data.username) lines.push(`用户名: ${data.username}`);
-    if (data.password) lines.push(`密码: ${data.password}`);
-    if (data.api_token) lines.push(`Token: ${data.api_token}`);
-    if (data.email) lines.push(`邮箱: ${data.email}`);
-    if (data.extra_data)
-      lines.push(`扩展数据: ${JSON.stringify(data.extra_data, null, 2)}`);
-
-    addDialog({
-      title: `凭据明文 - ${row.credential_name}`,
-      width: "500px",
-      contentRenderer: () =>
-        h(
-          "pre",
-          {
-            style: {
-              padding: "16px",
-              background: "#f5f7fa",
-              borderRadius: "4px",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-all"
-            }
-          },
-          lines.join("\n")
-        ),
-      hideFooter: true
-    });
+    decryptData.value = res.data;
+    decryptTitle.value = row.credential_name;
+    decryptVisible.value = true;
   }
 };
 
@@ -231,17 +237,58 @@ const typeLabel = (type: string) => {
   return map[type] || type;
 };
 
-onMounted(() => {
-  loadCredentials();
-});
+/** 平台类型显示 */
+const platformTypeLabel = (type: any) => {
+  if (!type) return "";
+  if (typeof type === "object") return type.label || "";
+  const map: Record<string, string> = {
+    tencent: "腾讯云",
+    aliyun: "阿里云",
+    aws: "AWS",
+    azure: "Azure",
+    huawei: "华为云",
+    vcenter: "vCenter",
+    meicheng: "美橙",
+    other: "其他"
+  };
+  return map[type] || type;
+};
 </script>
 
 <template>
-  <div style="min-height: 400px">
+  <el-drawer
+    v-model="drawerVisible"
+    :title="`凭据管理 - ${platform?.name || ''}`"
+    direction="rtl"
+    size="70%"
+    destroy-on-close
+  >
+    <!-- 平台信息卡片 -->
+    <div
+      class="mb-4 p-4 rounded-lg bg-bg_color border border-[var(--el-border-color-lighter)]"
+    >
+      <el-descriptions :column="3" border size="small">
+        <el-descriptions-item label="平台名称">
+          {{ platform?.name }}
+        </el-descriptions-item>
+        <el-descriptions-item label="平台类型">
+          {{ platformTypeLabel(platform?.platform_type) }}
+        </el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag
+            :type="platform?.is_active ? 'success' : 'danger'"
+            size="small"
+          >
+            {{ platform?.is_active ? "启用" : "禁用" }}
+          </el-tag>
+        </el-descriptions-item>
+      </el-descriptions>
+    </div>
+
     <!-- 操作栏 -->
-    <div style="margin-bottom: 16px; display: flex; justify-content: space-between">
-      <span style="font-weight: 500; color: #606266">
-        平台：{{ platform.name }}
+    <div class="mb-3 flex justify-between items-center">
+      <span class="text-sm text-[var(--el-text-color-secondary)]">
+        共 {{ tableData.length }} 条凭据
       </span>
       <el-button
         v-if="auth.credentialCreate"
@@ -254,26 +301,45 @@ onMounted(() => {
     </div>
 
     <!-- 凭据表格 -->
-    <el-table :data="tableData" v-loading="loading" border stripe>
-      <el-table-column prop="credential_name" label="凭据名称" min-width="140" />
-      <el-table-column prop="credential_type" label="凭据类型" width="120">
+    <el-table v-loading="loading" :data="tableData" border stripe>
+      <el-table-column
+        prop="credential_name"
+        label="凭据名称"
+        min-width="120"
+      />
+      <el-table-column prop="credential_type" label="类型" width="90">
         <template #default="{ row }">
           <el-tag :type="typeTagType(row.credential_type)" size="small">
             {{ typeLabel(row.credential_type) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="username" label="用户名" width="120" />
-      <el-table-column prop="email" label="邮箱" width="180" />
-      <el-table-column prop="remark" label="备注" min-width="160" show-overflow-tooltip />
-      <el-table-column prop="is_active" label="状态" width="80">
+      <el-table-column
+        prop="username"
+        label="用户名"
+        width="100"
+        show-overflow-tooltip
+      />
+      <el-table-column
+        prop="email"
+        label="邮箱"
+        width="150"
+        show-overflow-tooltip
+      />
+      <el-table-column
+        prop="remark"
+        label="备注"
+        min-width="120"
+        show-overflow-tooltip
+      />
+      <el-table-column prop="is_active" label="状态" width="70">
         <template #default="{ row }">
           <el-tag :type="row.is_active ? 'success' : 'danger'" size="small">
             {{ row.is_active ? "启用" : "禁用" }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="280" fixed="right">
+      <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
           <el-button
             v-if="auth.credentialDecrypt"
@@ -304,24 +370,26 @@ onMounted(() => {
           </el-button>
         </template>
       </el-table-column>
+      <template #empty>
+        <el-empty description="暂无凭据数据" :image-size="80" />
+      </template>
     </el-table>
 
     <!-- 新增/编辑凭据对话框 -->
     <el-dialog
       v-model="formVisible"
       :title="formTitle"
-      width="550px"
+      width="520px"
+      append-to-body
       destroy-on-close
     >
-      <el-form
-        :model="formData"
-        label-width="110px"
-        label-position="right"
-      >
+      <el-form :model="formData" label-width="100px" label-position="right">
         <el-form-item label="凭据名称" required>
-          <el-input v-model="formData.credential_name" placeholder="如：运维账号" />
+          <el-input
+            v-model="formData.credential_name"
+            placeholder="如：运维账号"
+          />
         </el-form-item>
-
         <el-form-item label="凭据类型" required>
           <el-select v-model="formData.credential_type" style="width: 100%">
             <el-option
@@ -333,7 +401,6 @@ onMounted(() => {
           </el-select>
         </el-form-item>
 
-        <!-- Access Key 类型字段 -->
         <template v-if="formData.credential_type === 'access_key'">
           <el-form-item label="Access Key" :required="!isEdit">
             <el-input
@@ -351,7 +418,6 @@ onMounted(() => {
           </el-form-item>
         </template>
 
-        <!-- 用户名密码类型字段 -->
         <template v-if="formData.credential_type === 'password'">
           <el-form-item label="用户名">
             <el-input v-model="formData.username" placeholder="请输入用户名" />
@@ -366,7 +432,6 @@ onMounted(() => {
           </el-form-item>
         </template>
 
-        <!-- API Token 类型字段 -->
         <template v-if="formData.credential_type === 'api_token'">
           <el-form-item label="API Token" :required="!isEdit">
             <el-input
@@ -388,9 +453,11 @@ onMounted(() => {
         </template>
 
         <el-form-item label="邮箱">
-          <el-input v-model="formData.email" placeholder="关联邮箱（如美橙等需要）" />
+          <el-input
+            v-model="formData.email"
+            placeholder="关联邮箱（如美橙等需要）"
+          />
         </el-form-item>
-
         <el-form-item label="备注">
           <el-input
             v-model="formData.remark"
@@ -399,9 +466,12 @@ onMounted(() => {
             placeholder="凭据用途说明"
           />
         </el-form-item>
-
         <el-form-item label="状态">
-          <el-switch v-model="formData.is_active" active-text="启用" inactive-text="禁用" />
+          <el-switch
+            v-model="formData.is_active"
+            active-text="启用"
+            inactive-text="禁用"
+          />
         </el-form-item>
       </el-form>
 
@@ -412,5 +482,46 @@ onMounted(() => {
         </el-button>
       </template>
     </el-dialog>
-  </div>
+
+    <!-- 解密明文对话框 -->
+    <el-dialog
+      v-model="decryptVisible"
+      :title="`凭据明文 - ${decryptTitle}`"
+      width="480px"
+      append-to-body
+    >
+      <el-descriptions :column="1" border size="small">
+        <el-descriptions-item v-if="decryptData.access_key" label="Access Key">
+          {{ decryptData.access_key }}
+        </el-descriptions-item>
+        <el-descriptions-item
+          v-if="decryptData.access_secret"
+          label="Secret Key"
+        >
+          {{ decryptData.access_secret }}
+        </el-descriptions-item>
+        <el-descriptions-item v-if="decryptData.username" label="用户名">
+          {{ decryptData.username }}
+        </el-descriptions-item>
+        <el-descriptions-item v-if="decryptData.password" label="密码">
+          {{ decryptData.password }}
+        </el-descriptions-item>
+        <el-descriptions-item v-if="decryptData.api_token" label="API Token">
+          {{ decryptData.api_token }}
+        </el-descriptions-item>
+        <el-descriptions-item v-if="decryptData.email" label="邮箱">
+          {{ decryptData.email }}
+        </el-descriptions-item>
+        <el-descriptions-item
+          v-if="decryptData.token_expire_time"
+          label="过期时间"
+        >
+          {{ decryptData.token_expire_time }}
+        </el-descriptions-item>
+        <el-descriptions-item v-if="decryptData.extra_data" label="扩展数据">
+          {{ JSON.stringify(decryptData.extra_data) }}
+        </el-descriptions-item>
+      </el-descriptions>
+    </el-dialog>
+  </el-drawer>
 </template>
