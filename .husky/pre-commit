@@ -1,0 +1,67 @@
+#!/usr/bin/env sh
+# Git pre-commit hook：提交前自动检查代码质量
+#
+# 前端（client/）：lint-staged（eslint + prettier + stylelint）
+# 后端（server/）：ruff check + ruff format --check
+
+# --- 工具函数 ---
+
+# 获取暂存区中匹配指定模式的文件
+staged_files() {
+  git diff --cached --name-only --diff-filter=ACM -- "$@" | grep -E "$1" || true
+}
+
+# --- 前端检查（client/）---
+
+CLIENT_STAGED=$(git diff --cached --name-only --diff-filter=ACM -- "client/" | grep -E '\.(vue|js|ts|tsx|jsx|css|scss|html|json|md)$' || true)
+if [ -n "$CLIENT_STAGED" ]; then
+  echo "🔍 [client] 运行 lint-staged..."
+  cd client
+
+  if [ ! -d "node_modules" ]; then
+    echo "⚠️  client/node_modules 不存在，跳过前端检查"
+    echo "   请先运行: cd client && pnpm install"
+  else
+    # lint-staged 自动通过 git 获取暂存文件并检查
+    npx lint-staged || {
+      echo "❌ [client] lint-staged 检查失败，请修复后重新提交"
+      exit 1
+    }
+    echo "✅ [client] lint-staged 检查通过"
+  fi
+  cd ..
+fi
+
+# --- 后端检查（server/）---
+
+SERVER_STAGED=$(git diff --cached --name-only --diff-filter=ACM -- "server/" | grep -E '\.py$' || true)
+if [ -n "$SERVER_STAGED" ]; then
+  echo "🔍 [server] 运行 ruff 检查..."
+  cd server
+
+  if ! command -v uv >/dev/null 2>&1; then
+    echo "⚠️  uv 未安装，跳过后端检查"
+    echo "   请先安装: curl -LsSf https://astral.sh/uv/install.sh | sh"
+  else
+    # 提取相对于 server/ 的文件路径
+    PY_FILES=$(echo "$SERVER_STAGED" | sed 's|^server/||' | tr '\n' ' ')
+
+    # ruff check（lint）
+    if ! uv run ruff check $PY_FILES; then
+      echo "❌ [server] ruff check 失败，请修复后重新提交"
+      echo "   可运行: cd server && uv run ruff check --fix <file>"
+      cd ..
+      exit 1
+    fi
+
+    # ruff format --check（格式检查，不修改）
+    if ! uv run ruff format --check $PY_FILES; then
+      echo "❌ [server] ruff format 检查失败，请格式化后重新提交"
+      echo "   可运行: cd server && uv run ruff format <file>"
+      cd ..
+      exit 1
+    fi
+    echo "✅ [server] ruff 检查通过"
+  fi
+  cd ..
+fi

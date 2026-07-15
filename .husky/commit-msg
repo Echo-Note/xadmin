@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+# Git commit-msg hook：校验提交信息格式
+#
+# 格式：<type>: <简要描述>
+# type 可选值：feat | fix | docs | style | refactor | perf | test | chore | ci | build | revert
+#
+# 示例：
+#   feat: 添加用户登录模块
+#   fix: 修复分页查询总数错误
+#   refactor: 拆分 filters 到独立模块
+
+commit_msg_file="$1"
+commit_msg=$(cat "$commit_msg_file" | sed 's/^#.*//' | sed '/^$/d' | head -1)
+
+# 合并提交（以 Merge 开头）跳过校验
+if echo "$commit_msg" | grep -qE '^Merge (branch|pull request)'; then
+  exit 0
+fi
+
+# 校验格式：<type>: <描述>
+# type 后可有可选的 scope，如 feat(scope): xxx
+pattern='^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?: .{1,}$'
+
+if ! echo "$commit_msg" | grep -qE "$pattern"; then
+  echo "❌ 提交信息格式不符合规范！"
+  echo ""
+  echo "   期望格式: <type>: <简要描述>"
+  echo "   可选 type: feat | fix | docs | style | refactor | perf | test | chore | ci | build | revert"
+  echo ""
+  echo "   示例:"
+  echo "     feat: 添加用户登录模块"
+  echo "     fix: 修复分页查询总数错误"
+  echo "     refactor: 拆分 filters 到独立模块"
+  echo "     feat(cloud_platform): 添加平台类型下拉筛选"
+  echo ""
+  echo "   当前提交信息: $commit_msg"
+  exit 1
+fi
