@@ -5,18 +5,12 @@ from pilkit.processors import ResizeToFill
 
 from apps.common.core.models import AutoCleanFileMixin, DbAuditModel, upload_directory_path
 from apps.common.fields.image import ProcessedImageField
+from apps.demo.choices import CategoryChoices
 from apps.system.models import UploadFile, UserInfo
 
 
 class Book(AutoCleanFileMixin, DbAuditModel):
     """书籍模型，用于演示各种字段类型与关联关系。"""
-
-    class CategoryChoices(models.IntegerChoices):
-        """书籍类型枚举。"""
-
-        DIRECTORY = 0, "小说"
-        MENU = 1, "文学"
-        PERMISSION = 2, "哲学"
 
     # choices 单选
     category = models.SmallIntegerField(choices=CategoryChoices, default=CategoryChoices.DIRECTORY,

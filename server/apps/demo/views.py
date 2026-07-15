@@ -1,42 +1,19 @@
 """演示应用的视图集。"""
 # Create your views here.
 
-from demo.models import Book
-from demo.serializers.book import BookSerializer
-from django_filters import rest_framework as filters
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from apps.common.core.filter import BaseFilterSet, PkMultipleFilter
 from apps.common.core.modelset import BaseModelSet, ImportExportDataAction
 from apps.common.core.pagination import DynamicPageNumber
 from apps.common.core.response import ApiResponse
 from apps.common.utils import get_logger
+from apps.demo.filters import BookViewSetFilter
+from apps.demo.models import Book
+from apps.demo.serializers.book import BookSerializer
 
 logger = get_logger(__name__)
-
-
-class BookViewSetFilter(BaseFilterSet):
-    """书籍视图集的过滤器。"""
-
-    name = filters.CharFilter(field_name='name', lookup_expr='icontains')
-    author = filters.CharFilter(field_name='author', lookup_expr='icontains')
-    publisher = filters.CharFilter(field_name='publisher', lookup_expr='icontains')
-
-    # 自定义的搜索模板，针对用户搜索，前端已经内置 api-search-user 模板处理
-    managers2 = PkMultipleFilter(input_type='api-search-user')
-
-    # 自定义的搜索模板，默认是带有choices的下拉框，当数据多的话，体验不好，所以这里改为输入框，前端已经内置 input 处理
-    # 关联关系搜索的时候，默认是主键pk
-    managers = PkMultipleFilter(input_type='input')
-
-    class Meta:
-        """过滤器元数据配置。"""
-
-        model = Book
-        fields = ['name', 'isbn', 'author', 'publisher', 'is_active', 'publication_date', 'price',
-                  'created_time', 'managers', 'managers2']  # fields用于前端自动生成的搜索表单
 
 
 class BookViewSet(BaseModelSet, ImportExportDataAction):

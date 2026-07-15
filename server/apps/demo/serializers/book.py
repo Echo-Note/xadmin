@@ -119,8 +119,8 @@ class BookSerializer(BaseModelSerializer):
     #                                    input_type='api-search-user')
 
     # # 目前，可以注释了，在父类里面，已经定义了 serializer_choice_field 字段， 系统会自动生成
-    # category = LabeledChoiceField(choices=models.Book.CategoryChoices.choices,
-    #                               default=models.Book.CategoryChoices.DIRECTORY)
+    # category = LabeledChoiceField(choices=CategoryChoices.choices,
+    #                               default=CategoryChoices.DIRECTORY)
 
     # 自定义 input_type ，设置了 read_only=True 意味着只能通过详情查看，在新增和编辑页面不展示该字段
     # input_type 仅是前端组件渲染识别用， 可以自定义input_type ,但是前端组件得对定义的input_type 进行渲染
