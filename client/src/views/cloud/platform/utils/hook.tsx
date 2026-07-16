@@ -91,7 +91,7 @@ export function usePlatform() {
       {
         code: "sync-log",
         text: "日志",
-        props: ({ row }: { row: Record<string, any> }) => ({
+        props: (row: Record<string, any>) => ({
           tag: "a",
           target: "_blank",
           rel: "noopener noreferrer",
