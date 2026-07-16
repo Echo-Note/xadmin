@@ -222,9 +222,15 @@ export function useBaseColumns(localeName: string) {
         hideInTable: false,
         // pure-table ****** start
         showOverflowTooltip: true,
-        cellRenderer: ({ row }) => (
-          <span v-copy={row[column.key]}>{row[column.key]}</span>
-        )
+        cellRenderer: ({ row }) => {
+          const value = row[column.key];
+          // 处理对象类型的列值（如 FK 摘要、SerializerMethodField 返回的 dict）
+          const display =
+            value !== null && typeof value === "object"
+              ? value.name || value.label || JSON.stringify(value)
+              : value;
+          return <span v-copy={display}>{display}</span>;
+        }
         // pure-table ****** end
       };
       // pure-table ****** start
