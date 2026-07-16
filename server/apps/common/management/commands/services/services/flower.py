@@ -1,8 +1,7 @@
 """Flower 任务监控服务模块。"""
 
-
-from .base import BaseService
 from ..hands import *
+from .base import BaseService
 
 __all__ = ['FlowerService']
 
@@ -25,13 +24,16 @@ class FlowerService(BaseService):
     @property
     def cmd(self) -> list:
         """返回启动 Flower 监控的命令列表。"""
-        print("\n- Start Flower as Task Monitor")
+        print('\n- Start Flower as Task Monitor')
 
         if os.getuid() == 0:
             os.environ.setdefault('C_FORCE_ROOT', '1')
         cmd = [
+            sys.executable,
+            '-m',
             'celery',
-            '-A', 'server',
+            '-A',
+            'server',
             'flower',
             '-logging=info',
             '--url_prefix=api/flower',

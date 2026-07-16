@@ -155,6 +155,11 @@ ignore = [
     "B008",  # Django 中常见函数调用默认值（如 models.CharField）
 ]
 
+[tool.ruff.lint.per-file-ignores]
+# 服务管理模块通过 from ..hands import * 集中导入所有依赖，
+# 这是该模块的设计约定，忽略 star-import 相关警告。
+"apps/common/management/commands/services/services/*.py" = ["F403", "F405"]
+
 [tool.ruff.lint.isort]
 known-first-party = ["server", "system", "settings", "common", "notifications", "captcha", "message"]
 
