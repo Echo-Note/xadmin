@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { reactive, shallowRef, computed } from "vue";
+import { getCurrentInstance, reactive, shallowRef } from "vue";
 import { useRoute } from "vue-router";
 import { syncRecordApi } from "@/api/cloud_platform";
 import { getDefaultAuths } from "@/router/utils";
@@ -11,18 +11,17 @@ defineOptions({
 
 const route = useRoute();
 const api = reactive(syncRecordApi);
-const auth = reactive(getDefaultAuths(null) as any);
+
+const instance = getCurrentInstance();
+const auth = reactive(getDefaultAuths(instance));
 
 /** 从 URL query 参数获取预设的 platform 筛选值 */
-const initPlatformFilter = computed(() => {
-  const platform = route.query?.platform;
-  return platform ? String(platform) : undefined;
-});
+const platformFilter = route.query?.platform ? String(route.query.platform) : undefined;
 
 /** 首次加载时自动注入 platform 筛选参数 */
 const beforeSearchSubmit = (params: Record<string, any>) => {
-  if (initPlatformFilter.value && !params.platform) {
-    params.platform = initPlatformFilter.value;
+  if (platformFilter && !params.platform) {
+    params.platform = platformFilter;
   }
   return params;
 };
