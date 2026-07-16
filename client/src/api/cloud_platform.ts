@@ -9,7 +9,7 @@ class PlatformApi extends BaseApi {
 
   /** 触发资源同步 */
   triggerSync = (platform: string, resources?: string[], syncType = "manual") =>
-    http.post("/api/cloud/sync-record/trigger/", {
+    http.post("/api/cloud/sync-record/trigger", {
       platform,
       resources,
       sync_type: syncType
