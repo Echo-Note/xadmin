@@ -56,7 +56,7 @@ const handleSync = async () => {
       selectedResources.value
     );
     if (res.code === 1000) {
-      ElMessage.success("同步任务已提交，完成后将通过系统通知告知结果");
+      ElMessage.success(`[${props.platform.name}] 同步任务已提交，完成后将通过系统通知告知结果`);
       close();
       emit("done");
     } else {
