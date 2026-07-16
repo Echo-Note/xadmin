@@ -198,6 +198,44 @@
             }
           }
         ]
+      },
+      {
+        "name": "CloudPlatformSyncAgentLog",
+        "menu_type": 1,
+        "rank": 3,
+        "path": "/cloud/sync-agent-log/index",
+        "component": "cloud/sync-agent-log/index",
+        "is_active": true,
+        "meta": {
+          "title": "Agent日志",
+          "icon": "ri:terminal-box-line",
+          "is_show_menu": true,
+          "is_keepalive": true
+        },
+        "permissions": [
+          {
+            "name": "list:CloudPlatformSyncAgentLog",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/cloud/sync-agent-log$",
+            "method": "GET",
+            "is_active": true,
+            "meta": {
+              "title": "查询Agent日志"
+            }
+          },
+          {
+            "name": "retrieve:CloudPlatformSyncAgentLog",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/cloud/sync-agent-log/[a-zA-Z0-9-]+$",
+            "method": "GET",
+            "is_active": true,
+            "meta": {
+              "title": "查看Agent日志详情"
+            }
+          }
+        ]
       }
     ]
   }

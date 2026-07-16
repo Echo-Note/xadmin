@@ -29,3 +29,6 @@ export const credentialApi = new CredentialApi("/api/cloud/credential");
 
 /** 同步记录 API */
 export const syncRecordApi = new BaseApi("/api/cloud/sync-record");
+
+/** 同步 Agent 日志 API */
+export const syncAgentLogApi = new BaseApi("/api/cloud/sync-agent-log");
