@@ -1,43 +1,21 @@
 <script lang="ts" setup>
-import { getCurrentInstance, reactive, shallowRef } from "vue";
-import { domainApi } from "@/api/asset";
-import { getDefaultAuths } from "@/router/utils";
-import type { RePlusPageProps } from "@/components/RePlusPage";
+import { useDomain } from "./utils/hook";
+import DnsRecordDrawer from "./utils/DnsRecordDrawer.vue";
+import RelationGraphDrawer from "./utils/RelationGraphDrawer.vue";
 
 defineOptions({
   name: "Domain"
 });
 
-const api = reactive(domainApi);
-
-const instance = getCurrentInstance();
-const defaultAuths = getDefaultAuths(instance);
-
-const auth = reactive({
-  ...defaultAuths,
-  exportData: defaultAuths.exportData || defaultAuths.list,
-  importData: defaultAuths.importData || defaultAuths.create
-});
-
-const addOrEditOptions = shallowRef<RePlusPageProps["addOrEditOptions"]>({
-  props: {
-    minWidth: "700px",
-    dialogDrawerOptions: {
-      width: "900px"
-    }
-  }
-});
-
-// 搜索表单：每行 3 个字段（更宽的输入框）
-const plusSearchProps: RePlusPageProps["plusSearchProps"] = {
-  colProps: {
-    xs: 24,
-    sm: 24,
-    md: 8,
-    lg: 8,
-    xl: 8
-  }
-};
+const {
+  api,
+  auth,
+  addOrEditOptions,
+  operationButtonsProps,
+  dnsDrawerVisible,
+  graphDrawerVisible,
+  currentDomain
+} = useDomain();
 </script>
 
 <template>
@@ -46,6 +24,11 @@ const plusSearchProps: RePlusPageProps["plusSearchProps"] = {
     :auth="auth"
     locale-name="domain"
     :addOrEditOptions="addOrEditOptions"
-    :plusSearchProps="plusSearchProps"
+    :operationButtonsProps="operationButtonsProps"
+  />
+  <DnsRecordDrawer v-model:visible="dnsDrawerVisible" :domain="currentDomain" />
+  <RelationGraphDrawer
+    v-model:visible="graphDrawerVisible"
+    :domain="currentDomain"
   />
 </template>

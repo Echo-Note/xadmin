@@ -1,5 +1,7 @@
 """资产管理应用的视图集。"""
 
+from django.db.models import Count
+
 from apps.asset.filters import (
     CloudServerFilter,
     DnsRecordFilter,
@@ -30,10 +32,12 @@ class CloudServerViewSet(BaseModelSet, ImportExportDataAction):
 class DomainViewSet(BaseModelSet, ImportExportDataAction):
     """域名资产管理，支持导入导出。"""
 
-    queryset = Domain.objects.select_related('platform', 'company')
+    queryset = Domain.objects.select_related('platform', 'company').annotate(
+        dns_count=Count('dns_records'),
+    )
     serializer_class = DomainSerializer
     filterset_class = DomainFilter
-    ordering_fields = ['created_time', 'domain_name', 'expire_time']
+    ordering_fields = ['created_time', 'domain_name', 'expire_time', 'dns_count']
 
 
 class LocalServerViewSet(BaseModelSet, ImportExportDataAction):

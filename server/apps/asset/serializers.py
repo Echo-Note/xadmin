@@ -193,6 +193,12 @@ class DomainSerializer(BaseModelSerializer):
         label='云平台',
         help_text='归属云平台的摘要信息',
     )
+    dns_count = serializers.IntegerField(
+        read_only=True,
+        default=0,
+        label='解析数量',
+        help_text='该域名下的 DNS 解析记录数量',
+    )
 
     def get_platform_info(self, obj: models.Domain) -> dict | None:
         """获取归属云平台的摘要信息。"""
@@ -258,6 +264,7 @@ class DomainSerializer(BaseModelSerializer):
             'owner_name',
             'is_ssl_enabled',
             'ssl_expire_time',
+            'dns_count',
             'domain_certificate',
             'security_contact',
             'security_contact_phone',
@@ -277,6 +284,7 @@ class DomainSerializer(BaseModelSerializer):
             'domain_name',
             'registrar',
             'platform_info',
+            'dns_count',
             'registration_time',
             'expire_time',
             'status',
@@ -312,6 +320,10 @@ class DomainSerializer(BaseModelSerializer):
             'expire_time': {
                 'label': '到期时间',
                 'help_text': '域名到期日期',
+            },
+            'dns_count': {
+                'label': '解析数量',
+                'help_text': '该域名下的 DNS 解析记录数量',
             },
             'dns_server': {
                 'label': 'DNS 服务器',
