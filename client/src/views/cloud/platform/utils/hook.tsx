@@ -2,11 +2,13 @@ import { getCurrentInstance, reactive, shallowRef, ref } from "vue";
 import { platformApi, credentialApi } from "@/api/cloud_platform";
 import { getDefaultAuths, hasAuth } from "@/router/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { ElMessage } from "element-plus";
 import type {
   PageTableColumn,
   OperationProps,
   RePlusPageProps
 } from "@/components/RePlusPage";
+import SyncDialog from "./SyncDialog.vue";
 
 export function usePlatform() {
   const api = reactive(platformApi);
@@ -30,17 +32,60 @@ export function usePlatform() {
   const credentialDrawerVisible = ref(false);
   const currentPlatform = ref<Record<string, any>>({});
 
+  /** 同步对话框 ref */
+  const syncDialogRef = shallowRef<InstanceType<typeof SyncDialog>>();
+
   /** 打开凭据管理抽屉 */
   const openCredentialDrawer = (row: Record<string, any>) => {
     currentPlatform.value = row;
     credentialDrawerVisible.value = true;
   };
 
+  /** 打开同步对话框 */
+  const openSyncDialog = (row: Record<string, any>) => {
+    currentPlatform.value = row;
+    // 确保对话框组件已挂载后再调用 open
+    setTimeout(() => {
+      syncDialogRef.value?.open();
+    }, 50);
+  };
+
+  /** 刷新余额 */
+  const handleRefreshBalance = async (row: Record<string, any>) => {
+    currentPlatform.value = row;
+    // 通过 SyncDialog 的 handleRefreshBalance 方法
+    setTimeout(() => {
+      syncDialogRef.value?.handleRefreshBalance();
+    }, 50);
+  };
+
   const operationButtonsProps = shallowRef<OperationProps>({
-    width: 280,
+    width: 340,
     showNumber: 4,
     buttons: [
       { code: "retrieve", show: false },
+      {
+        code: "custom",
+        text: "刷新余额",
+        props: {
+          type: "warning",
+          link: true,
+          icon: useRenderIcon("ri:money-cny-circle-line")
+        },
+        show: auth.update && -30,
+        onClick: ({ row }) => handleRefreshBalance(row)
+      },
+      {
+        code: "custom",
+        text: "同步",
+        props: {
+          type: "success",
+          link: true,
+          icon: useRenderIcon("ri:refresh-line")
+        },
+        show: auth.update && -25,
+        onClick: ({ row }) => openSyncDialog(row)
+      },
       {
         code: "custom",
         text: "凭据",
@@ -70,6 +115,15 @@ export function usePlatform() {
       minWidth: "600px",
       dialogDrawerOptions: {
         width: "600px"
+      },
+      /** 提交成功后刷新列表 */
+      beforeSubmit: ({ formData }) => {
+        // 保留 sync_resources 参数（如果表单中有的话），传递给后端 perform_create/perform_update
+        // 如果用户没有选择同步资源，则移除该参数
+        if (formData.sync_resources && !Array.isArray(formData.sync_resources)) {
+          delete formData.sync_resources;
+        }
+        return formData;
       }
     }
   });
@@ -82,6 +136,7 @@ export function usePlatform() {
     operationButtonsProps,
     credentialDrawerVisible,
     currentPlatform,
-    credentialApi
+    credentialApi,
+    syncDialogRef
   };
 }

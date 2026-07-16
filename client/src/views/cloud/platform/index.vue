@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { usePlatform } from "./utils/hook";
 import CredentialDialog from "./utils/CredentialDialog.vue";
+import SyncDialog from "./utils/SyncDialog.vue";
 
 defineOptions({
   name: "CloudPlatformInstance"
@@ -14,7 +15,8 @@ const {
   operationButtonsProps,
   credentialDrawerVisible,
   currentPlatform,
-  credentialApi
+  credentialApi,
+  syncDialogRef
 } = usePlatform();
 </script>
 
@@ -32,5 +34,11 @@ const {
     :platform="currentPlatform"
     :credentialApi="credentialApi"
     :auth="auth"
+  />
+  <SyncDialog
+    v-if="currentPlatform.pk"
+    ref="syncDialogRef"
+    :platform="currentPlatform"
+    @done="() => {}"
   />
 </template>

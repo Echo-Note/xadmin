@@ -2,7 +2,21 @@ import { BaseApi } from "@/api/base";
 import { http } from "@/utils/http";
 
 /** 云平台实例 API */
-export const platformApi = new BaseApi("/api/cloud/platform");
+class PlatformApi extends BaseApi {
+  /** 异步刷新余额 */
+  refreshBalance = (pk: string) =>
+    http.post(`${this.baseApi}/${pk}/refresh-balance/`, { async: true });
+
+  /** 触发资源同步 */
+  triggerSync = (platform: string, resources?: string[], syncType = "manual") =>
+    http.post("/api/cloud/sync-record/trigger/", {
+      platform,
+      resources,
+      sync_type: syncType
+    });
+}
+
+export const platformApi = new PlatformApi("/api/cloud/platform");
 
 /** 凭据管理 API */
 class CredentialApi extends BaseApi {
@@ -12,3 +26,6 @@ class CredentialApi extends BaseApi {
 }
 
 export const credentialApi = new CredentialApi("/api/cloud/credential");
+
+/** 同步记录 API */
+export const syncRecordApi = new BaseApi("/api/cloud/sync-record");
