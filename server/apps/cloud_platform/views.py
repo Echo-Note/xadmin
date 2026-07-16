@@ -8,13 +8,21 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from apps.cloud_platform.choices import CredentialTypeChoices
-from apps.cloud_platform.filters import CloudPlatformFilter, CredentialFilter
-from apps.cloud_platform.models import AccountBalance, CloudPlatform, Credential
+from apps.cloud_platform.filters import (
+    CloudPlatformFilter,
+    CredentialFilter,
+    SyncAgentLogFilter,
+    SyncRecordFilter,
+)
+from apps.cloud_platform.models import AccountBalance, CloudPlatform, Credential, SyncAgentLog, SyncRecord
 from apps.cloud_platform.serializers import (
     CloudPlatformSerializer,
     CredentialDetailSerializer,
     CredentialListSerializer,
+    SyncAgentLogSerializer,
+    SyncRecordSerializer,
 )
+from apps.cloud_platform.sync.engine import SyncEngine
 from apps.common.core.modelset import BaseModelSet, ImportExportDataAction
 from apps.common.core.response import ApiResponse
 
@@ -140,3 +148,53 @@ class CredentialViewSet(BaseModelSet, ImportExportDataAction):
             data['extra_data'] = instance.extra_data
 
         return ApiResponse(data=data, detail='凭据解密成功')
+
+
+class SyncRecordViewSet(BaseModelSet, ImportExportDataAction):
+    """同步记录视图集 — CRUD + 手动触发同步 + 失败重试。"""
+
+    queryset = SyncRecord.objects.select_related('platform').prefetch_related('agent_logs').all()
+    serializer_class = SyncRecordSerializer
+    filterset_class = SyncRecordFilter
+    ordering_fields = ['created_time', 'started_at', 'finished_at', 'total_created', 'total_updated']
+
+    @action(detail=False, methods=['post'], url_path='trigger')
+    def trigger_sync(self, request: Request) -> Response:
+        """手动触发云平台资源同步。
+
+        POST /api/cloud/sync-record/trigger/
+        Body: {"platform": "<platform_pk>", "resources": ["server", "domain"]}
+        """
+        platform_pk = request.data.get('platform')
+        if not platform_pk:
+            return ApiResponse(code=400, detail='platform 参数不能为空')
+        try:
+            platform = CloudPlatform.objects.get(pk=platform_pk)
+        except CloudPlatform.DoesNotExist:
+            return ApiResponse(code=404, detail='云平台实例不存在')
+        resources = request.data.get('resources')
+        sync_type = request.data.get('sync_type', 'manual')
+        engine = SyncEngine()
+        sync_record = engine.run(platform, sync_type=sync_type, resources=resources)
+        serializer = self.get_serializer(sync_record)
+        return ApiResponse(data=serializer.data, detail='同步任务已完成')
+
+    @action(detail=True, methods=['post'], url_path='retry')
+    def retry_sync(self, request: Request, pk: str | None = None) -> Response:
+        """重试失败的同步记录。"""
+        sync_record = self.get_object()
+        if sync_record.status not in ('failed', 'partial'):
+            return ApiResponse(code=400, detail='仅失败或部分成功的同步记录可重试')
+        engine = SyncEngine()
+        new_record = engine.run(sync_record.platform, sync_type='manual', resources=sync_record.resources)
+        serializer = self.get_serializer(new_record)
+        return ApiResponse(data=serializer.data, detail='重试同步已完成')
+
+
+class SyncAgentLogViewSet(BaseModelSet):
+    """同步 Agent 日志视图集 — 只读列表和详情。"""
+
+    queryset = SyncAgentLog.objects.select_related('sync_record').all()
+    serializer_class = SyncAgentLogSerializer
+    filterset_class = SyncAgentLogFilter
+    ordering_fields = ['created_time', 'started_at', 'finished_at']

@@ -5,7 +5,14 @@ from datetime import date, timedelta
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.cloud_platform.choices import CredentialTypeChoices, PlatformTypeChoices
+from apps.cloud_platform.choices import (
+    AgentStatusChoices,
+    CredentialTypeChoices,
+    PlatformTypeChoices,
+    SyncResourceTypeChoices,
+    SyncStatusChoices,
+    SyncTriggerTypeChoices,
+)
 from apps.common.core.models import DbAuditModel, DbUuidModel
 from apps.common.fields.encrypted import EncryptedTextField
 from apps.company.models import Company
@@ -294,3 +301,211 @@ class AccountBalance(DbAuditModel, DbUuidModel):
             record_date__lt=cutoff,
         ).delete()
         return deleted
+
+
+class SyncRecord(DbAuditModel, DbUuidModel):
+    """同步记录，记录每次同步任务的整体执行情况。
+
+    每次同步任务可能包含多种资源类型（服务器/域名/DNS记录/余额），
+    由多个 Agent 分工执行，各 Agent 的执行详情见 SyncAgentLog。
+    """
+
+    platform = models.ForeignKey(
+        to=CloudPlatform,
+        on_delete=models.CASCADE,
+        related_name='sync_records',
+        verbose_name=_('云平台'),
+        help_text=_('所属云平台实例'),
+        db_comment='所属云平台实例ID，关联cloud_platform表',
+    )
+    sync_type = models.CharField(
+        max_length=32,
+        choices=SyncTriggerTypeChoices,
+        verbose_name=_('触发类型'),
+        help_text=_('同步任务的触发方式：手动触发/定时触发/Webhook 触发'),
+        db_comment='同步触发类型',
+    )
+    status = models.CharField(
+        max_length=32,
+        choices=SyncStatusChoices,
+        default=SyncStatusChoices.PENDING,
+        verbose_name=_('同步状态'),
+        help_text=_('同步任务当前状态：等待中/运行中/已完成/部分成功/失败/已取消'),
+        db_comment='同步任务状态',
+    )
+    resources = models.JSONField(
+        default=list,
+        verbose_name=_('同步资源'),
+        help_text=_('本次同步包含的资源类型列表，如：["server", "domain"]'),
+        db_comment='同步资源类型列表（JSON数组）',
+    )
+    total_created = models.IntegerField(
+        default=0,
+        verbose_name=_('新建数量'),
+        help_text=_('本次同步新建的资源数量'),
+        db_comment='新建资源数量',
+    )
+    total_updated = models.IntegerField(
+        default=0,
+        verbose_name=_('更新数量'),
+        help_text=_('本次同步更新的资源数量'),
+        db_comment='更新资源数量',
+    )
+    total_terminated = models.IntegerField(
+        default=0,
+        verbose_name=_('终止数量'),
+        help_text=_('本次同步发现已终止/删除的资源数量'),
+        db_comment='终止资源数量',
+    )
+    total_errors = models.IntegerField(
+        default=0,
+        verbose_name=_('错误数量'),
+        help_text=_('本次同步累计错误数量'),
+        db_comment='累计错误数量',
+    )
+    started_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('开始时间'),
+        help_text=_('同步任务开始执行的时间'),
+        db_comment='同步开始时间',
+    )
+    finished_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('结束时间'),
+        help_text=_('同步任务执行结束的时间'),
+        db_comment='同步结束时间',
+    )
+    error_detail = models.JSONField(
+        default=list,
+        verbose_name=_('错误详情'),
+        help_text=_('同步过程中的错误详情列表，每项含 item 和 error 字段'),
+        db_comment='错误详情列表（JSON数组）',
+    )
+
+    class Meta:
+        """元数据配置。"""
+
+        ordering = ['-created_time']
+        db_table_comment = '同步记录表，记录每次同步任务的整体执行情况'
+        verbose_name = _('同步记录')
+        verbose_name_plural = _('同步记录')
+
+    def __str__(self) -> str:
+        """返回平台名称、状态和创建时间的组合标识。"""
+        return f'{self.platform.name} - {self.get_status_display()} ({self.created_time})'
+
+
+class SyncAgentLog(DbAuditModel, DbUuidModel):
+    """同步 Agent 日志，记录单个 Agent 子任务的执行详情。
+
+    每个 SyncRecord 包含多个 Agent 子任务，每个 Agent 负责一种资源类型的同步。
+    各 Agent 间状态隔离，支持独立重试。
+    """
+
+    sync_record = models.ForeignKey(
+        to=SyncRecord,
+        on_delete=models.CASCADE,
+        related_name='agent_logs',
+        verbose_name=_('同步记录'),
+        help_text=_('所属的同步记录'),
+        db_comment='所属同步记录ID，关联sync_record表',
+    )
+    agent_name = models.CharField(
+        max_length=128,
+        verbose_name=_('Agent 名称'),
+        help_text=_('执行同步的 Agent 或子模块名称，如 tencent-server'),
+        db_comment='Agent/子模块名称',
+    )
+    resource_type = models.CharField(
+        max_length=32,
+        choices=SyncResourceTypeChoices,
+        verbose_name=_('资源类型'),
+        help_text=_('Agent 负责同步的资源类型'),
+        db_comment='同步资源类型',
+    )
+    status = models.CharField(
+        max_length=32,
+        choices=AgentStatusChoices,
+        default=AgentStatusChoices.PENDING,
+        verbose_name=_('执行状态'),
+        help_text=_('Agent 子任务的执行状态'),
+        db_comment='Agent执行状态',
+    )
+    started_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('开始时间'),
+        help_text=_('Agent 子任务开始执行的时间'),
+        db_comment='Agent开始执行时间',
+    )
+    finished_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_('结束时间'),
+        help_text=_('Agent 子任务执行结束的时间'),
+        db_comment='Agent结束执行时间',
+    )
+    log = models.TextField(
+        blank=True,
+        default='',
+        verbose_name=_('执行日志'),
+        help_text=_('Agent 执行的详细日志输出'),
+        db_comment='Agent详细执行日志',
+    )
+    created_count = models.IntegerField(
+        default=0,
+        verbose_name=_('新建数量'),
+        help_text=_('Agent 新建的资源数量'),
+        db_comment='Agent新建资源数量',
+    )
+    updated_count = models.IntegerField(
+        default=0,
+        verbose_name=_('更新数量'),
+        help_text=_('Agent 更新的资源数量'),
+        db_comment='Agent更新资源数量',
+    )
+    terminated_count = models.IntegerField(
+        default=0,
+        verbose_name=_('终止数量'),
+        help_text=_('Agent 发现已终止/删除的资源数量'),
+        db_comment='Agent终止资源数量',
+    )
+    error_count = models.IntegerField(
+        default=0,
+        verbose_name=_('错误数量'),
+        help_text=_('Agent 子任务的错误数量'),
+        db_comment='Agent错误数量',
+    )
+    error_detail = models.JSONField(
+        default=list,
+        verbose_name=_('错误详情'),
+        help_text=_('Agent 子任务的错误详情列表'),
+        db_comment='Agent错误详情列表（JSON数组）',
+    )
+    retry_count = models.IntegerField(
+        default=0,
+        verbose_name=_('重试次数'),
+        help_text=_('Agent 子任务的重试次数'),
+        db_comment='Agent重试次数',
+    )
+    extra_data = models.JSONField(
+        default=dict,
+        verbose_name=_('扩展数据'),
+        help_text=_('Agent 特定的扩展数据，如进度信息、中间状态等'),
+        db_comment='Agent扩展数据（JSON对象）',
+    )
+
+    class Meta:
+        """元数据配置。"""
+
+        ordering = ['created_time']
+        db_table_comment = '同步Agent执行日志表，记录每个子任务的执行详情'
+        verbose_name = _('同步Agent日志')
+        verbose_name_plural = _('同步Agent日志')
+        unique_together = ('sync_record', 'agent_name')
+
+    def __str__(self) -> str:
+        """返回 Agent 名称、状态和所属同步记录的标识。"""
+        return f'{self.agent_name} - {self.get_status_display()} ({self.sync_record_id})'

@@ -2,8 +2,15 @@
 
 from django_filters import rest_framework as filters
 
-from apps.cloud_platform.choices import CredentialTypeChoices, PlatformTypeChoices
-from apps.cloud_platform.models import CloudPlatform, Credential
+from apps.cloud_platform.choices import (
+    AgentStatusChoices,
+    CredentialTypeChoices,
+    PlatformTypeChoices,
+    SyncResourceTypeChoices,
+    SyncStatusChoices,
+    SyncTriggerTypeChoices,
+)
+from apps.cloud_platform.models import CloudPlatform, Credential, SyncAgentLog, SyncRecord
 from apps.common.core.filter import BaseFilterSet
 from apps.company.models import Company
 
@@ -53,3 +60,54 @@ class CredentialFilter(BaseFilterSet):
 
         model = Credential
         fields = ['platform', 'credential_type', 'credential_name', 'username', 'email', 'is_active']
+
+
+class SyncRecordFilter(BaseFilterSet):
+    """同步记录过滤器。"""
+
+    pk = filters.CharFilter(field_name='id')
+    platform = filters.ModelChoiceFilter(
+        field_name='platform',
+        lookup_expr='exact',
+        queryset=CloudPlatform.objects.filter(is_active=True),
+    )
+    status = filters.ChoiceFilter(
+        field_name='status',
+        choices=SyncStatusChoices.choices,
+        label='同步状态',
+    )
+    sync_type = filters.ChoiceFilter(
+        field_name='sync_type',
+        choices=SyncTriggerTypeChoices.choices,
+        label='触发类型',
+    )
+
+    class Meta:
+        """过滤器元数据配置。"""
+
+        model = SyncRecord
+        fields = ['platform', 'sync_type', 'status']
+
+
+class SyncAgentLogFilter(BaseFilterSet):
+    """同步Agent日志过滤器。"""
+
+    pk = filters.CharFilter(field_name='id')
+    sync_record = filters.CharFilter(field_name='sync_record__pk', lookup_expr='exact')
+    agent_name = filters.CharFilter(field_name='agent_name', lookup_expr='icontains')
+    resource_type = filters.ChoiceFilter(
+        field_name='resource_type',
+        choices=SyncResourceTypeChoices.choices,
+        label='资源类型',
+    )
+    status = filters.ChoiceFilter(
+        field_name='status',
+        choices=AgentStatusChoices.choices,
+        label='执行状态',
+    )
+
+    class Meta:
+        """过滤器元数据配置。"""
+
+        model = SyncAgentLog
+        fields = ['sync_record', 'agent_name', 'resource_type', 'status']

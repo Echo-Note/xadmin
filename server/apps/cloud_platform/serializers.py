@@ -341,3 +341,144 @@ class CredentialDetailSerializer(BaseModelSerializer):
                 'help_text': _('更新时间'),
             },
         }
+
+
+class SyncRecordSerializer(BaseModelSerializer):
+    """同步记录序列化器。"""
+
+    agent_logs = serializers.SerializerMethodField(
+        read_only=True,
+        label='Agent 日志',
+        help_text='本次同步各 Agent 的执行日志',
+    )
+
+    def get_agent_logs(self, obj) -> list:  # noqa: ANN001
+        """获取关联的 Agent 日志摘要。"""
+        from apps.cloud_platform.models import SyncAgentLog
+
+        logs = SyncAgentLog.objects.filter(sync_record=obj).values(
+            'pk',
+            'agent_name',
+            'resource_type',
+            'status',
+            'created_count',
+            'updated_count',
+            'terminated_count',
+            'error_count',
+        )
+        return list(logs)
+
+    class Meta:
+        """序列化器元数据配置。"""
+
+        model = models.SyncRecord
+        fields = [
+            'pk',
+            'platform',
+            'sync_type',
+            'status',
+            'resources',
+            'total_created',
+            'total_updated',
+            'total_terminated',
+            'total_errors',
+            'started_at',
+            'finished_at',
+            'error_detail',
+            'created_time',
+            'updated_time',
+            'description',
+            'agent_logs',
+        ]
+        table_fields = [
+            'platform',
+            'sync_type',
+            'status',
+            'total_created',
+            'total_updated',
+            'total_errors',
+            'started_at',
+            'finished_at',
+        ]
+        extra_kwargs = {
+            'pk': {'read_only': True, 'label': _('ID'), 'help_text': _('主键唯一标识')},
+            'platform': {
+                'attrs': ['pk', 'name', 'platform_type'],
+                'required': True,
+                'format': '{name}({platform_type})',
+                'label': _('云平台'),
+                'help_text': _('所属云平台实例'),
+            },
+            'sync_type': {'label': _('触发类型'), 'help_text': _('同步触发方式')},
+            'status': {'label': _('同步状态'), 'help_text': _('同步任务当前状态')},
+            'resources': {'label': _('同步资源'), 'help_text': _('同步的资源类型列表')},
+            'total_created': {'label': _('新建数量'), 'help_text': _('新建资源数')},
+            'total_updated': {'label': _('更新数量'), 'help_text': _('更新资源数')},
+            'total_terminated': {'label': _('终止数量'), 'help_text': _('终止资源数')},
+            'total_errors': {'label': _('错误数量'), 'help_text': _('累计错误数')},
+            'started_at': {'label': _('开始时间'), 'help_text': _('同步开始时间')},
+            'finished_at': {'label': _('结束时间'), 'help_text': _('同步结束时间')},
+            'error_detail': {'label': _('错误详情'), 'help_text': _('错误详情列表')},
+            'created_time': {'read_only': True, 'label': _('Created time'), 'help_text': _('创建时间')},
+            'updated_time': {'read_only': True, 'label': _('Updated time'), 'help_text': _('更新时间')},
+            'description': {'label': _('Description'), 'help_text': _('备注')},
+        }
+
+
+class SyncAgentLogSerializer(BaseModelSerializer):
+    """同步 Agent 日志序列化器。"""
+
+    class Meta:
+        """序列化器元数据配置。"""
+
+        model = models.SyncAgentLog
+        fields = [
+            'pk',
+            'sync_record',
+            'agent_name',
+            'resource_type',
+            'status',
+            'started_at',
+            'finished_at',
+            'log',
+            'created_count',
+            'updated_count',
+            'terminated_count',
+            'error_count',
+            'error_detail',
+            'retry_count',
+            'extra_data',
+            'created_time',
+            'updated_time',
+            'description',
+        ]
+        table_fields = [
+            'agent_name',
+            'resource_type',
+            'status',
+            'created_count',
+            'updated_count',
+            'error_count',
+            'started_at',
+            'finished_at',
+        ]
+        extra_kwargs = {
+            'pk': {'read_only': True, 'label': _('ID'), 'help_text': _('主键唯一标识')},
+            'sync_record': {'label': _('同步记录'), 'help_text': _('所属同步记录')},
+            'agent_name': {'label': _('Agent名称'), 'help_text': _('Agent子模块名称')},
+            'resource_type': {'label': _('资源类型'), 'help_text': _('同步的资源类型')},
+            'status': {'label': _('执行状态'), 'help_text': _('Agent执行状态')},
+            'started_at': {'label': _('开始时间'), 'help_text': _('Agent开始时间')},
+            'finished_at': {'label': _('结束时间'), 'help_text': _('Agent结束时间')},
+            'log': {'label': _('执行日志'), 'help_text': _('详细日志输出')},
+            'created_count': {'label': _('新建数量'), 'help_text': _('Agent新建数')},
+            'updated_count': {'label': _('更新数量'), 'help_text': _('Agent更新数')},
+            'terminated_count': {'label': _('终止数量'), 'help_text': _('Agent终止数')},
+            'error_count': {'label': _('错误数量'), 'help_text': _('Agent错误数')},
+            'error_detail': {'label': _('错误详情'), 'help_text': _('Agent错误详情')},
+            'retry_count': {'label': _('重试次数'), 'help_text': _('Agent重试次数')},
+            'extra_data': {'label': _('扩展数据'), 'help_text': _('Agent扩展数据')},
+            'created_time': {'read_only': True, 'label': _('Created time'), 'help_text': _('创建时间')},
+            'updated_time': {'read_only': True, 'label': _('Updated time'), 'help_text': _('更新时间')},
+            'description': {'label': _('Description'), 'help_text': _('备注')},
+        }
