@@ -1,6 +1,11 @@
 """Celery Worker 服务基类模块。"""
 
-from ..hands import *
+import os
+import sys
+
+from django.conf import settings
+
+from ..hands import APPS_DIR, CELERY_WORKER_COUNT
 from .base import BaseService
 
 

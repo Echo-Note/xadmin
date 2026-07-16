@@ -1,6 +1,8 @@
 """Celery Beat 定时任务调度服务模块。"""
 
-from ..hands import *
+import sys
+
+from ..hands import APPS_DIR
 from .base import BaseService
 
 __all__ = ['BeatService']
