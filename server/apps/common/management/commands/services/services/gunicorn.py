@@ -1,9 +1,9 @@
 """Gunicorn ASGI HTTP 服务模块。"""
 
-
 from apps.common.startup import CoreTerminal
-from .base import BaseService
+
 from ..hands import *
+from .base import BaseService
 
 __all__ = ['GunicornService']
 
@@ -23,21 +23,32 @@ class GunicornService(BaseService):
     @property
     def cmd(self) -> list:
         """返回启动 Gunicorn 的命令列表。"""
-        print("\n- Start Gunicorn ASGI HTTP Server")
+        print('\n- Start Gunicorn ASGI HTTP Server')
 
         log_format = '%(h)s %(t)s %(L)ss "%(r)s" %(s)s %(b)s '
         bind = f'{HTTP_HOST}:{HTTP_PORT}'
 
         cmd = [
-            'gunicorn', 'server.asgi:application',
-            '-b', bind,
-            '-k', 'uvicorn.workers.UvicornWorker',
-            '-w', str(self.worker),
-            '--max-requests', '10240',
-            '--max-requests-jitter', '2048',
-            '--graceful-timeout', '30',
-            '--access-logformat', log_format,
-            '--access-logfile', '-'
+            sys.executable,
+            '-m',
+            'gunicorn',
+            'server.asgi:application',
+            '-b',
+            bind,
+            '-k',
+            'uvicorn.workers.UvicornWorker',
+            '-w',
+            str(self.worker),
+            '--max-requests',
+            '10240',
+            '--max-requests-jitter',
+            '2048',
+            '--graceful-timeout',
+            '30',
+            '--access-logformat',
+            log_format,
+            '--access-logfile',
+            '-',
         ]
         if DEBUG:
             cmd.append('--reload')

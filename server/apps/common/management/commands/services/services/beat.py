@@ -1,8 +1,7 @@
 """Celery Beat 定时任务调度服务模块。"""
 
-
-from .base import BaseService
 from ..hands import *
+from .base import BaseService
 
 __all__ = ['BeatService']
 
@@ -17,14 +16,21 @@ class BeatService(BaseService):
     @property
     def cmd(self) -> list:
         """返回启动 Beat 调度器的命令列表。"""
-        scheduler = "django_celery_beat.schedulers:DatabaseScheduler"
-        print("\n- Start Beat as Periodic Task Scheduler")
+        scheduler = 'django_celery_beat.schedulers:DatabaseScheduler'
+        print('\n- Start Beat as Periodic Task Scheduler')
         cmd = [
-            'celery', '-A',
-            'server', 'beat',
-            '-l', 'INFO',
-            '--scheduler', scheduler,
-            '--max-interval', '60'
+            sys.executable,
+            '-m',
+            'celery',
+            '-A',
+            'server',
+            'beat',
+            '-l',
+            'INFO',
+            '--scheduler',
+            scheduler,
+            '--max-interval',
+            '60',
         ]
         return cmd
 
