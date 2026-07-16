@@ -1,8 +1,10 @@
 """Gunicorn ASGI HTTP 服务模块。"""
 
+import sys
+
 from apps.common.startup import CoreTerminal
 
-from ..hands import *
+from ..hands import APPS_DIR, DEBUG, HTTP_HOST, HTTP_PORT
 from .base import BaseService
 
 __all__ = ['GunicornService']

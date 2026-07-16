@@ -8,7 +8,10 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from celery import shared_task
+from celery.app.task import Task
 from django.utils.translation import gettext_lazy as _
 
 from apps.common.celery.decorator import register_as_period_task
@@ -16,15 +19,18 @@ from apps.common.utils import get_logger
 from apps.notifications.message import SiteMessageUtil
 from apps.system.models import UserInfo
 
+if TYPE_CHECKING:
+    from apps.cloud_platform.models import SyncRecord
+
 logger = get_logger(__name__)
 
 
-def _get_admin_users():
+def _get_admin_users() -> list[str]:
     """获取所有超级管理员用户，用于默认通知接收人。"""
     return list(UserInfo.objects.filter(is_superuser=True, is_active=True).values_list('pk', flat=True))
 
 
-def _notify_sync_result(platform_name: str, record, user_id: str | None = None) -> None:
+def _notify_sync_result(platform_name: str, record: SyncRecord, user_id: str | None = None) -> None:
     """根据同步结果发送系统通知。
 
     Args:
@@ -64,7 +70,7 @@ def _notify_sync_result(platform_name: str, record, user_id: str | None = None) 
         SiteMessageUtil.notify_info(recipients, title, message)
 
 
-def _record_to_dict(record) -> dict:
+def _record_to_dict(record: SyncRecord | None) -> dict[str, object]:
     """将 SyncRecord 模型实例转换为 JSON 可序列化的字典。
 
     Args:
@@ -90,7 +96,9 @@ def _record_to_dict(record) -> dict:
     }
 
 
-def _run_sync(platform_id: str, sync_type: str, resources: list[str] | None, user_id: str | None = None):
+def _run_sync(
+    platform_id: str, sync_type: str, resources: list[str] | None, user_id: str | None = None
+) -> SyncRecord | None:
     """内部同步执行器，供各 task 复用。
 
     Args:
@@ -139,12 +147,12 @@ def _run_sync(platform_id: str, sync_type: str, resources: list[str] | None, use
     verbose_name=_('执行云平台资源同步'),
 )
 def run_sync_task(
-    self,
+    self: Task,
     platform_id: str,
     sync_type: str = 'manual',
     resources: list[str] | None = None,
     user_id: str | None = None,
-):
+) -> dict[str, object] | None:
     """异步执行云平台资源同步（通用入口）。
 
     被 API 手动触发、平台创建/更新时调用。
@@ -180,7 +188,7 @@ def run_sync_task(
             f'云平台同步异常: #{platform_id}',
             f'同步任务执行异常: {exc}',
         )
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
 
 
 @shared_task(
@@ -191,10 +199,10 @@ def run_sync_task(
     verbose_name=_('执行云平台余额同步'),
 )
 def run_balance_sync_task(
-    self,
+    self: Task,
     platform_id: str,
     user_id: str | None = None,
-):
+) -> dict[str, object] | None:
     """异步执行单个平台的余额同步。
 
     用于手动刷新余额或创建/更新平台后触发。
@@ -210,7 +218,7 @@ def run_balance_sync_task(
         return _record_to_dict(record)
     except Exception as exc:
         logger.exception('余额同步异常: platform=%s', platform_id)
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
 
 
 # =============================================================================
@@ -232,7 +240,7 @@ def daily_balance_sync_task() -> dict:
     遍历所有 is_active=True 且支持 balance 同步的平台，
     逐个调用 SyncEngine 执行余额同步，汇总结果后发送通知。
     """
-    from apps.cloud_platform.models import CloudPlatform, SyncRecord
+    from apps.cloud_platform.models import CloudPlatform
     from apps.cloud_platform.sync import SyncEngine, _ensure_platforms_loaded
 
     _ensure_platforms_loaded()

@@ -1,6 +1,11 @@
 """Flower 任务监控服务模块。"""
 
-from ..hands import *
+import os
+import sys
+
+from django.conf import settings
+
+from ..hands import APPS_DIR, CELERY_FLOWER_AUTH, CELERY_FLOWER_HOST, CELERY_FLOWER_PORT, LOG_DIR
 from .base import BaseService
 
 __all__ = ['FlowerService']
