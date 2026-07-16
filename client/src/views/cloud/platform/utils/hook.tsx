@@ -61,15 +61,6 @@ export function usePlatform() {
     }, 50);
   };
 
-  /** 跳转到同步日志页面（新 tab 打开，带平台筛选） */
-  const goSyncLog = (row: Record<string, any>) => {
-    const { href } = router.resolve({
-      path: "/cloud/sync-log/index",
-      query: { platform: row.pk as string },
-    });
-    window.open(href, "_blank", "noopener,noreferrer");
-  };
-
   const operationButtonsProps = shallowRef<OperationProps>({
     width: 400,
     showNumber: 4,
@@ -100,13 +91,19 @@ export function usePlatform() {
       {
         code: "sync-log",
         text: "日志",
-        props: {
+        props: ({ row }: { row: Record<string, any> }) => ({
+          tag: "a",
+          target: "_blank",
+          rel: "noopener noreferrer",
           type: "info",
           link: true,
-          icon: useRenderIcon("ri:history-line")
-        },
+          icon: useRenderIcon("ri:history-line"),
+          href: router.resolve({
+            path: "/cloud/sync-log/index",
+            query: { platform: row.pk as string },
+          }).href,
+        }),
         show: auth.list && -25,
-        onClick: ({ row }) => goSyncLog(row)
       },
       {
         code: "credentials",
