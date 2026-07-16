@@ -159,6 +159,8 @@ ignore = [
 # 服务管理模块通过 from ..hands import * 集中导入所有依赖，
 # 这是该模块的设计约定，忽略 star-import 相关警告。
 "apps/common/management/commands/services/services/*.py" = ["F403", "F405"]
+# Celery 任务文件：self 参数无类型（bind=True）、retry 在 except 中抛出（标准 Celery 模式）
+"apps/cloud_platform/tasks.py" = ["ANN001", "ANN201", "ANN202", "B904"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["server", "system", "settings", "common", "notifications", "captcha", "message"]

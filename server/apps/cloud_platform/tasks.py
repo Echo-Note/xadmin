@@ -8,8 +8,6 @@
 
 from __future__ import annotations
 
-import logging
-
 from celery import shared_task
 from django.utils.translation import gettext_lazy as _
 
@@ -56,9 +54,7 @@ def _notify_sync_result(platform_name: str, record, user_id: str | None = None) 
     if record.status == 'success':
         SiteMessageUtil.notify_success(recipients, title, message)
     elif record.status == 'failed':
-        error_details = '\n'.join(
-            e.get('error', str(e)) for e in (record.error_detail or [])[:3]
-        )
+        error_details = '\n'.join(e.get('error', str(e)) for e in (record.error_detail or [])[:3])
         SiteMessageUtil.notify_error(
             recipients,
             title,
@@ -66,6 +62,32 @@ def _notify_sync_result(platform_name: str, record, user_id: str | None = None) 
         )
     else:
         SiteMessageUtil.notify_info(recipients, title, message)
+
+
+def _record_to_dict(record) -> dict:
+    """将 SyncRecord 模型实例转换为 JSON 可序列化的字典。
+
+    Args:
+        record: SyncRecord 实例或 None。
+
+    Returns:
+        包含同步结果关键字段的字典。
+    """
+    if record is None:
+        return {'status': 'error', 'detail': 'platform not found'}
+    return {
+        'pk': str(record.pk),
+        'platform': str(record.platform_id),
+        'platform_name': getattr(record, 'platform_name', '') or record.platform.name,
+        'status': record.status,
+        'sync_type': record.sync_type,
+        'total_created': record.total_created,
+        'total_updated': record.total_updated,
+        'total_terminated': record.total_terminated,
+        'total_errors': record.total_errors,
+        'started_at': record.started_at.isoformat() if record.started_at else None,
+        'finished_at': record.finished_at.isoformat() if record.finished_at else None,
+    }
 
 
 def _run_sync(platform_id: str, sync_type: str, resources: list[str] | None, user_id: str | None = None):
@@ -143,7 +165,8 @@ def run_sync_task(
         user_id,
     )
     try:
-        return _run_sync(platform_id, sync_type, resources, user_id=user_id)
+        record = _run_sync(platform_id, sync_type, resources, user_id=user_id)
+        return _record_to_dict(record)
     except Exception as exc:
         logger.exception('同步任务异常: platform=%s', platform_id)
         # 异常时发送错误通知
@@ -183,7 +206,8 @@ def run_balance_sync_task(
     """
     logger.info('开始异步余额同步: platform=%s', platform_id)
     try:
-        return _run_sync(platform_id, 'manual', ['balance'], user_id=user_id)
+        record = _run_sync(platform_id, 'manual', ['balance'], user_id=user_id)
+        return _record_to_dict(record)
     except Exception as exc:
         logger.exception('余额同步异常: platform=%s', platform_id)
         raise self.retry(exc=exc)
