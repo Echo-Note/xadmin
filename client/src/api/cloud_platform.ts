@@ -5,14 +5,12 @@ import { http } from "@/utils/http";
 class PlatformApi extends BaseApi {
   /** 异步刷新余额 */
   refreshBalance = (pk: string) =>
-    http.post(`${this.baseApi}/${pk}/refresh-balance/`, { async: true });
+    http.post(`${this.baseApi}/${pk}/refresh-balance/`, { data: { async: true } });
 
   /** 触发资源同步 */
   triggerSync = (platform: string, resources?: string[], syncType = "manual") =>
     http.post("/api/cloud/sync-record/trigger", {
-      platform,
-      resources,
-      sync_type: syncType
+      data: { platform, resources, sync_type: syncType }
     });
 }
 
