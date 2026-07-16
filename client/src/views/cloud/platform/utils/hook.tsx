@@ -59,42 +59,58 @@ export function usePlatform() {
     }, 50);
   };
 
+  /** 跳转到同步日志页面（带平台筛选） */
+  const goSyncLog = (row: Record<string, any>) => {
+    window.open(`/#/cloud/sync-log?platform=${row.pk}`, "_blank");
+  };
+
   const operationButtonsProps = shallowRef<OperationProps>({
-    width: 340,
+    width: 400,
     showNumber: 4,
     buttons: [
       { code: "retrieve", show: false },
       {
-        code: "custom",
+        code: "refresh-balance",
         text: "刷新余额",
         props: {
           type: "warning",
           link: true,
           icon: useRenderIcon("ri:money-cny-circle-line")
         },
-        show: auth.update && -30,
+        show: auth.update && -35,
         onClick: ({ row }) => handleRefreshBalance(row)
       },
       {
-        code: "custom",
+        code: "trigger-sync",
         text: "同步",
         props: {
           type: "success",
           link: true,
           icon: useRenderIcon("ri:refresh-line")
         },
-        show: auth.update && -25,
+        show: auth.update && -30,
         onClick: ({ row }) => openSyncDialog(row)
       },
       {
-        code: "custom",
+        code: "sync-log",
+        text: "日志",
+        props: {
+          type: "info",
+          link: true,
+          icon: useRenderIcon("ri:history-line")
+        },
+        show: auth.list && -25,
+        onClick: ({ row }) => goSyncLog(row)
+      },
+      {
+        code: "credentials",
         text: "凭据",
         props: {
           type: "primary",
           link: true,
           icon: useRenderIcon("ri:key-2-line")
         },
-        show: auth.credentialList && -15,
+        show: auth.credentialList && -20,
         onClick: ({ row }) => openCredentialDrawer(row)
       },
       {
