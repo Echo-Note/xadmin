@@ -52,5 +52,6 @@ const addOrEditOptions = shallowRef<RePlusPageProps["addOrEditOptions"]>({
     :addOrEditOptions="addOrEditOptions"
     :operationButtonsProps="operationButtonsProps"
     :beforeSearchSubmit="beforeSearchSubmit"
+    :immediate="true"
   />
 </template>
