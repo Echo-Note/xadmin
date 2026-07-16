@@ -61,7 +61,7 @@ export function usePlatform() {
 
   /** 跳转到同步日志页面（带平台筛选） */
   const goSyncLog = (row: Record<string, any>) => {
-    window.open(`/#/cloud/sync-log?platform=${row.pk}`, "_blank");
+    window.open(`/#/cloud/sync-log/index?platform=${row.pk}`, "_blank");
   };
 
   const operationButtonsProps = shallowRef<OperationProps>({
