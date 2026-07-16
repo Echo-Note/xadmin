@@ -1,4 +1,8 @@
-"""vSphere 同步器 — 虚拟机 + ESXi 宿主机。pyVmomi SDK。"""
+"""vSphere 同步器 — 虚拟机 + ESXi 宿主机。pyVmomi SDK。
+
+ESXi 物理宿主机对应 LocalServer 模型，虚拟机对应 LocalVM 模型。
+虚拟机通过 host_server_name 字段关联宿主机。
+"""
 
 from __future__ import annotations
 
@@ -22,9 +26,34 @@ except ImportError:
 
 POWER_MAP = {'poweredOn': 'running', 'poweredOff': 'stopped', 'suspended': 'stopped'}
 
+# OS 关键词映射（vSphere guestId → 统一标识）
+OS_KEYWORD_MAP: dict[str, str] = {
+    'centos': 'centos',
+    'rhel': 'rhel',
+    'redhat': 'rhel',
+    'ubuntu': 'ubuntu',
+    'debian': 'debian',
+    'windows': 'windows',
+    'win': 'windows',
+    'suse': 'suse',
+    'coreos': 'coreos',
+    'rocky': 'rockylinux',
+    'alma': 'almalinux',
+    'oracle': 'rhel',
+    'esxi': 'other',
+    'other': 'other',
+}
+
 
 def _is_private_ip(ip: str) -> bool:
-    """判断是否为内网IP。"""
+    """判断是否为内网IP。
+
+    Args:
+        ip: IPv4 地址字符串。
+
+    Returns:
+        True 表示为内网 IP。
+    """
     parts = ip.split('.')
     if len(parts) != 4:
         return True
@@ -45,9 +74,72 @@ def _is_private_ip(ip: str) -> bool:
     return False
 
 
+def _resolve_os(guest_id: str) -> str:
+    """根据 vSphere guestId 解析操作系统类型。
+
+    Args:
+        guest_id: vSphere 客户机操作系统标识。
+
+    Returns:
+        统一 OS 标识。
+    """
+    if not guest_id:
+        return 'other'
+    lower = guest_id.strip().lower()
+    for keyword, label in sorted(OS_KEYWORD_MAP.items(), key=lambda x: -len(x[0])):
+        if keyword in lower:
+            return label
+    return 'other'
+
+
+def _extract_ips(obj) -> tuple[list[str], list[str]]:  # noqa: ANN001
+    """从 vSphere 对象中提取 IP 地址并分类。
+
+    Args:
+        obj: VirtualMachine 或 HostSystem 对象。
+
+    Returns:
+        (public_ips, private_ips) 元组。
+    """
+    public_ips: list[str] = []
+    private_ips: list[str] = []
+
+    # VirtualMachine IP 提取
+    if hasattr(obj, 'guest') and obj.guest and obj.guest.net:
+        for net in obj.guest.net:
+            if net.ipConfig and net.ipConfig.ipAddress:
+                for ip in net.ipConfig.ipAddress:
+                    if ip.ipAddress:
+                        if _is_private_ip(ip.ipAddress):
+                            if ip.ipAddress not in private_ips:
+                                private_ips.append(ip.ipAddress)
+                        else:
+                            if ip.ipAddress not in public_ips:
+                                public_ips.append(ip.ipAddress)
+
+    # HostSystem IP 提取（管理口 vNIC）
+    if isinstance(obj, vim.HostSystem) and obj.config and obj.config.network and obj.config.network.vnic:
+        for vnic in obj.config.network.vnic:
+            if vnic.spec and vnic.spec.ip and vnic.spec.ip.ipAddress:
+                ip = vnic.spec.ip.ipAddress
+                if _is_private_ip(ip):
+                    if ip not in private_ips:
+                        private_ips.append(ip)
+                else:
+                    if ip not in public_ips:
+                        public_ips.append(ip)
+
+    return public_ips, private_ips
+
+
 @register_syncer
 class VsphereSyncer(BaseCloudSyncer):
-    """vSphere 同步器 — 仅负责 API 数据拉取和格式转换。"""
+    """vSphere 同步器 — 仅负责 API 数据拉取和格式转换。
+
+    拉取两类资产：
+    - ESXi 物理宿主机 → server_type='physical' → LocalServer 模型
+    - 虚拟机（排除模板） → server_type='virtual' → LocalVM 模型
+    """
 
     PLATFORM_TYPE = 'vcenter'
     PLATFORM_NAMES = ['vsphere', 'vmware vsphere', 'vcenter', 'vmware']
@@ -58,6 +150,7 @@ class VsphereSyncer(BaseCloudSyncer):
         self._si = None
 
     def _connect(self):  # noqa: ANN202
+        """建立到 vCenter/ESXi 的连接（带缓存）。"""
         if self._si:
             return self._si
         if not HAS_PYVMOMI:
@@ -74,107 +167,143 @@ class VsphereSyncer(BaseCloudSyncer):
         try:
             self._si = SmartConnect(host=host, user=user, pwd=pwd, sslContext=ctx)
         except Exception:
-            logger.exception('vSphere连接失败')
+            logger.exception('vSphere 连接失败 [%s]', host)
             return None
         return self._si
 
     def _fetch_servers(self) -> list[ServerSyncData]:
+        """拉取 vSphere 资产：宿主机 + 虚拟机。
+
+        先遍历 HostSystem（物理主机），再遍历 VirtualMachine（虚拟机），
+        虚拟机通过 host_server_name 关联其宿主机。
+
+        Returns:
+            ServerSyncData 列表，包含 physical 和 virtual 两种类型。
+        """
         si = self._connect()
         if not si:
             return []
-        results = []
+
+        results: list[ServerSyncData] = []
         try:
             content = si.RetrieveContent()
             container = content.viewManager.CreateContainerView(
                 content.rootFolder, [vim.VirtualMachine, vim.HostSystem], True
             )
+
+            # 第一遍：收集 ESXi 宿主机名称映射
+            host_map: dict[str, str] = {}  # host_moid → host_name
+
             for obj in container.view:
                 try:
-                    if isinstance(obj, vim.VirtualMachine):
-                        if obj.config and obj.config.template:
-                            continue
-                        name = obj.name or ''
-                        status = POWER_MAP.get(obj.runtime.powerState if obj.runtime else '', 'unknown')
-                        cpu = obj.config.hardware.numCPU if obj.config and obj.config.hardware else None
-                        mem = (
-                            int(obj.config.hardware.memoryMB / 1024)
-                            if obj.config and obj.config.hardware and obj.config.hardware.memoryMB
-                            else None
+                    if isinstance(obj, vim.HostSystem):
+                        host_name = obj.name or ''
+                        host_moid = getattr(obj, '_moId', '') or ''
+                        if host_moid:
+                            host_map[host_moid] = host_name
+
+                        public_ips, private_ips = _extract_ips(obj)
+
+                        cpu_cores = None
+                        cpu_threads = None
+                        cpu_model = ''
+                        if obj.hardware and obj.hardware.cpuInfo:
+                            cpu_cores = obj.hardware.cpuInfo.numCpuCores
+                            cpu_threads = obj.hardware.cpuInfo.numCpuThreads
+                            cpu_model = obj.hardware.cpuInfo.model or ''
+
+                        memory_mb = None
+                        if obj.hardware and obj.hardware.memorySize:
+                            memory_mb = int(obj.hardware.memorySize / (1024**2))
+
+                        status = POWER_MAP.get(
+                            obj.runtime.powerState if obj.runtime else '',
+                            'unknown',
                         )
-                        instance_id = obj.config.uuid if obj.config else ''
-                        os_id = obj.config.guestId if obj.config else ''
-                        os_type = 'other'
-                        os_keywords = {
-                            'centos': 'centos', 'rhel': 'rhel', 'redhat': 'rhel',
-                            'ubuntu': 'ubuntu', 'debian': 'debian', 'windows': 'windows',
-                        }
-                        for k, v in os_keywords.items():
-                            if k in (os_id or '').lower():
-                                os_type = v
-                                break
-                        public_ips = []
-                        private_ips = []
-                        if obj.guest and obj.guest.net:
-                            for net in obj.guest.net:
-                                if net.ipConfig and net.ipConfig.ipAddress:
-                                    for ip in net.ipConfig.ipAddress:
-                                        if ip.ipAddress:
-                                            if _is_private_ip(ip.ipAddress):
-                                                private_ips.append(ip.ipAddress)
-                                            else:
-                                                public_ips.append(ip.ipAddress)
+
+                        # ESXi 宿主机不填 instance_id（无云平台实例ID）
+                        # 使用 host_name 作为唯一标识
                         results.append(
                             ServerSyncData(
-                                hostname=name,
-                                instance_id=instance_id,
+                                hostname=host_name,
+                                instance_id=host_moid or host_name,
                                 status=status,
-                                os=os_type,
-                                cpu_cores=cpu,
-                                memory_gb=float(mem) if mem else None,
+                                os='other',  # ESXi 宿主机操作系统
+                                os_version=cpu_model,  # 硬件型号作为补充信息
+                                cpu_cores=cpu_threads or cpu_cores,
+                                memory_gb=float(memory_mb) / 1024.0 if memory_mb else None,
                                 public_ips=public_ips,
                                 private_ips=private_ips,
-                            )
-                        )
-                    elif isinstance(obj, vim.HostSystem):
-                        name = obj.name or ''
-                        status = POWER_MAP.get(obj.runtime.powerState if obj.runtime else '', 'unknown')
-                        cpu = (
-                            obj.hardware.cpuInfo.numCpuThreads
-                            if obj.hardware and obj.hardware.cpuInfo
-                            else None
-                        )
-                        mem = (
-                            int(obj.hardware.memorySize / (1024**3))
-                            if obj.hardware and obj.hardware.memorySize
-                            else None
-                        )
-                        public_ips = []
-                        private_ips = []
-                        if obj.config and obj.config.network and obj.config.network.vnic:
-                            for vnic in obj.config.network.vnic:
-                                if vnic.spec and vnic.spec.ip and vnic.spec.ip.ipAddress:
-                                    ip = vnic.spec.ip.ipAddress
-                                    if _is_private_ip(ip):
-                                        private_ips.append(ip)
-                                    else:
-                                        public_ips.append(ip)
-                        results.append(
-                            ServerSyncData(
-                                hostname=name,
-                                instance_id='',
-                                status=status,
-                                os='other',
-                                cpu_cores=cpu,
-                                memory_gb=float(mem) if mem else None,
-                                public_ips=public_ips,
-                                private_ips=private_ips,
+                                server_type='physical',
+                                tags={'cpu_model': cpu_model} if cpu_model else {},
                             )
                         )
                 except Exception:
-                    pass
+                    logger.exception('vSphere 宿主机遍历异常: %s', getattr(obj, 'name', 'unknown'))
+
+            # 第二遍：虚拟机
+            for obj in container.view:
+                try:
+                    if isinstance(obj, vim.VirtualMachine):
+                        # 跳过模板
+                        if obj.config and obj.config.template:
+                            continue
+
+                        vm_name = obj.name or ''
+                        status = POWER_MAP.get(
+                            obj.runtime.powerState if obj.runtime else '',
+                            'unknown',
+                        )
+
+                        # CPU/内存
+                        cpu = None
+                        mem_gb = None
+                        if obj.config and obj.config.hardware:
+                            cpu = obj.config.hardware.numCPU
+                            if obj.config.hardware.memoryMB:
+                                mem_gb = int(obj.config.hardware.memoryMB / 1024)
+
+                        # 实例 ID（vSphere VM UUID）
+                        instance_id = obj.config.uuid if obj.config else ''
+
+                        # OS 类型
+                        guest_id = obj.config.guestId if obj.config else ''
+                        os_type = _resolve_os(guest_id)
+
+                        # IP 地址
+                        public_ips, private_ips = _extract_ips(obj)
+
+                        # 宿主机关联
+                        host_name = ''
+                        host_instance_id = ''
+                        if obj.runtime and obj.runtime.host:
+                            host_ref = obj.runtime.host
+                            host_moid = getattr(host_ref, '_moId', '') or str(host_ref)
+                            host_name = host_map.get(host_moid, '')
+                            host_instance_id = host_moid
+
+                        results.append(
+                            ServerSyncData(
+                                hostname=vm_name,
+                                instance_id=instance_id,
+                                status=status,
+                                os=os_type,
+                                os_version=guest_id,
+                                cpu_cores=cpu,
+                                memory_gb=float(mem_gb) if mem_gb else None,
+                                public_ips=public_ips,
+                                private_ips=private_ips,
+                                server_type='virtual',
+                                host_server_name=host_name,
+                                host_server_instance_id=host_instance_id,
+                            )
+                        )
+                except Exception:
+                    logger.exception('vSphere 虚拟机遍历异常: %s', getattr(obj, 'name', 'unknown'))
+
             container.Destroy()
         except Exception:
-            logger.exception('vSphere资产遍历失败')
+            logger.exception('vSphere 资产遍历失败')
         return results
 
     def _fetch_domains(self) -> list:

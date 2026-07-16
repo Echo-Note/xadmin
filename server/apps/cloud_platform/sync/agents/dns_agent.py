@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from apps.cloud_platform.sync.agents.base import SyncAgent, SyncAgentResult
@@ -29,7 +29,7 @@ class DnsRecordSyncAgent(SyncAgent):
 
     resource_type = 'dns_record'
 
-    def execute(self, syncer: 'BaseCloudSyncer') -> SyncAgentResult:
+    def execute(self, syncer: BaseCloudSyncer) -> SyncAgentResult:
         """执行 DNS 解析记录同步。
 
         流程：
@@ -72,10 +72,12 @@ class DnsRecordSyncAgent(SyncAgent):
                     rec.domain_name,
                     rec.host_record,
                 )
-                result.errors.append({
-                    'item': f'{rec.domain_name}.{rec.host_record}',
-                    'error': 'DNS记录同步异常',
-                })
+                result.errors.append(
+                    {
+                        'item': f'{rec.domain_name}.{rec.host_record}',
+                        'error': 'DNS记录同步异常',
+                    }
+                )
 
         result.finished_at = datetime.now(UTC)
         logger.info(

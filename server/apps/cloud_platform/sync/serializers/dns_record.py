@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from apps.cloud_platform.sync.resolvers.dns_resolver import DNSResolver
 
 if TYPE_CHECKING:
-    from apps.asset.models import DnsRecord, Domain
+    from apps.asset.models import Domain
     from apps.cloud_platform.sync.schemas import DnsRecordSyncData, SyncResult
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class DnsRecordSyncSerializer:
         """
         self.platform_type = platform_type
 
-    def upsert(self, data: 'DnsRecordSyncData', result: 'SyncResult') -> None:
+    def upsert(self, data: DnsRecordSyncData, result: SyncResult) -> None:
         """新增或更新 DNS 解析记录（幂等）。
 
         按 domain + record_type + host + value 组合唯一匹配。
@@ -42,7 +42,7 @@ class DnsRecordSyncSerializer:
             data: DNS 记录同步数据（Pydantic 模型）。
             result: 同步结果对象。
         """
-        from apps.asset.models import DnsRecord, Domain
+        from apps.asset.models import DnsRecord
         from apps.asset.serializers import DnsRecordSerializer
 
         domain = self._get_domain(data.domain_name)
@@ -82,7 +82,7 @@ class DnsRecordSyncSerializer:
             s.save()
             result.created += 1
 
-    def bulk_upsert(self, data_list: list['DnsRecordSyncData'], result: 'SyncResult') -> None:
+    def bulk_upsert(self, data_list: list[DnsRecordSyncData], result: SyncResult) -> None:
         """批量 upsert DNS 解析记录。
 
         Args:
@@ -108,7 +108,7 @@ class DnsRecordSyncSerializer:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _get_domain(domain_name: str) -> 'Domain | None':
+    def _get_domain(domain_name: str) -> Domain | None:
         """按域名名称查找 Domain 记录。
 
         Args:
@@ -121,7 +121,7 @@ class DnsRecordSyncSerializer:
 
         return Domain.objects.filter(domain_name=domain_name).first()
 
-    def _is_platform_dns(self, domain: 'Domain') -> bool:
+    def _is_platform_dns(self, domain: Domain) -> bool:
         """判断域名 DNS 是否由当前平台管理。
 
         Args:

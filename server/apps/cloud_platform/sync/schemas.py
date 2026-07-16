@@ -29,6 +29,16 @@ class ServerSyncData(BaseModel):
     expire_date: date | None = Field(default=None, description='到期日期')
     region: str = Field(default='', description='所属区域标识')
     tags: dict[str, str] = Field(default_factory=dict, description='云厂商标签键值对')
+    # ——— 扩展字段 ———
+    server_type: str = Field(
+        default='virtual',
+        description='服务器类型：virtual(云虚拟机)/physical(物理宿主机)',
+    )
+    host_server_name: str = Field(default='', description='宿主机名称（虚拟机关联物理机时使用）')
+    host_server_instance_id: str = Field(default='', description='宿主机实例ID（虚拟机关联物理机时使用）')
+    instance_charge_type: str = Field(default='', description='计费类型：POSTPAID_BY_HOUR/PREPAID')
+    creation_date: date | None = Field(default=None, description='实例创建日期')
+    instance_type: str = Field(default='', description='实例规格，如 S5.MEDIUM4')
 
 
 class DomainSyncData(BaseModel):

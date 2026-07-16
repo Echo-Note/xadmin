@@ -23,6 +23,7 @@ from apps.cloud_platform.sync.agents.base import SyncAgent, SyncAgentResult
 from apps.cloud_platform.sync.agents.dns_agent import DnsRecordSyncAgent
 from apps.cloud_platform.sync.agents.domain_agent import DomainSyncAgent
 from apps.cloud_platform.sync.agents.server_agent import ServerSyncAgent
+from apps.cloud_platform.sync.agents.vsphere_server_agent import VsphereServerSyncAgent
 from apps.cloud_platform.sync.registry import get_syncer_by_platform
 
 if TYPE_CHECKING:
@@ -42,7 +43,7 @@ class SyncEngine:
     # Agent 阶段分组（保证依赖顺序：domain 在 dns_record 之前）
     PHASE_GROUPS: list[list[str]] = [
         ['server', 'domain', 'balance'],  # Phase 1: 独立并行
-        ['dns_record'],                    # Phase 2: 依赖 Domain 已存在
+        ['dns_record'],  # Phase 2: 依赖 Domain 已存在
     ]
 
     # 资源类型 → Agent 类的映射
@@ -55,10 +56,10 @@ class SyncEngine:
 
     def run(
         self,
-        cloud_platform: 'CloudPlatform',
+        cloud_platform: CloudPlatform,
         sync_type: str = 'manual',
         resources: list[str] | None = None,
-    ) -> 'SyncRecord':
+    ) -> SyncRecord:
         """执行同步流程。
 
         Args:
@@ -69,9 +70,9 @@ class SyncEngine:
         Returns:
             SyncRecord 实例。
         """
-        from apps.cloud_platform.sync import _ensure_platforms_loaded
         from apps.cloud_platform.choices import SyncStatusChoices
         from apps.cloud_platform.models import SyncRecord
+        from apps.cloud_platform.sync import _ensure_platforms_loaded
 
         # 确保所有平台同步器已注册
         _ensure_platforms_loaded()
@@ -135,8 +136,8 @@ class SyncEngine:
 
     def _execute_phase(
         self,
-        syncer,
-        platform: 'CloudPlatform',
+        syncer,  # noqa: ANN001
+        platform: CloudPlatform,
         resource_types: list[str],
     ) -> dict[str, SyncAgentResult]:
         """并行执行同一阶段内的多个 Agent。
@@ -182,8 +183,11 @@ class SyncEngine:
 
         return results
 
-    def _create_agent(self, resource_type: str, platform: 'CloudPlatform') -> SyncAgent:
-        """根据资源类型创建对应的 Agent 实例。
+    def _create_agent(self, resource_type: str, platform: CloudPlatform) -> SyncAgent:
+        """根据资源类型和平台类型创建对应的 Agent 实例。
+
+        vCenter/vSphere 平台使用 VsphereServerSyncAgent（两阶段同步：
+        物理主机→LocalServer，虚拟机→LocalVM）。
 
         Args:
             resource_type: 资源类型标识。
@@ -192,6 +196,9 @@ class SyncEngine:
         Returns:
             Agent 实例。
         """
+        if platform.platform_type == 'vcenter' and resource_type == 'server':
+            return VsphereServerSyncAgent(platform, platform.platform_type)
+
         agent_cls = self.AGENT_FACTORY.get(resource_type)
         if agent_cls is None:
             raise ValueError(f'未知的资源类型: {resource_type}')
@@ -203,9 +210,9 @@ class SyncEngine:
 
     def _finalize(
         self,
-        sync_record: 'SyncRecord',
+        sync_record: SyncRecord,
         all_results: dict[str, SyncAgentResult],
-        platform: 'CloudPlatform',
+        platform: CloudPlatform,
     ) -> None:
         """汇总 Agent 结果，写入 SyncAgentLog，更新 SyncRecord 最终状态。
 
@@ -265,7 +272,7 @@ class SyncEngine:
         )
 
     @staticmethod
-    def _fail_record(sync_record: 'SyncRecord', error_msg: str) -> 'SyncRecord':
+    def _fail_record(sync_record: SyncRecord, error_msg: str) -> SyncRecord:
         """将 SyncRecord 标记为失败。
 
         Args:

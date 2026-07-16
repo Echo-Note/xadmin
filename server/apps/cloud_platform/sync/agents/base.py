@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime, UTC
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
@@ -16,7 +16,6 @@ from pydantic import BaseModel, Field
 if TYPE_CHECKING:
     from apps.cloud_platform.models import CloudPlatform, SyncAgentLog, SyncRecord
     from apps.cloud_platform.sync.base import BaseCloudSyncer
-    from apps.cloud_platform.sync.schemas import SyncResult
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +62,7 @@ class SyncAgent(ABC):
 
     resource_type: str = ''
 
-    def __init__(self, platform: 'CloudPlatform', platform_type: str) -> None:
+    def __init__(self, platform: CloudPlatform, platform_type: str) -> None:
         """初始化 Agent。
 
         Args:
@@ -74,7 +73,7 @@ class SyncAgent(ABC):
         self.platform_type = platform_type
 
     @abstractmethod
-    def execute(self, syncer: 'BaseCloudSyncer') -> SyncAgentResult:
+    def execute(self, syncer: BaseCloudSyncer) -> SyncAgentResult:
         """执行同步任务。
 
         子类实现具体同步逻辑：
@@ -90,7 +89,7 @@ class SyncAgent(ABC):
         """
         ...
 
-    def write_agent_log(self, sync_record: 'SyncRecord', result: SyncAgentResult) -> 'SyncAgentLog':
+    def write_agent_log(self, sync_record: SyncRecord, result: SyncAgentResult) -> SyncAgentLog:
         """将 Agent 执行结果写入 SyncAgentLog 记录。
 
         Args:

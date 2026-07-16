@@ -24,7 +24,7 @@ class BalanceSyncSerializer:
     每个 Agent 持有独立实例，确保写入权限独立。
     """
 
-    def __init__(self, platform: 'CloudPlatform') -> None:
+    def __init__(self, platform: CloudPlatform) -> None:
         """初始化。
 
         Args:
@@ -32,7 +32,7 @@ class BalanceSyncSerializer:
         """
         self.platform = platform
 
-    def save(self, data: 'BalanceSyncData') -> None:
+    def save(self, data: BalanceSyncData) -> None:
         """保存账户余额到 CloudPlatform 和 AccountBalance 快照（幂等）。
 
         - 更新 CloudPlatform.account_balance + balance_updated_time

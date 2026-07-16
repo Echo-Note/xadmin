@@ -4,10 +4,10 @@
 避免硬编码映射表散布在业务代码中。
 """
 
-from apps.cloud_platform.sync.resolvers.status_resolver import StatusResolver
-from apps.cloud_platform.sync.resolvers.os_resolver import OSResolver
 from apps.cloud_platform.sync.resolvers.dns_resolver import DNSResolver
+from apps.cloud_platform.sync.resolvers.os_resolver import OSResolver
 from apps.cloud_platform.sync.resolvers.region_resolver import RegionResolver
+from apps.cloud_platform.sync.resolvers.status_resolver import StatusResolver
 
 __all__ = [
     'StatusResolver',

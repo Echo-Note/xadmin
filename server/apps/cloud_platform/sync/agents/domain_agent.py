@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from apps.cloud_platform.sync.agents.base import SyncAgent, SyncAgentResult
@@ -30,7 +30,7 @@ class DomainSyncAgent(SyncAgent):
 
     resource_type = 'domain'
 
-    def execute(self, syncer: 'BaseCloudSyncer') -> SyncAgentResult:
+    def execute(self, syncer: BaseCloudSyncer) -> SyncAgentResult:
         """执行域名同步（含企业主体自动匹配与创建）。
 
         流程：

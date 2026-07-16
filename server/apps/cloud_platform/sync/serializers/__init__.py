@@ -7,11 +7,13 @@
 提供幂等的 upsert 方法。
 """
 
-from apps.cloud_platform.sync.serializers.server import CloudServerSyncSerializer
-from apps.cloud_platform.sync.serializers.domain import DomainSyncSerializer
-from apps.cloud_platform.sync.serializers.dns_record import DnsRecordSyncSerializer
 from apps.cloud_platform.sync.serializers.balance import BalanceSyncSerializer
 from apps.cloud_platform.sync.serializers.company import CompanySyncSerializer
+from apps.cloud_platform.sync.serializers.dns_record import DnsRecordSyncSerializer
+from apps.cloud_platform.sync.serializers.domain import DomainSyncSerializer
+from apps.cloud_platform.sync.serializers.local_server import LocalServerSyncSerializer
+from apps.cloud_platform.sync.serializers.local_vm import LocalVMSyncSerializer
+from apps.cloud_platform.sync.serializers.server import CloudServerSyncSerializer
 
 __all__ = [
     'CloudServerSyncSerializer',
@@ -19,4 +21,6 @@ __all__ = [
     'DnsRecordSyncSerializer',
     'BalanceSyncSerializer',
     'CompanySyncSerializer',
+    'LocalServerSyncSerializer',
+    'LocalVMSyncSerializer',
 ]

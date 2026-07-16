@@ -108,10 +108,32 @@ class TencentCloudSyncer(BaseCloudSyncer):
     # 云服务器 (CVM)
     # ------------------------------------------------------------------
 
-    def _fetch_servers(self) -> list[ServerSyncData]:
-        """获取所有区域的 CVM 实例列表（幂等：同参数多次调用返回相同数据）。"""
-        if not self._setup():
-            return []
+    @staticmethod
+    def _parse_tc_date(dt_str: str | None) -> date | None:
+        """解析腾讯云日期时间字符串。
+
+        Args:
+            dt_str: 形如 '2024-01-15T10:30:00Z' 的 ISO 时间字符串。
+
+        Returns:
+            date 对象或 None。
+        """
+        if not dt_str:
+            return None
+        try:
+            return date.fromisoformat(dt_str[:10])
+        except (ValueError, TypeError):
+            return None
+
+    def _fetch_servers_for_region(self, region: str) -> list[ServerSyncData]:
+        """拉取单个区域的 CVM 实例列表。
+
+        Args:
+            region: 区域标识，如 ap-guangzhou。
+
+        Returns:
+            该区域的 ServerSyncData 列表。
+        """
         results: list[ServerSyncData] = []
         status_map = {
             'RUNNING': 'running',
@@ -122,58 +144,83 @@ class TencentCloudSyncer(BaseCloudSyncer):
             'PENDING': 'pending',
             'TERMINATED': 'terminated',
         }
-        for region in self.regions:
-            try:
-                client = self._build_client(cvm_client.CvmClient, region)
-                offset = 0
-                while True:
-                    req = cvm_models.DescribeInstancesRequest()
-                    req.Offset = offset
-                    req.Limit = PAGE_SIZE
-                    resp = client.DescribeInstances(req)
-                    if not resp.InstanceSet:
-                        break
-                    for inst in resp.InstanceSet:
-                        expire = None
-                        if inst.ExpiredTime:
-                            try:
-                                expire = date.fromisoformat(inst.ExpiredTime[:10])
-                            except (ValueError, TypeError):
-                                pass
-                        disk = None
-                        if inst.SystemDisk and inst.SystemDisk.DiskSize:
-                            try:
-                                disk = float(inst.SystemDisk.DiskSize)
-                            except (ValueError, TypeError):
-                                pass
-                        tags: dict[str, str] = {}
-                        if inst.Tags:
-                            for t in inst.Tags:
-                                if t.Key:
-                                    tags[t.Key] = t.Value or ''
-                        results.append(
-                            ServerSyncData(
-                                hostname=inst.InstanceName or '',
-                                instance_id=inst.InstanceId or '',
-                                status=status_map.get(inst.InstanceState or '', 'unknown'),
-                                os=inst.OsName or '',
-                                os_version=inst.OsName or '',
-                                cpu_cores=int(inst.CPU) if inst.CPU else None,
-                                memory_gb=float(inst.Memory) if inst.Memory else None,
-                                disk_gb=disk,
-                                public_ips=list(inst.PublicIpAddresses or []),
-                                private_ips=list(inst.PrivateIpAddresses or []),
-                                expire_date=expire,
-                                region=region,
-                                tags=tags,
-                            )
-                        )
-                    if offset + PAGE_SIZE >= (resp.TotalCount or 0):
-                        break
-                    offset += PAGE_SIZE
-            except Exception:
-                logger.exception('区域[%s] CVM 实例拉取失败', region)
+
+        client = self._build_client(cvm_client.CvmClient, region)
+        offset = 0
+        while True:
+            req = cvm_models.DescribeInstancesRequest()
+            req.Offset = offset
+            req.Limit = PAGE_SIZE
+            resp = self._retry(
+                lambda req=req: client.DescribeInstances(req),
+                label=f'CVM-{region}',
+            )
+            if resp is None:
+                break
+            if not resp.InstanceSet:
+                break
+
+            for inst in resp.InstanceSet:
+                # 到期时间
+                expire = self._parse_tc_date(inst.ExpiredTime)
+
+                # 系统盘大小
+                disk = None
+                if inst.SystemDisk and inst.SystemDisk.DiskSize:
+                    try:
+                        disk = float(inst.SystemDisk.DiskSize)
+                    except (ValueError, TypeError):
+                        pass
+
+                # 创建时间
+                creation = self._parse_tc_date(inst.CreatedTime)
+
+                # 标签
+                tags: dict[str, str] = {}
+                if inst.Tags:
+                    for t in inst.Tags:
+                        if t.Key:
+                            tags[t.Key] = t.Value or ''
+
+                # 公网/内网 IP：腾讯云 API 已准确分类
+                public_ips = list(inst.PublicIpAddresses or [])
+                private_ips = list(inst.PrivateIpAddresses or [])
+
+                results.append(
+                    ServerSyncData(
+                        hostname=inst.InstanceName or '',
+                        instance_id=inst.InstanceId or '',
+                        status=status_map.get(inst.InstanceState or '', 'unknown'),
+                        os=inst.OsName or '',
+                        os_version=inst.OsName or '',
+                        cpu_cores=int(inst.CPU) if inst.CPU else None,
+                        memory_gb=float(inst.Memory) if inst.Memory else None,
+                        disk_gb=disk,
+                        public_ips=public_ips,
+                        private_ips=private_ips,
+                        expire_date=expire,
+                        region=region,
+                        tags=tags,
+                        instance_charge_type=inst.InstanceChargeType or '',
+                        creation_date=creation,
+                        instance_type=inst.InstanceType or '',
+                    )
+                )
+
+            if offset + PAGE_SIZE >= (resp.TotalCount or 0):
+                break
+            offset += PAGE_SIZE
+
         return results
+
+    def _fetch_servers(self) -> list[ServerSyncData]:
+        """获取所有区域的 CVM 实例列表（幂等：同参数多次调用返回相同数据）。
+
+        支持并行拉取多区域，通过基类 _fetch_by_regions 实现。
+        """
+        if not self._setup():
+            return []
+        return self._fetch_by_regions(self._fetch_servers_for_region)
 
     # ------------------------------------------------------------------
     # 域名

@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from apps.cloud_platform.sync.agents.base import SyncAgent, SyncAgentResult
@@ -26,7 +26,7 @@ class ServerSyncAgent(SyncAgent):
 
     resource_type = 'server'
 
-    def execute(self, syncer: 'BaseCloudSyncer') -> SyncAgentResult:
+    def execute(self, syncer: BaseCloudSyncer) -> SyncAgentResult:
         """执行云服务器同步。
 
         流程：

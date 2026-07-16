@@ -24,7 +24,7 @@ class DomainSyncSerializer:
     每个 Agent 持有独立实例，确保写入权限独立。
     """
 
-    def __init__(self, platform: 'CloudPlatform') -> None:
+    def __init__(self, platform: CloudPlatform) -> None:
         """初始化。
 
         Args:
@@ -34,9 +34,9 @@ class DomainSyncSerializer:
 
     def upsert(
         self,
-        data: 'DomainSyncData',
-        result: 'SyncResult',
-        company: 'Company | None' = None,
+        data: DomainSyncData,
+        result: SyncResult,
+        company: Company | None = None,
     ) -> None:
         """新增或更新域名记录（幂等），按 domain_name 唯一匹配。
 
@@ -65,7 +65,7 @@ class DomainSyncSerializer:
             result.created += 1
             logger.debug('新增域名: %s (company: %s)', data.name, company)
 
-    def bulk_upsert(self, data_list: list['DomainSyncData'], result: 'SyncResult') -> None:
+    def bulk_upsert(self, data_list: list[DomainSyncData], result: SyncResult) -> None:
         """批量 upsert 域名记录。
 
         Args:
@@ -79,7 +79,7 @@ class DomainSyncSerializer:
                 logger.exception('同步域名失败: %s', data.name)
                 result.add_error(data.name, '域名同步异常')
 
-    def find_by_name(self, domain_name: str) -> 'Domain | None':
+    def find_by_name(self, domain_name: str) -> Domain | None:
         """按域名名称查找已有记录。
 
         Args:
@@ -96,7 +96,7 @@ class DomainSyncSerializer:
     # 私有方法
     # ------------------------------------------------------------------
 
-    def _build_serializer_data(self, data: 'DomainSyncData', company: 'Company | None') -> dict:
+    def _build_serializer_data(self, data: DomainSyncData, company: Company | None) -> dict:
         """将 Pydantic 同步数据转换为 DRF Serializer 所需字典。
 
         Args:

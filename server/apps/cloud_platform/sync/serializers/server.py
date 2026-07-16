@@ -27,7 +27,7 @@ class CloudServerSyncSerializer:
     每个 Agent 持有独立实例，确保写入权限独立。
     """
 
-    def __init__(self, platform: 'CloudPlatform') -> None:
+    def __init__(self, platform: CloudPlatform) -> None:
         """初始化。
 
         Args:
@@ -35,7 +35,7 @@ class CloudServerSyncSerializer:
         """
         self.platform = platform
 
-    def upsert(self, data: 'ServerSyncData', result: 'SyncResult') -> None:
+    def upsert(self, data: ServerSyncData, result: SyncResult) -> None:
         """新增或更新云服务器记录（幂等）。
 
         匹配策略：
@@ -46,7 +46,6 @@ class CloudServerSyncSerializer:
             data: 服务器同步数据（Pydantic 模型）。
             result: 同步结果对象，累加 created/updated 计数。
         """
-        from apps.asset.models import CloudServer
         from apps.asset.serializers import CloudServerSerializer
 
         serializer_data = self._build_serializer_data(data)
@@ -66,7 +65,7 @@ class CloudServerSyncSerializer:
             result.created += 1
             logger.debug('新增云服务器: %s (%s)', data.hostname, data.instance_id)
 
-    def bulk_upsert(self, data_list: list['ServerSyncData'], result: 'SyncResult') -> None:
+    def bulk_upsert(self, data_list: list[ServerSyncData], result: SyncResult) -> None:
         """批量 upsert 云服务器记录。
 
         Args:
@@ -84,7 +83,7 @@ class CloudServerSyncSerializer:
     # 私有方法
     # ------------------------------------------------------------------
 
-    def _find_existing(self, data: 'ServerSyncData') -> 'CloudServer | None':
+    def _find_existing(self, data: ServerSyncData) -> CloudServer | None:
         """按 instance_id 或 name 查找已有记录。
 
         Args:
@@ -111,7 +110,7 @@ class CloudServerSyncSerializer:
 
         return None
 
-    def _build_serializer_data(self, data: 'ServerSyncData') -> dict:
+    def _build_serializer_data(self, data: ServerSyncData) -> dict:
         """将 Pydantic 同步数据转换为 DRF Serializer 所需字典。
 
         Args:
@@ -141,7 +140,13 @@ class CloudServerSyncSerializer:
         if data.private_ips:
             serializer_data['private_ip'] = data.private_ips[0]
         if data.expire_date:
-            serializer_data['expire_time'] = data.expire_date
+            # CloudServer.expire_time 是 DateTimeField，需将 date 转为 datetime
+            from datetime import datetime, time
+
+            serializer_data['expire_time'] = datetime.combine(
+                data.expire_date,
+                time.min,
+            )
         if data.region:
             serializer_data['region'] = data.region
         if data.tags:

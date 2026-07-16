@@ -12,7 +12,7 @@ class StatusResolver:
 
     # 默认状态映射：{平台原始值（小写）: 统一标识}
     DEFAULT_STATUS_MAP: dict[str, str] = {
-        # 腾讯云 CVM
+        # 腾讯云 CVM / 阿里云 ECS 通用
         'running': 'running',
         'stopped': 'stopped',
         'starting': 'starting',
@@ -20,12 +20,6 @@ class StatusResolver:
         'rebooting': 'rebooting',
         'pending': 'pending',
         'terminated': 'terminated',
-        # 阿里云 ECS
-        'running': 'running',
-        'stopped': 'stopped',
-        'starting': 'starting',
-        'stopping': 'stopping',
-        'pending': 'pending',
         # 华为云 ECS
         'active': 'running',
         'shutoff': 'stopped',
@@ -61,13 +55,13 @@ class StatusResolver:
         'ok': 'active',
         'normal': 'active',
         'active': 'active',
-        'pause': 'other',           # 暂停 → 无对应枚举值，归入 other
+        'pause': 'other',  # 暂停 → 无对应枚举值，归入 other
         'paused': 'other',
         'processing': 'pending',
         'waiting': 'pending',
         'transferring': 'transferring',
         'renewal process': 'pending',
-        'deleted': 'expired',       # 已删除视为过期
+        'deleted': 'expired',  # 已删除视为过期
         'expired': 'expired',
         'locked': 'locked',
         'forbidden': 'forbidden',
@@ -99,7 +93,7 @@ class TencentStatusResolver(StatusResolver):
     """腾讯云状态解析器。"""
 
     @classmethod
-    def resolve(cls, raw_status: str) -> str:
+    def resolve(cls, raw_status: str) -> str:  # noqa: D102
         return {
             'RUNNING': 'running',
             'STOPPED': 'stopped',
@@ -115,7 +109,7 @@ class AliyunStatusResolver(StatusResolver):
     """阿里云状态解析器。"""
 
     @classmethod
-    def resolve(cls, raw_status: str) -> str:
+    def resolve(cls, raw_status: str) -> str:  # noqa: D102
         return {
             'Running': 'running',
             'Stopped': 'stopped',
@@ -129,7 +123,7 @@ class HuaweiStatusResolver(StatusResolver):
     """华为云状态解析器。"""
 
     @classmethod
-    def resolve(cls, raw_status: str) -> str:
+    def resolve(cls, raw_status: str) -> str:  # noqa: D102
         return {
             'ACTIVE': 'running',
             'SHUTOFF': 'stopped',
@@ -142,7 +136,7 @@ class VsphereStatusResolver(StatusResolver):
     """vSphere 状态解析器。"""
 
     @classmethod
-    def resolve(cls, raw_status: str) -> str:
+    def resolve(cls, raw_status: str) -> str:  # noqa: D102
         return {
             'poweredOn': 'running',
             'poweredOff': 'stopped',

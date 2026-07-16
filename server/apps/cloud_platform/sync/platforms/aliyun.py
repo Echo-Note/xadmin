@@ -94,10 +94,32 @@ class AliyunCloudSyncer(BaseCloudSyncer):
     # 云服务器 (ECS)
     # ------------------------------------------------------------------
 
-    def _fetch_servers(self) -> list[ServerSyncData]:
-        """获取所有区域的 ECS 实例列表（幂等）。"""
-        if not self._setup():
-            return []
+    @staticmethod
+    def _parse_ali_date(dt_str: str | None) -> date | None:
+        """解析阿里云日期时间字符串。
+
+        Args:
+            dt_str: 形如 '2024-01-15T10:30Z' 的 ISO 时间字符串。
+
+        Returns:
+            date 对象或 None。
+        """
+        if not dt_str:
+            return None
+        try:
+            return date.fromisoformat(dt_str[:10])
+        except (ValueError, TypeError):
+            return None
+
+    def _fetch_servers_for_region(self, region: str) -> list[ServerSyncData]:
+        """拉取单个区域的 ECS 实例列表。
+
+        Args:
+            region: 区域标识，如 cn-hangzhou。
+
+        Returns:
+            该区域的 ServerSyncData 列表。
+        """
         results: list[ServerSyncData] = []
         status_map = {
             'Running': 'running',
@@ -106,74 +128,112 @@ class AliyunCloudSyncer(BaseCloudSyncer):
             'Stopping': 'stopping',
             'Pending': 'pending',
         }
-        for region in self.regions:
-            try:
-                client = EcsClient(self._build_config(region))
-                client.endpoint = f'ecs.{region}.aliyuncs.com'
-                page = 1
-                while True:
-                    req = DescribeInstancesRequest(
-                        region_id=region,
-                        page_size=PAGE_SIZE,
-                        page_number=page,
+
+        client = EcsClient(self._build_config(region))
+        client.endpoint = f'ecs.{region}.aliyuncs.com'
+        page = 1
+        while True:
+            req = DescribeInstancesRequest(
+                region_id=region,
+                page_size=PAGE_SIZE,
+                page_number=page,
+            )
+            resp = self._retry(
+                lambda req=req: client.describe_instances(req),
+                label=f'ECS-{region}',
+            )
+            if resp is None:
+                break
+
+            body = resp.body
+            instances = body.instances.instance if body.instances else []
+            if not instances:
+                break
+
+            for inst in instances:
+                # ——— 公网 IP ———
+                public_ips: list[str] = []
+                if inst.eip_address and inst.eip_address.ip_address:
+                    public_ips.append(inst.eip_address.ip_address)
+                if inst.public_ip_address and inst.public_ip_address.ip_address:
+                    for ip in inst.public_ip_address.ip_address:
+                        if ip and ip not in public_ips:
+                            public_ips.append(ip)
+
+                # ——— 内网 IP ———
+                private_ips: list[str] = []
+                if inst.inner_ip_address and inst.inner_ip_address.ip_address:
+                    for ip in inst.inner_ip_address.ip_address:
+                        if ip:
+                            private_ips.append(ip)
+                # 网络接口内网IP补充
+                if inst.network_interfaces and inst.network_interfaces.network_interface:
+                    for ni in inst.network_interfaces.network_interface:
+                        if ni.primary_ip_address and ni.primary_ip_address not in private_ips:
+                            private_ips.append(ni.primary_ip_address)
+
+                # ——— 到期/创建时间 ———
+                expire = self._parse_ali_date(inst.expired_time)
+                creation = self._parse_ali_date(inst.creation_time)
+
+                # ——— 系统盘 ———
+                disk = None
+                if inst.system_disk and inst.system_disk.size:
+                    try:
+                        disk = float(inst.system_disk.size)
+                    except (ValueError, TypeError):
+                        pass
+
+                # ——— 标签 ———
+                tags: dict[str, str] = {}
+                if inst.tags and inst.tags.tag:
+                    for t in inst.tags.tag:
+                        if t.tag_key:
+                            tags[t.tag_key] = t.tag_value or ''
+
+                # ——— 操作系统 ———
+                os_name = inst.os_name or inst.os_type or ''
+                os_version = inst.os_name or ''
+
+                # ——— 状态 ———
+                status = inst.status or ''
+                status = status_map.get(status, status.lower() if status else 'unknown')
+
+                results.append(
+                    ServerSyncData(
+                        hostname=inst.instance_name or inst.host_name or '',
+                        instance_id=inst.instance_id or '',
+                        status=status,
+                        os=os_name,
+                        os_version=os_version,
+                        cpu_cores=int(inst.cpu) if inst.cpu else None,
+                        memory_gb=float(inst.memory) / 1024.0 if inst.memory else None,
+                        disk_gb=disk,
+                        public_ips=public_ips,
+                        private_ips=private_ips,
+                        expire_date=expire,
+                        region=region,
+                        tags=tags,
+                        instance_charge_type=inst.instance_charge_type or '',
+                        creation_date=creation,
+                        instance_type=inst.instance_type or '',
                     )
-                    resp = client.describe_instances(req)
-                    body = resp.body
-                    instances = body.instances.instance if body.instances else []
-                    if not instances:
-                        break
-                    for inst in instances:
-                        public_ips: list[str] = []
-                        if inst.eip_address and inst.eip_address.ip_address:
-                            public_ips.append(inst.eip_address.ip_address)
-                        if inst.public_ip_address and inst.public_ip_address.ip_address:
-                            public_ips.extend(ip for ip in inst.public_ip_address.ip_address if ip)
-                        private_ips: list[str] = []
-                        if inst.network_interfaces and inst.network_interfaces.network_interface:
-                            for ni in inst.network_interfaces.network_interface:
-                                if ni.primary_ip_address:
-                                    private_ips.append(ni.primary_ip_address)
-                        expire = None
-                        if inst.expired_time:
-                            try:
-                                expire = date.fromisoformat(inst.expired_time[:10])
-                            except (ValueError, TypeError):
-                                pass
-                        disk = None
-                        if inst.system_disk and inst.system_disk.size:
-                            try:
-                                disk = float(inst.system_disk.size)
-                            except (ValueError, TypeError):
-                                pass
-                        tags: dict[str, str] = {}
-                        if inst.tags and inst.tags.tag:
-                            for t in inst.tags.tag:
-                                if t.tag_key:
-                                    tags[t.tag_key] = t.tag_value or ''
-                        status = inst.status or ''
-                        status = status_map.get(status, status.lower())
-                        results.append(
-                            ServerSyncData(
-                                hostname=inst.instance_name or inst.host_name or '',
-                                instance_id=inst.instance_id or '',
-                                status=status,
-                                os=inst.os_name or inst.os_type or '',
-                                cpu_cores=int(inst.cpu) if inst.cpu else None,
-                                memory_gb=float(inst.memory) / 1024.0 if inst.memory else None,
-                                disk_gb=disk,
-                                public_ips=public_ips,
-                                private_ips=private_ips,
-                                expire_date=expire,
-                                region=region,
-                                tags=tags,
-                            )
-                        )
-                    if page * PAGE_SIZE >= (body.total_count or 0):
-                        break
-                    page += 1
-            except Exception:
-                logger.exception('阿里云区域[%s] ECS 实例拉取失败', region)
+                )
+
+            if page * PAGE_SIZE >= (body.total_count or 0):
+                break
+            page += 1
+
         return results
+
+    def _fetch_servers(self) -> list[ServerSyncData]:
+        """获取所有区域的 ECS 实例列表（幂等）。
+
+        支持并行拉取多区域，通过基类 _fetch_by_regions 实现。
+        """
+        if not self._setup():
+            return []
+        return self._fetch_by_regions(self._fetch_servers_for_region)
 
     # ------------------------------------------------------------------
     # 域名

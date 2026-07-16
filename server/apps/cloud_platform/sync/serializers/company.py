@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING
 from django.db import transaction
 
 if TYPE_CHECKING:
-    from apps.company.models import Company
     from apps.cloud_platform.sync.schemas import DomainSyncData, SyncResult
+    from apps.company.models import Company
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +36,8 @@ class CompanySyncSerializer:
         credit_code: str | None = None,
         legal_person: str | None = None,
         address: str | None = None,
-        result: 'SyncResult | None' = None,
-    ) -> 'Company | None':
+        result: SyncResult | None = None,
+    ) -> Company | None:
         """根据实体信息查找或自动创建 Company 主体（幂等）。
 
         匹配优先级：
@@ -55,7 +55,6 @@ class CompanySyncSerializer:
         Returns:
             Company 实例，创建失败时返回 None。
         """
-        from apps.company.models import Company
 
         name = (company_name or '').strip()
         code = (credit_code or '').strip()
@@ -83,9 +82,9 @@ class CompanySyncSerializer:
 
     def find_or_create_from_domain(
         self,
-        data: 'DomainSyncData',
-        result: 'SyncResult',
-    ) -> 'Company | None':
+        data: DomainSyncData,
+        result: SyncResult,
+    ) -> Company | None:
         """从域名同步数据提取实体信息并查找/创建 Company。
 
         处理个人主体场景：company_type='个人' 时，
@@ -128,7 +127,7 @@ class CompanySyncSerializer:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _match_by_credit_code(credit_code: str) -> 'Company | None':
+    def _match_by_credit_code(credit_code: str) -> Company | None:
         """按统一社会信用代码精确匹配公司。
 
         Args:
@@ -147,7 +146,7 @@ class CompanySyncSerializer:
         return company
 
     @staticmethod
-    def _match_by_name(name: str) -> 'Company | None':
+    def _match_by_name(name: str) -> Company | None:
         """按公司名称精确匹配（忽略大小写）。
 
         Args:
@@ -171,7 +170,7 @@ class CompanySyncSerializer:
         credit_code: str = '',
         legal_person: str | None = None,
         address: str | None = None,
-    ) -> 'Company | None':
+    ) -> Company | None:
         """在事务中创建新的公司主体记录。
 
         Args:

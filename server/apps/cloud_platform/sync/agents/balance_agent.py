@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from apps.cloud_platform.sync.agents.base import SyncAgent, SyncAgentResult
@@ -27,7 +27,7 @@ class BalanceSyncAgent(SyncAgent):
 
     resource_type = 'balance'
 
-    def execute(self, syncer: 'BaseCloudSyncer') -> SyncAgentResult:
+    def execute(self, syncer: BaseCloudSyncer) -> SyncAgentResult:
         """执行账户余额同步。
 
         流程：
