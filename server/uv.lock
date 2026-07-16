@@ -138,6 +138,19 @@ wheels = [
 ]
 
 [[package]]
+name = "alibabacloud-bssopenapi20171214"
+version = "5.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "alibabacloud-tea-openapi" },
+    { name = "darabonba-core" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/2c/35/7af01194b22ab238a2853ef9dc938f6d39e67bc44fc6c43bab398dd387d5/alibabacloud_bssopenapi20171214-5.1.1.tar.gz", hash = "sha256:35ed0f236bf59864a8ceab5d9109c2aae37e0a4a58d50caaeabf551a405614cc", size = 163803, upload-time = "2026-01-29T06:14:33.689Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a1/37/31e9778e5fb6f09854d5cea446ab518ed05d9127fe7b5cb0fa66706c395f/alibabacloud_bssopenapi20171214-5.1.1-py3-none-any.whl", hash = "sha256:4339e9c47a5b4a134fed97244f143ab3da74a9de3a4effc2b0ff096447c3c781", size = 403480, upload-time = "2026-01-29T06:14:32.157Z" },
+]
+
+[[package]]
 name = "alibabacloud-credentials"
 version = "1.0.9"
 source = { registry = "https://pypi.org/simple" }
@@ -162,6 +175,19 @@ wheels = [
 ]
 
 [[package]]
+name = "alibabacloud-domain20180129"
+version = "5.0.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "alibabacloud-tea-openapi" },
+    { name = "darabonba-core" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/58/8e/0ed30d808db13e09acc8d9ff8cd38e3fb348ef04a6f3f8d48deed7c77ab7/alibabacloud_domain20180129-5.0.4.tar.gz", hash = "sha256:8ac5bf48b495a45c09a73cb5e921b9f2f59408a9b2c8f3db4762c355d51b70e1", size = 114473, upload-time = "2026-05-27T17:27:36.679Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c1/50/352331835f2d2ebe7a34cc1c8258ffd6b5ca5ec265472452c2aaf5105a30/alibabacloud_domain20180129-5.0.4-py3-none-any.whl", hash = "sha256:97123957c166894ed4b8f94b466ccad866237b66a24a50199158b6ce48a63f57", size = 386725, upload-time = "2026-05-27T17:27:35.305Z" },
+]
+
+[[package]]
 name = "alibabacloud-dysmsapi20170525"
 version = "4.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -174,6 +200,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a6/2e/9d7fdad19058b4436ecab3d5dc4599e80cb1f8590b8e07ebc17a2c980564/alibabacloud_dysmsapi20170525-4.3.0.tar.gz", hash = "sha256:15dc7eaff9bee2e39ce74ee831e6ca0838b4f0865b1c8da2a123311607b111ef", size = 75513, upload-time = "2025-11-27T18:16:56.231Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e4/42/cf36be51cfeb08774bd7f55f37ea095ec7941d310a1c0a624d29dd7fb4d0/alibabacloud_dysmsapi20170525-4.3.0-py3-none-any.whl", hash = "sha256:2a8797f34dea6fcdfc3367fe3ca939c6729a71a97eab24c1d06cf82573e44c89", size = 74812, upload-time = "2025-11-27T18:16:54.964Z" },
+]
+
+[[package]]
+name = "alibabacloud-ecs20140526"
+version = "7.9.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "alibabacloud-tea-openapi" },
+    { name = "darabonba-core" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9f/9d/97c73a4d55839a51744dcacc9ee9080d1fa9a1667b62a466ce792a8647ff/alibabacloud_ecs20140526-7.9.1.tar.gz", hash = "sha256:9edad6c41dd6fdf4784411ab5f823e7dcc8949c0ab8bef55f51c4065b2507871", size = 680149, upload-time = "2026-07-10T18:16:18.973Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/75/e9/1ea86d76452cb2f25268613f7edb8089fefd988fd69411c82e1e16150648/alibabacloud_ecs20140526-7.9.1-py3-none-any.whl", hash = "sha256:ae10382cbf47a994d40b4cb49b48b86498f6a83ebf8b1659791f4ceb5a7a1871", size = 1526916, upload-time = "2026-07-10T18:16:17.542Z" },
 ]
 
 [[package]]
@@ -2915,7 +2954,10 @@ version = "4.2.1"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofiles" },
+    { name = "alibabacloud-bssopenapi20171214" },
+    { name = "alibabacloud-domain20180129" },
     { name = "alibabacloud-dysmsapi20170525" },
+    { name = "alibabacloud-ecs20140526" },
     { name = "celery" },
     { name = "channels" },
     { name = "channels-redis" },
@@ -2976,7 +3018,10 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiofiles", specifier = "==24.1.0" },
+    { name = "alibabacloud-bssopenapi20171214", specifier = ">=5.1.1" },
+    { name = "alibabacloud-domain20180129", specifier = ">=5.0.4" },
     { name = "alibabacloud-dysmsapi20170525", specifier = "==4.3.0" },
+    { name = "alibabacloud-ecs20140526", specifier = ">=7.9.1" },
     { name = "celery", specifier = "==5.6.0" },
     { name = "channels", specifier = "==4.3.2" },
     { name = "channels-redis", specifier = "==4.3.0" },

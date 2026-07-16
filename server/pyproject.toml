@@ -83,6 +83,9 @@ dependencies = [
     "html2text==2025.4.15",
     "psutil==7.1.3",
     "pydantic>=2.13.4",
+    "alibabacloud-ecs20140526>=7.9.1",
+    "alibabacloud-domain20180129>=5.0.4",
+    "alibabacloud-bssopenapi20171214>=5.1.1",
 ]
 
 # 开发依赖组，不会打包进生产环境
