@@ -1,4 +1,5 @@
 import { getCurrentInstance, reactive, shallowRef, ref } from "vue";
+import { useRouter } from "vue-router";
 import { platformApi, credentialApi } from "@/api/cloud_platform";
 import { getDefaultAuths, hasAuth } from "@/router/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
@@ -12,6 +13,7 @@ import SyncDialog from "./SyncDialog.vue";
 
 export function usePlatform() {
   const api = reactive(platformApi);
+  const router = useRouter();
 
   const instance = getCurrentInstance();
   const defaultAuths = getDefaultAuths(instance);
@@ -59,9 +61,13 @@ export function usePlatform() {
     }, 50);
   };
 
-  /** 跳转到同步日志页面（带平台筛选） */
+  /** 跳转到同步日志页面（新 tab 打开，带平台筛选） */
   const goSyncLog = (row: Record<string, any>) => {
-    window.open(`/#/cloud/sync-log/index?platform=${row.pk}`, "_blank");
+    const { href } = router.resolve({
+      path: "/cloud/sync-log/index",
+      query: { platform: row.pk as string },
+    });
+    window.open(href, "_blank", "noopener,noreferrer");
   };
 
   const operationButtonsProps = shallowRef<OperationProps>({
