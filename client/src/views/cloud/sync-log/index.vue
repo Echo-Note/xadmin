@@ -26,6 +26,16 @@ const beforeSearchSubmit = (params: Record<string, any>) => {
   return params;
 };
 
+const operationButtonsProps = shallowRef<Record<string, any>>({
+  width: 200,
+  showNumber: 2,
+  buttons: [
+    { code: "update", show: false },
+    { code: "destroy", show: false },
+    { code: "create", show: false },
+  ]
+});
+
 const addOrEditOptions = shallowRef<RePlusPageProps["addOrEditOptions"]>({
   props: {
     minWidth: "700px",
@@ -40,6 +50,7 @@ const addOrEditOptions = shallowRef<RePlusPageProps["addOrEditOptions"]>({
     :auth="auth"
     locale-name="cloudSyncLog"
     :addOrEditOptions="addOrEditOptions"
+    :operationButtonsProps="operationButtonsProps"
     :beforeSearchSubmit="beforeSearchSubmit"
   />
 </template>
