@@ -5,6 +5,8 @@ API 文档: https://open.cndns.com/
 鉴权: GET 请求 + checksum = md5(username + md5(password) + otime + email)
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import logging
@@ -15,7 +17,7 @@ from decimal import Decimal
 import requests
 
 from apps.cloud_platform.sync.base import BaseCloudSyncer
-from apps.cloud_platform.sync.engine import register_syncer
+from apps.cloud_platform.sync.registry import register_syncer
 from apps.cloud_platform.sync.schemas import (
     BalanceSyncData,
     DnsRecordSyncData,
@@ -26,9 +28,6 @@ logger = logging.getLogger(__name__)
 
 CNDNS_API_BASE = 'https://api.cndns.com'
 CNDNS_TIMEOUT = 30
-
-# 从 HTML/JSONP 中提取 JSON
-_JSON_RE = re.compile(r'\{.*\}', re.DOTALL)
 
 # 域名状态映射
 _STATUS_MAP: dict[str, str] = {
@@ -47,13 +46,13 @@ _STATUS_MAP: dict[str, str] = {
 
 @register_syncer
 class MeichengSyncer(BaseCloudSyncer):
-    """美橙互联域名注册商同步器。"""
+    """美橙互联域名注册商同步器 — 仅负责 API 数据拉取和格式转换。"""
 
     PLATFORM_TYPE = 'meicheng'
     PLATFORM_NAMES = ['美橙', '美橙互联', 'meicheng', 'cndns']
     SUPPORTED_RESOURCES = {'domain', 'dns_record', 'balance'}
 
-    def __init__(self, cloud_platform):  # noqa: ANN001, D107
+    def __init__(self, cloud_platform) -> None:  # noqa: ANN001, D107
         super().__init__(cloud_platform)
         self._domain_list_cache: list[str] | None = None
 
@@ -104,7 +103,6 @@ class MeichengSyncer(BaseCloudSyncer):
         if not text:
             return None
 
-        # 1. 纯 JSON
         try:
             return json.loads(text)
         except json.JSONDecodeError:
@@ -112,24 +110,19 @@ class MeichengSyncer(BaseCloudSyncer):
 
         if '{' in text and '}' in text:
             inner = text[text.index('{') : text.rindex('}') + 1]
-            # 修复 CNDNS 将 " 转义为 \" 的问题
             cleaned = inner.replace('\\"', '"').replace('\\\\', '\\')
 
-            # 2. 修复后完整解析
             try:
                 return json.loads(cleaned)
             except json.JSONDecodeError:
                 pass
 
-            # 3. 提取 status + message 数组（message 可能含坏数据，逐项解析）
             status_m = re.search(r'"status"\s*:\s*"([^"]+)"', cleaned)
             if not status_m:
                 logger.warning('CNDNS [%s] 无法提取status', endpoint)
                 return None
 
             status = status_m.group(1)
-
-            # 用括号匹配提取 message 数组内容
             msg_start = cleaned.find('"message"')
             if msg_start < 0:
                 return {'status': status, 'message': []}
@@ -147,9 +140,8 @@ class MeichengSyncer(BaseCloudSyncer):
                     if depth == 0:
                         bracket_end = i + 1
                         break
-            msg_content = cleaned[bracket_start + 1 : bracket_end - 1]  # 去掉外层 []
+            msg_content = cleaned[bracket_start + 1 : bracket_end - 1]
 
-            # 逐项解析 domain 对象
             items = MeichengSyncer._parse_json_array(msg_content)
             return {'status': status, 'message': items}
 
@@ -158,18 +150,12 @@ class MeichengSyncer(BaseCloudSyncer):
 
     @staticmethod
     def _parse_json_array(raw: str) -> list[dict]:
-        """容错解析 JSON 数组字符串，逐项处理容错。
-
-        当完整 JSON 解析失败时，按 },\\s*{ 分割后逐项 json.loads。
-        单条解析失败跳过，不阻断整个列表。
-        """
-        # 先尝试整体解析
+        """容错解析 JSON 数组字符串，逐项处理容错。"""
         try:
             return json.loads(f'[{raw}]')
         except json.JSONDecodeError:
             pass
 
-        # 按 },{ 分割，逐项解析
         results: list[dict] = []
         depth = 0
         start = 0
@@ -185,7 +171,6 @@ class MeichengSyncer(BaseCloudSyncer):
                     except json.JSONDecodeError:
                         logger.debug('CNDNS 跳过单条坏数据: %.100s', item_str)
                     start = i + 1
-                    # 跳过逗号和空白
                     while start < len(raw) and raw[start] in ',\\s':
                         start += 1
         return results
@@ -221,10 +206,7 @@ class MeichengSyncer(BaseCloudSyncer):
         return names
 
     def _fetch_domains(self) -> list[DomainSyncData]:
-        """从美橙 API DomainList.aspx 拉取完整域名信息。
-
-        DomainList.aspx 一次返回所有域名的完整信息（含主体、日期、DNS等）。
-        """
+        """从美橙 API DomainList.aspx 拉取完整域名信息。"""
         data = self._get('/domains/DomainList.aspx', {'domaintype': 'en'})
         if not data:
             return []
@@ -249,17 +231,11 @@ class MeichengSyncer(BaseCloudSyncer):
         return domains
 
     def _parse_domain_item(self, item: dict) -> DomainSyncData | None:
-        """解析 DomainList.aspx 单条域名信息。
-
-        关键字段: d_dme(域名), d_addtme(注册时间), d_exptme(到期时间),
-        d_dnshst1~6(DNS), dom_org_cn(企业名), d_dnumber(信用代码),
-        d_cattype(O/I), dom_fn_cn/dom_ln_cn(联系人), g_nme(产品名)
-        """
+        """解析 DomainList.aspx 单条域名信息。"""
         name = str(item.get('d_dme', '')).strip().lower()
         if not name:
             return None
 
-        # 日期解析: YYYY/MM/DD HH:mm:ss
         def _parse_date(val) -> date | None:  # noqa: ANN001
             if not val:
                 return None
@@ -271,18 +247,15 @@ class MeichengSyncer(BaseCloudSyncer):
                 except (ValueError, TypeError):
                     return None
 
-        # DNS
         dns_list = []
         for i in range(1, 7):
             ns = item.get(f'd_dnshst{i}')
             if ns:
                 dns_list.append(str(ns))
 
-        # 状态
         raw_state = str(item.get('d_dnvcstate', ''))
         status = _STATUS_MAP.get(raw_state, raw_state) or 'active'
 
-        # 主体信息
         company_name = str(item.get('dom_org_cn', '')).strip() or None
         credit_code = str(item.get('d_dnumber', '')).strip() or None
         cat_type = str(item.get('d_cattype', '')).strip().upper()
@@ -293,7 +266,6 @@ class MeichengSyncer(BaseCloudSyncer):
         phone = str(item.get('dom_ph', '')).strip().replace('.', '') or None
         email = str(item.get('dom_em', '')).strip() or None
 
-        # 地址
         addr_parts = []
         for f in ('dom_st_cn', 'dom_ct_cn', 'dom_adr1_cn'):
             v = str(item.get(f, '')).strip()
@@ -320,20 +292,6 @@ class MeichengSyncer(BaseCloudSyncer):
         )
 
     # ---------- DNS 解析记录 ----------
-
-    def _is_platform_dns(self, domain) -> bool:  # noqa: ANN001
-        """判断域名 DNS 是否由美橙管理。
-
-        美橙 DNS：a.ezdnscenter.com / b.ezdnscenter.com
-
-        Args:
-            domain: Domain 模型实例。
-
-        Returns:
-            True 表示 DNS 托管在美橙。
-        """
-        dns = (domain.dns_server or '').lower()
-        return 'ezdnscenter' in dns
 
     def _fetch_dns_records(self) -> list[DnsRecordSyncData]:
         """逐域名拉取 DNS 解析记录: /domains/RecList.aspx?domainname=xxx"""
@@ -371,10 +329,7 @@ class MeichengSyncer(BaseCloudSyncer):
     # ---------- 余额 ----------
 
     def _fetch_balance(self) -> BalanceSyncData | None:
-        """查询账户余额: /user/userdetail.aspx
-
-        返回字段: availablebalance / balancemoney / frozenmoney / rewardmoney
-        """
+        """查询账户余额: /user/userdetail.aspx"""
         data = self._get('/user/userdetail.aspx')
         if not data:
             return None

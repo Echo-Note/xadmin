@@ -1,7 +1,7 @@
 """同步数据协议 — Pydantic 模型定义云平台资源同步的数据传输对象。
 
 所有同步器通过 Pydantic 模型传递数据，提供类型校验和序列化能力。
-数据库写入由 DRF Serializer 负责（见 base.py）。
+数据库写入由 Serializer 层负责（见 serializers/ 包）。
 """
 
 from datetime import date, datetime
@@ -16,9 +16,11 @@ class ServerSyncData(BaseModel):
     hostname: str = Field(default='', description='实例名称')
     instance_id: str = Field(default='', description='云平台实例 ID')
     status: str = Field(
-        default='running', description='运行状态：running/stopped/starting/stopping/rebooting/pending/terminated'
+        default='running',
+        description='运行状态：running/stopped/starting/stopping/rebooting/pending/terminated',
     )
     os: str = Field(default='', description='操作系统名称')
+    os_version: str = Field(default='', description='操作系统版本')
     cpu_cores: int | None = Field(default=None, description='CPU 核心数')
     memory_gb: float | None = Field(default=None, description='内存大小(GB)')
     disk_gb: float | None = Field(default=None, description='系统盘大小(GB)')
@@ -75,21 +77,34 @@ class BalanceSyncData(BaseModel):
 
 
 class SyncResult(BaseModel):
-    """单次资源类型的同步结果汇总 — 幂等，重复累加不产生副作用。"""
+    """同步结果汇总（保留向后兼容）。
 
-    resource_type: str = Field(default='', description='资源类型：server/domain/dns_record/balance')
+    供旧版单资源同步使用，可与 SyncAgentResult 互转。
+    新增平台同步器时无需修改此模型。
+    """
+
+    resource_type: str = Field(default='', description='资源类型')
     created: int = Field(default=0, ge=0, description='新建数量')
     updated: int = Field(default=0, ge=0, description='更新数量')
     terminated: int = Field(default=0, ge=0, description='终止数量')
-    companies_created: int = Field(default=0, ge=0, description='自动创建的企业主体数量')
-    errors: list[dict] = Field(default_factory=list, description='错误列表，每项: {item, error}')
+    companies_created: int = Field(default=0, ge=0, description='自动创建企业主体数量')
+    errors: list[dict] = Field(default_factory=list, description='错误列表')
 
     def add_error(self, item: str, error: str) -> None:
-        """记录一条同步错误。"""
+        """记录一条同步错误。
+
+        Args:
+            item: 出错项标识。
+            error: 错误描述。
+        """
         self.errors.append({'item': item, 'error': error})
 
     def merge(self, other: 'SyncResult') -> None:
-        """合并另一个 SyncResult 的计数和错误。"""
+        """合并另一个 SyncResult 的计数和错误。
+
+        Args:
+            other: 另一个 SyncResult。
+        """
         self.created += other.created
         self.updated += other.updated
         self.terminated += other.terminated

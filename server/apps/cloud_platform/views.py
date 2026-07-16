@@ -1,4 +1,7 @@
-"""云平台管理应用的视图集。"""
+"""云平台管理应用的视图集。
+
+提供平台 CRUD、凭据管理、手动/定时同步触发及异步任务调度。
+"""
 
 from datetime import date
 
@@ -22,30 +25,77 @@ from apps.cloud_platform.serializers import (
     SyncAgentLogSerializer,
     SyncRecordSerializer,
 )
-from apps.cloud_platform.sync.engine import SyncEngine
+from apps.cloud_platform.tasks import run_balance_sync_task, run_sync_task
 from apps.common.core.modelset import BaseModelSet, ImportExportDataAction
 from apps.common.core.response import ApiResponse
 
 
 class CloudPlatformViewSet(BaseModelSet, ImportExportDataAction):
-    """云平台实例管理，支持导入导出。"""
+    """云平台实例管理，支持导入导出、余额刷新及同步触发。"""
 
     queryset = CloudPlatform.objects.select_related('company').prefetch_related('credentials')
     serializer_class = CloudPlatformSerializer
     filterset_class = CloudPlatformFilter
     ordering_fields = ['created_time', 'name']
 
+    def perform_create(self, serializer) -> None:
+        """创建云平台后可选触发同步。
+
+        请求体中传入 sync_resources 参数（如 ["balance"]）
+        可触发该平台的异步同步任务。
+        """
+        instance = serializer.save()
+        sync_resources = self.request.data.get('sync_resources') if self.request else None
+        if sync_resources and instance.is_active:
+            user_id = str(self.request.user.pk) if self.request and self.request.user else None
+            run_sync_task.delay(
+                platform_id=str(instance.pk),
+                sync_type='manual',
+                resources=sync_resources,
+                user_id=user_id,
+            )
+
+    def perform_update(self, serializer) -> None:
+        """更新云平台后可选触发同步。"""
+        instance = serializer.save()
+        sync_resources = self.request.data.get('sync_resources') if self.request else None
+        if sync_resources and instance.is_active:
+            user_id = str(self.request.user.pk) if self.request and self.request.user else None
+            run_sync_task.delay(
+                platform_id=str(instance.pk),
+                sync_type='manual',
+                resources=sync_resources,
+                user_id=user_id,
+            )
+
     @action(methods=['post'], detail=True, url_path='refresh-balance')
     def refresh_balance(self, request: Request, *args, **kwargs) -> Response:
-        """手动刷新云平台账户余额。
+        """异步刷新云平台账户余额并写入每日快照。
 
-        1. 更新 CloudPlatform 的 account_balance 和 balance_updated_time
-        2. 写入当天的 AccountBalance 每日快照（同一天多次刷新会更新同一条）
-        3. 清理超过 30 天的旧快照
+        支持两种方式：
+        1. 传入 account_balance 手动设置（同步执行）
+        2. 传入 async=true 通过同步引擎拉取（异步执行）
+
+        POST /api/cloud/platform/{pk}/refresh-balance/
+        Body: {"account_balance": 100.50}  或  {"async": true}
         """
         instance = self.get_object()
-        new_balance = request.data.get('account_balance', None)
+        async_mode = request.data.get('async', False)
 
+        # 异步模式：通过 Celery 任务调用同步引擎拉取余额
+        if async_mode:
+            user_id = str(request.user.pk) if request.user else None
+            task = run_balance_sync_task.delay(
+                platform_id=str(instance.pk),
+                user_id=user_id,
+            )
+            return ApiResponse(
+                data={'task_id': task.id, 'platform': instance.name},
+                detail='余额同步任务已提交',
+            )
+
+        # 同步模式：手动设置余额值
+        new_balance = request.data.get('account_balance', None)
         if new_balance is not None:
             try:
                 instance.account_balance = float(new_balance)
@@ -55,15 +105,12 @@ class CloudPlatformViewSet(BaseModelSet, ImportExportDataAction):
         instance.balance_updated_time = timezone.now()
         instance.save(update_fields=['account_balance', 'balance_updated_time'])
 
-        # 写入每日快照（同一天多次刷新会更新同一条记录）
         today = date.today()
         AccountBalance.objects.update_or_create(
             platform=instance,
             record_date=today,
             defaults={'balance': instance.account_balance},
         )
-
-        # 清理 30 天前的旧记录
         deleted = AccountBalance.cleanup_old_records(instance.pk)
 
         return ApiResponse(
@@ -81,10 +128,7 @@ class CloudPlatformViewSet(BaseModelSet, ImportExportDataAction):
 
     @action(methods=['get'], detail=True, url_path='balance-history')
     def balance_history(self, request: Request, *args, **kwargs) -> Response:
-        """查询最近 30 天余额历史。
-
-        返回按日期倒序的 (日期, 余额) 列表，用于前端绘制余额走势图。
-        """
+        """查询最近 30 天余额历史。"""
         instance = self.get_object()
         records = (
             AccountBalance.objects.filter(platform=instance)
@@ -109,21 +153,14 @@ class CredentialViewSet(BaseModelSet, ImportExportDataAction):
     ordering_fields = ['created_time', 'credential_name']
 
     def get_serializer_class(self) -> type:
-        """根据 action 返回不同粒度的序列化器。
-
-        - 列表接口使用 CredentialListSerializer（不泄露敏感信息）。
-        - 详情/创建/更新使用 CredentialDetailSerializer（含加密字段）。
-        """
+        """根据 action 返回不同粒度的序列化器。"""
         if self.action in ('list',):
             return CredentialListSerializer
         return CredentialDetailSerializer
 
     @action(methods=['post'], detail=True, url_path='decrypt')
     def decrypt_credential(self, request: Request, *args, **kwargs) -> Response:
-        """解密凭据敏感字段，用于安全查看凭据明文。
-
-        按凭据类型返回对应的敏感字段，同时返回扩展数据中可能存放的附加密钥。
-        """
+        """解密凭据敏感字段。"""
         instance = self.get_object()
         data: dict = {
             'pk': instance.pk,
@@ -151,7 +188,7 @@ class CredentialViewSet(BaseModelSet, ImportExportDataAction):
 
 
 class SyncRecordViewSet(BaseModelSet, ImportExportDataAction):
-    """同步记录视图集 — CRUD + 手动触发同步 + 失败重试。"""
+    """同步记录视图集 — CRUD + 异步手动触发同步 + 失败重试。"""
 
     queryset = SyncRecord.objects.select_related('platform').prefetch_related('agent_logs').all()
     serializer_class = SyncRecordSerializer
@@ -160,35 +197,69 @@ class SyncRecordViewSet(BaseModelSet, ImportExportDataAction):
 
     @action(detail=False, methods=['post'], url_path='trigger')
     def trigger_sync(self, request: Request) -> Response:
-        """手动触发云平台资源同步。
+        """异步触发云平台资源同步。
+
+        同步任务在 Celery Worker 中执行，接口立即返回任务 ID。
+        完成后自动发送系统通知。
 
         POST /api/cloud/sync-record/trigger/
-        Body: {"platform": "<platform_pk>", "resources": ["server", "domain"]}
+        Body: {"platform": "<platform_pk>", "resources": ["server", "domain", "balance"]}
         """
         platform_pk = request.data.get('platform')
         if not platform_pk:
             return ApiResponse(code=400, detail='platform 参数不能为空')
+
         try:
             platform = CloudPlatform.objects.get(pk=platform_pk)
         except CloudPlatform.DoesNotExist:
             return ApiResponse(code=404, detail='云平台实例不存在')
+
         resources = request.data.get('resources')
         sync_type = request.data.get('sync_type', 'manual')
-        engine = SyncEngine()
-        sync_record = engine.run(platform, sync_type=sync_type, resources=resources)
-        serializer = self.get_serializer(sync_record)
-        return ApiResponse(data=serializer.data, detail='同步任务已完成')
+        user_id = str(request.user.pk) if request.user else None
+
+        # 异步执行
+        task = run_sync_task.delay(
+            platform_id=str(platform.pk),
+            sync_type=sync_type,
+            resources=resources,
+            user_id=user_id,
+        )
+
+        return ApiResponse(
+            data={
+                'task_id': task.id,
+                'platform': platform.name,
+                'platform_type': platform.platform_type,
+                'resources': resources,
+            },
+            detail='同步任务已提交，完成后将发送系统通知',
+        )
 
     @action(detail=True, methods=['post'], url_path='retry')
     def retry_sync(self, request: Request, pk: str | None = None) -> Response:
-        """重试失败的同步记录。"""
+        """异步重试失败的同步记录。"""
         sync_record = self.get_object()
         if sync_record.status not in ('failed', 'partial'):
             return ApiResponse(code=400, detail='仅失败或部分成功的同步记录可重试')
-        engine = SyncEngine()
-        new_record = engine.run(sync_record.platform, sync_type='manual', resources=sync_record.resources)
-        serializer = self.get_serializer(new_record)
-        return ApiResponse(data=serializer.data, detail='重试同步已完成')
+
+        user_id = str(request.user.pk) if request.user else None
+
+        task = run_sync_task.delay(
+            platform_id=str(sync_record.platform.pk),
+            sync_type='manual',
+            resources=sync_record.resources,
+            user_id=user_id,
+        )
+
+        return ApiResponse(
+            data={
+                'task_id': task.id,
+                'platform': sync_record.platform.name,
+                'resources': sync_record.resources,
+            },
+            detail='重试同步任务已提交',
+        )
 
 
 class SyncAgentLogViewSet(BaseModelSet):

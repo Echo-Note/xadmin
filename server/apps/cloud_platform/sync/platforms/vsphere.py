@@ -1,16 +1,18 @@
 """vSphere 同步器 — 虚拟机 + ESXi 宿主机。pyVmomi SDK。"""
 
+from __future__ import annotations
+
 import logging
 import ssl
 
 from apps.cloud_platform.sync.base import BaseCloudSyncer
-from apps.cloud_platform.sync.engine import register_syncer
+from apps.cloud_platform.sync.registry import register_syncer
 from apps.cloud_platform.sync.schemas import ServerSyncData
 
 logger = logging.getLogger(__name__)
 
 try:
-    from pyVim.connect import Disconnect, SmartConnect  # noqa: F401
+    from pyVim.connect import SmartConnect
     from pyVmomi import vim
 
     HAS_PYVMOMI = True
@@ -19,14 +21,6 @@ except ImportError:
     logger.warning('pyVmomi 未安装: pip install pyvmomi')
 
 POWER_MAP = {'poweredOn': 'running', 'poweredOff': 'stopped', 'suspended': 'stopped'}
-OS_MAP = {
-    'centos': 'centos',
-    'rhel': 'rhel',
-    'redhat': 'rhel',
-    'ubuntu': 'ubuntu',
-    'debian': 'debian',
-    'windows': 'windows',
-}
 
 
 def _is_private_ip(ip: str) -> bool:
@@ -36,28 +30,30 @@ def _is_private_ip(ip: str) -> bool:
         return True
     try:
         a, b = int(parts[0]), int(parts[1])
-    except:  # noqa: E722
+    except (ValueError, TypeError):
         return True
     if a == 10:
-        return True  # noqa: E701
+        return True
     if a == 172 and 16 <= b <= 31:
-        return True  # noqa: E701
+        return True
     if a == 192 and b == 168:
-        return True  # noqa: E701
+        return True
     if a == 100 and 64 <= b <= 127:
-        return True  # noqa: E701
+        return True
     if a == 127:
-        return True  # noqa: E701
+        return True
     return False
 
 
 @register_syncer
-class VsphereSyncer(BaseCloudSyncer):  # noqa: D101
+class VsphereSyncer(BaseCloudSyncer):
+    """vSphere 同步器 — 仅负责 API 数据拉取和格式转换。"""
+
     PLATFORM_TYPE = 'vcenter'
     PLATFORM_NAMES = ['vsphere', 'vmware vsphere', 'vcenter', 'vmware']
     SUPPORTED_RESOURCES = {'server'}
 
-    def __init__(self, cloud_platform):  # noqa: ANN001, D107
+    def __init__(self, cloud_platform) -> None:  # noqa: ANN001, D107
         super().__init__(cloud_platform)
         self._si = None
 
@@ -108,10 +104,14 @@ class VsphereSyncer(BaseCloudSyncer):  # noqa: D101
                         instance_id = obj.config.uuid if obj.config else ''
                         os_id = obj.config.guestId if obj.config else ''
                         os_type = 'other'
-                        for k, v in OS_MAP.items():
+                        os_keywords = {
+                            'centos': 'centos', 'rhel': 'rhel', 'redhat': 'rhel',
+                            'ubuntu': 'ubuntu', 'debian': 'debian', 'windows': 'windows',
+                        }
+                        for k, v in os_keywords.items():
                             if k in (os_id or '').lower():
                                 os_type = v
-                                break  # noqa: E702
+                                break
                         public_ips = []
                         private_ips = []
                         if obj.guest and obj.guest.net:
@@ -138,7 +138,11 @@ class VsphereSyncer(BaseCloudSyncer):  # noqa: D101
                     elif isinstance(obj, vim.HostSystem):
                         name = obj.name or ''
                         status = POWER_MAP.get(obj.runtime.powerState if obj.runtime else '', 'unknown')
-                        cpu = obj.hardware.cpuInfo.numCpuThreads if obj.hardware and obj.hardware.cpuInfo else None
+                        cpu = (
+                            obj.hardware.cpuInfo.numCpuThreads
+                            if obj.hardware and obj.hardware.cpuInfo
+                            else None
+                        )
                         mem = (
                             int(obj.hardware.memorySize / (1024**3))
                             if obj.hardware and obj.hardware.memorySize

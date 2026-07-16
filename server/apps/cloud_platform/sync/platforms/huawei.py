@@ -1,11 +1,13 @@
 """华为云同步器 — ECS/域名/余额。"""
 
+from __future__ import annotations
+
 import logging
 from datetime import UTC, datetime
 from decimal import Decimal
 
 from apps.cloud_platform.sync.base import BaseCloudSyncer
-from apps.cloud_platform.sync.engine import register_syncer
+from apps.cloud_platform.sync.registry import register_syncer
 from apps.cloud_platform.sync.schemas import (
     BalanceSyncData,
     DomainSyncData,
@@ -28,13 +30,13 @@ except ImportError:
 
 @register_syncer
 class HuaweiCloudSyncer(BaseCloudSyncer):
-    """华为云平台同步器。"""
+    """华为云平台同步器 — 仅负责 API 数据拉取和格式转换。"""
 
     PLATFORM_TYPE = 'huawei'
     PLATFORM_NAMES = ['华为云', 'huawei', 'huaweicloud']
     SUPPORTED_RESOURCES = {'server', 'domain', 'balance'}
 
-    def __init__(self, cloud_platform):  # noqa: ANN001, D107
+    def __init__(self, cloud_platform) -> None:  # noqa: ANN001, D107
         super().__init__(cloud_platform)
         self._ak = ''
         self._sk = ''
@@ -48,8 +50,7 @@ class HuaweiCloudSyncer(BaseCloudSyncer):
         return bool(self._ak)
 
     def _get_region(self) -> str:
-        regions = self._parse_regions()
-        return regions[0] if regions else 'cn-north-4'
+        return self.regions[0] if self.regions else 'cn-north-4'
 
     def _build_credentials(self):  # noqa: ANN202
         return BasicCredentials(self._ak, self._sk)
@@ -93,18 +94,18 @@ class HuaweiCloudSyncer(BaseCloudSyncer):
                     if srv.flavor:
                         if srv.flavor.vcpus:
                             try:
-                                cpu_cores = int(srv.flavor.vcpus)  # noqa: E701
-                            except:  # noqa: E722
+                                cpu_cores = int(srv.flavor.vcpus)
+                            except (ValueError, TypeError):
                                 pass
                         if srv.flavor.ram:
                             try:
-                                memory_gb = float(int(srv.flavor.ram) / 1024)  # noqa: E701
-                            except:  # noqa: E722
+                                memory_gb = float(int(srv.flavor.ram) / 1024)
+                            except (ValueError, TypeError):
                                 pass
                         if srv.flavor.disk:
                             try:
-                                disk_gb = float(int(srv.flavor.disk))  # noqa: E701
-                            except:  # noqa: E722
+                                disk_gb = float(int(srv.flavor.disk))
+                            except (ValueError, TypeError):
                                 pass
                     os_name = ''
                     if srv.metadata and 'os_type' in srv.metadata:

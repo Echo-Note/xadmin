@@ -1,11 +1,13 @@
 """阿里云同步器 — ECS/域名/余额。"""
 
+from __future__ import annotations
+
 import logging
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
 from apps.cloud_platform.sync.base import BaseCloudSyncer
-from apps.cloud_platform.sync.engine import register_syncer
+from apps.cloud_platform.sync.registry import register_syncer
 from apps.cloud_platform.sync.schemas import (
     BalanceSyncData,
     DomainSyncData,
@@ -35,7 +37,7 @@ PAGE_SIZE = 50
 
 @register_syncer
 class AliyunCloudSyncer(BaseCloudSyncer):
-    """阿里云资源同步器。
+    """阿里云资源同步器 — 仅负责 API 数据拉取和格式转换。
 
     支持资源类型：
     - server: ECS 云服务器
@@ -47,7 +49,7 @@ class AliyunCloudSyncer(BaseCloudSyncer):
     PLATFORM_NAMES = ['阿里云', 'aliyun', 'alibaba', 'alibabacloud']
     SUPPORTED_RESOURCES = {'server', 'domain', 'balance'}
 
-    def __init__(self, cloud_platform):  # noqa: ANN001
+    def __init__(self, cloud_platform) -> None:  # noqa: ANN001
         """初始化阿里云同步器。
 
         Args:
@@ -56,33 +58,29 @@ class AliyunCloudSyncer(BaseCloudSyncer):
         super().__init__(cloud_platform)
         self._ak = ''
         self._sk = ''
-        self._regions: list[str] = []
 
     # ------------------------------------------------------------------
     # 内部工具方法
     # ------------------------------------------------------------------
 
     def _setup(self) -> bool:
-        """初始化 AK/SK 和区域配置。
+        """初始化 AK/SK 配置。
 
         Returns:
-            True 表示配置有效，可以发起 API 调用。
+            True 表示配置有效。
         """
         if not SDK_AVAILABLE:
             return False
         creds = self.credentials
         self._ak = creds.get('access_key', '')
         self._sk = creds.get('access_secret', '')
-        self._regions = self._parse_regions()
-        if not self._regions:
-            self._regions = ['cn-hangzhou']
         return bool(self._ak)
 
-    def _build_config(self, region=None):  # noqa: ANN001, ANN202
+    def _build_config(self, region: str | None = None):  # noqa: ANN202
         """构建阿里云 OpenAPI 配置。
 
         Args:
-            region: 区域标识（如 cn-hangzhou）。
+            region: 区域标识。
 
         Returns:
             AliConfig 配置对象。
@@ -97,7 +95,7 @@ class AliyunCloudSyncer(BaseCloudSyncer):
     # ------------------------------------------------------------------
 
     def _fetch_servers(self) -> list[ServerSyncData]:
-        """获取所有区域的 ECS 实例列表（幂等：同参数多次调用返回相同数据）。"""
+        """获取所有区域的 ECS 实例列表（幂等）。"""
         if not self._setup():
             return []
         results: list[ServerSyncData] = []
@@ -108,52 +106,50 @@ class AliyunCloudSyncer(BaseCloudSyncer):
             'Stopping': 'stopping',
             'Pending': 'pending',
         }
-        for region in self._regions:
+        for region in self.regions:
             try:
                 client = EcsClient(self._build_config(region))
                 client.endpoint = f'ecs.{region}.aliyuncs.com'
                 page = 1
                 while True:
-                    req = DescribeInstancesRequest(region_id=region, page_size=PAGE_SIZE, page_number=page)
+                    req = DescribeInstancesRequest(
+                        region_id=region,
+                        page_size=PAGE_SIZE,
+                        page_number=page,
+                    )
                     resp = client.describe_instances(req)
                     body = resp.body
                     instances = body.instances.instance if body.instances else []
                     if not instances:
                         break
                     for inst in instances:
-                        # 公网 IP
                         public_ips: list[str] = []
                         if inst.eip_address and inst.eip_address.ip_address:
                             public_ips.append(inst.eip_address.ip_address)
                         if inst.public_ip_address and inst.public_ip_address.ip_address:
                             public_ips.extend(ip for ip in inst.public_ip_address.ip_address if ip)
-                        # 内网 IP
                         private_ips: list[str] = []
                         if inst.network_interfaces and inst.network_interfaces.network_interface:
                             for ni in inst.network_interfaces.network_interface:
                                 if ni.primary_ip_address:
                                     private_ips.append(ni.primary_ip_address)
-                        # 到期时间
                         expire = None
                         if inst.expired_time:
                             try:
                                 expire = date.fromisoformat(inst.expired_time[:10])
                             except (ValueError, TypeError):
                                 pass
-                        # 系统盘大小
                         disk = None
                         if inst.system_disk and inst.system_disk.size:
                             try:
                                 disk = float(inst.system_disk.size)
                             except (ValueError, TypeError):
                                 pass
-                        # 标签
                         tags: dict[str, str] = {}
                         if inst.tags and inst.tags.tag:
                             for t in inst.tags.tag:
                                 if t.tag_key:
                                     tags[t.tag_key] = t.tag_value or ''
-                        # 状态
                         status = inst.status or ''
                         status = status_map.get(status, status.lower())
                         results.append(
@@ -184,7 +180,7 @@ class AliyunCloudSyncer(BaseCloudSyncer):
     # ------------------------------------------------------------------
 
     def _fetch_domains(self) -> list[DomainSyncData]:
-        """获取所有域名列表（幂等：同参数多次调用返回相同数据）。"""
+        """获取所有域名列表（幂等）。"""
         if not self._setup():
             return []
         results: list[DomainSyncData] = []
@@ -241,26 +237,8 @@ class AliyunCloudSyncer(BaseCloudSyncer):
     # 账户余额
     # ------------------------------------------------------------------
 
-    def _is_platform_dns(self, domain) -> bool:  # noqa: ANN001
-        """判断域名 DNS 是否由阿里云管理。
-
-        阿里云 DNS：ns1.alidns.com 等。
-
-        Args:
-            domain: Domain 模型实例。
-
-        Returns:
-            True 表示 DNS 托管在阿里云。
-        """
-        dns = (domain.dns_server or '').lower()
-        return 'alidns' in dns
-
     def _fetch_balance(self) -> BalanceSyncData | None:
-        """获取账户余额（幂等：同参数多次调用返回相同数据）。
-
-        Returns:
-            余额数据，失败时返回 None。
-        """
+        """获取账户余额（幂等）。"""
         if not self._setup():
             return None
         try:
