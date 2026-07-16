@@ -91,19 +91,18 @@ export function usePlatform() {
       {
         code: "sync-log",
         text: "日志",
-        props: (row: Record<string, any>) => ({
-          tag: "a",
-          target: "_blank",
-          rel: "noopener noreferrer",
+        props: {
           type: "info",
           link: true,
-          icon: useRenderIcon("ri:history-line"),
-          href: router.resolve({
+          icon: useRenderIcon("ri:history-line")
+        },
+        show: auth.list && -25,
+        onClick: ({ row }) => {
+          router.push({
             path: "/cloud/sync-log/index",
             query: { platform: row.pk as string },
-          }).href,
-        }),
-        show: auth.list && -25,
+          });
+        },
       },
       {
         code: "credentials",
