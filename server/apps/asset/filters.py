@@ -7,10 +7,12 @@ from apps.asset.choices import (
     DnsRecordTypeChoices,
     DomainStatusChoices,
     HypervisorTypeChoices,
+    IcpCheckStatusChoices,
+    IcpFilingStatusChoices,
     ServerOSTypeChoices,
     ServerStatusChoices,
 )
-from apps.asset.models import CloudServer, DnsRecord, Domain, LocalServer, LocalVM
+from apps.asset.models import CloudServer, DnsRecord, Domain, Filing, LocalServer, LocalVM
 from apps.cloud_platform.models import CloudPlatform
 from apps.common.core.filter import BaseFilterSet
 from apps.company.models import Company
@@ -85,30 +87,29 @@ class DomainFilter(BaseFilterSet):
         choices=DomainStatusChoices.choices,
     )
     is_ssl_enabled = filters.BooleanFilter(field_name='is_ssl_enabled')
-    is_icp_filed = filters.BooleanFilter(
-        field_name='icp_number',
-        method='filter_filing_status',
-        label='ICP 备案',
-    )
-    is_ps_filed = filters.BooleanFilter(
-        field_name='ps_filing_number',
-        method='filter_filing_status',
-        label='公安备案',
-    )
     is_active = filters.BooleanFilter(field_name='is_active')
-
-    def filter_filing_status(self, queryset: QuerySet, name: str, value: bool) -> QuerySet:
-        """按备案号是否为空过滤。True=已备案（非空）。"""
-        if value:
-            return queryset.exclude(**{name: ''}).filter(**{f'{name}__isnull': False})
-        return queryset.filter(**{name: ''}) | queryset.filter(**{f'{name}__isnull': True})
-
     company = filters.ModelChoiceFilter(
         field_name='company',
         lookup_expr='exact',
         queryset=Company.objects.filter(is_active=True),
     )
     expire_time = filters.DateFromToRangeFilter(field_name='expire_time')
+    is_icp_filed = filters.BooleanFilter(
+        field_name='filing__icp_number',
+        method='filter_related_filing',
+        label='ICP 备案',
+    )
+    is_ps_filed = filters.BooleanFilter(
+        field_name='filing__ps_filing_number',
+        method='filter_related_filing',
+        label='公安备案',
+    )
+
+    def filter_related_filing(self, queryset: QuerySet, name: str, value: bool) -> QuerySet:
+        """按 Filing 关联表备案号是否为空过滤。True=已备案（非空）。"""
+        if value:
+            return queryset.exclude(**{name: ''}).filter(**{f'{name}__isnull': False})
+        return queryset.filter(**{name: ''}) | queryset.filter(**{f'{name}__isnull': True})
 
     class Meta:
         """元数据配置。"""
@@ -120,12 +121,53 @@ class DomainFilter(BaseFilterSet):
             'platform',
             'status',
             'is_ssl_enabled',
-            'is_icp_filed',
-            'is_ps_filed',
             'is_active',
             'company',
             'expire_time',
+            'is_icp_filed',
+            'is_ps_filed',
         ]
+
+
+class FilingFilter(BaseFilterSet):
+    """备案信息过滤器。"""
+
+    pk = filters.CharFilter(field_name='id')
+    domain = filters.ModelChoiceFilter(
+        field_name='domain',
+        lookup_expr='exact',
+        queryset=Domain.objects.filter(is_active=True),
+        label='关联域名',
+    )
+    icp_status = filters.ChoiceFilter(
+        field_name='icp_status',
+        lookup_expr='exact',
+        choices=IcpFilingStatusChoices.choices,
+        label='ICP 备案状态',
+    )
+    icp_check_status = filters.ChoiceFilter(
+        field_name='icp_check_status',
+        lookup_expr='exact',
+        choices=IcpCheckStatusChoices.choices,
+        label='ICP 预检测状态',
+    )
+    ps_status = filters.ChoiceFilter(
+        field_name='ps_status',
+        lookup_expr='exact',
+        choices=IcpFilingStatusChoices.choices,
+        label='公安备案状态',
+    )
+    company = filters.ModelChoiceFilter(
+        field_name='company',
+        lookup_expr='exact',
+        queryset=Company.objects.filter(is_active=True),
+    )
+
+    class Meta:
+        """元数据配置。"""
+
+        model = Filing
+        fields = ['domain', 'icp_status', 'icp_check_status', 'ps_status', 'company']
 
 
 class LocalServerFilter(BaseFilterSet):

@@ -87,6 +87,8 @@ dependencies = [
     "alibabacloud-domain20180129>=5.0.4",
     "alibabacloud-bssopenapi20171214>=5.1.1",
     "volcengine>=1.0.226",
+    "beautifulsoup4>=4.15.0",
+    "lxml>=6.1.1",
 ]
 
 # 开发依赖组，不会打包进生产环境

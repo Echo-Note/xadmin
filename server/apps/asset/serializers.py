@@ -199,6 +199,11 @@ class DomainSerializer(BaseModelSerializer):
         label='解析数量',
         help_text='该域名下的 DNS 解析记录数量',
     )
+    filing_info = serializers.SerializerMethodField(
+        read_only=True,
+        label='备案信息',
+        help_text='ICP 备案和公安备案的摘要信息',
+    )
 
     def get_platform_info(self, obj: models.Domain) -> dict | None:
         """获取归属云平台的摘要信息。"""
@@ -209,6 +214,21 @@ class DomainSerializer(BaseModelSerializer):
                 'platform_type': obj.platform.platform_type,
             }
         return None
+
+    def get_filing_info(self, obj: models.Domain) -> dict | None:
+        """获取备案摘要信息（ICP + 公安）。"""
+        try:
+            f = obj.filing
+            return {
+                'pk': f.pk,
+                'icp_number': f.icp_number,
+                'icp_status': f.icp_status,
+                'icp_check_status': f.icp_check_status,
+                'ps_filing_number': f.ps_filing_number,
+                'ps_status': f.ps_status,
+            }
+        except models.Filing.DoesNotExist:
+            return None
 
     class Meta:
         """元数据配置。"""
@@ -248,7 +268,7 @@ class DomainSerializer(BaseModelSerializer):
             ),
             TabsColumn(
                 '备案信息',
-                ['icp_number', 'icp_filing_date', 'ps_filing_number', 'ps_filing_date'],
+                ['filing_info'],
             ),
         ]
         fields = [
@@ -270,10 +290,7 @@ class DomainSerializer(BaseModelSerializer):
             'security_contact_phone',
             'service_contact',
             'service_contact_phone',
-            'icp_number',
-            'icp_filing_date',
-            'ps_filing_number',
-            'ps_filing_date',
+            'filing_info',
             'is_active',
             'company',
             'description',
@@ -364,22 +381,6 @@ class DomainSerializer(BaseModelSerializer):
             'service_contact_phone': {
                 'label': '服务负责人电话',
                 'help_text': '服务负责人联系电话',
-            },
-            'icp_number': {
-                'label': 'ICP 备案号',
-                'help_text': 'ICP 备案号，如 京ICP备2023000001号',
-            },
-            'icp_filing_date': {
-                'label': 'ICP 备案日期',
-                'help_text': 'ICP 备案通过日期',
-            },
-            'ps_filing_number': {
-                'label': '公安备案号',
-                'help_text': '公安联网备案号，如 京公网安备110100000001号',
-            },
-            'ps_filing_date': {
-                'label': '公安备案日期',
-                'help_text': '公安联网备案通过日期',
             },
             'is_active': {
                 'label': '启用状态',
@@ -871,6 +872,187 @@ class DnsRecordSerializer(BaseModelSerializer):
             },
             'is_active': {'label': '启用状态', 'help_text': '解析记录是否生效'},
             'description': {'label': 'Description', 'help_text': '备注信息'},
+            'created_time': {
+                'read_only': True,
+                'label': 'Created time',
+                'help_text': '创建时间',
+            },
+            'updated_time': {
+                'read_only': True,
+                'label': 'Updated time',
+                'help_text': '更新时间',
+            },
+        }
+
+
+class FilingSerializer(BaseModelSerializer):
+    """备案信息序列化器，同时管理 ICP 备案与公安备案。"""
+
+    domain_info = serializers.SerializerMethodField(
+        read_only=True,
+        label='关联域名',
+        help_text='归属域名的摘要信息',
+    )
+
+    def get_domain_info(self, obj: models.Filing) -> dict:
+        """获取归属域名的摘要信息。"""
+        return {
+            'pk': obj.domain.pk,
+            'domain_name': obj.domain.domain_name,
+        }
+
+    class Meta:
+        """元数据配置。"""
+
+        model = models.Filing
+        tabs = [
+            TabsColumn(
+                '基本信息',
+                ['domain', 'company'],
+            ),
+            TabsColumn(
+                'ICP 备案',
+                [
+                    'icp_number',
+                    'icp_filing_date',
+                    'icp_unit_name',
+                    'icp_status',
+                    'icp_check_status',
+                    'icp_has_www_record',
+                    'icp_footer_content',
+                    'icp_check_conclusion',
+                    'icp_check_time',
+                ],
+            ),
+            TabsColumn(
+                '公安备案',
+                [
+                    'ps_filing_number',
+                    'ps_filing_date',
+                    'ps_unit_name',
+                    'ps_public_security_agency',
+                    'ps_status',
+                ],
+            ),
+        ]
+        fields = [
+            'pk',
+            'domain',
+            'domain_info',
+            'company',
+            # ICP
+            'icp_number',
+            'icp_filing_date',
+            'icp_unit_name',
+            'icp_status',
+            'icp_check_status',
+            'icp_has_www_record',
+            'icp_footer_content',
+            'icp_check_conclusion',
+            'icp_check_time',
+            # 公安
+            'ps_filing_number',
+            'ps_filing_date',
+            'ps_unit_name',
+            'ps_public_security_agency',
+            'ps_status',
+            'description',
+            'created_time',
+            'updated_time',
+        ]
+        table_fields = [
+            'domain_info',
+            'icp_number',
+            'icp_status',
+            'icp_check_status',
+            'ps_filing_number',
+            'ps_status',
+            'company',
+            'created_time',
+        ]
+        extra_kwargs = {
+            'pk': {
+                'read_only': True,
+                'label': 'ID',
+                'help_text': '主键唯一标识',
+            },
+            'domain': {
+                'attrs': ['pk', 'domain_name'],
+                'required': True,
+                'format': '{domain_name}',
+                'label': '关联域名',
+                'help_text': '该备案记录关联的域名',
+            },
+            'company': {
+                'attrs': ['pk', 'name', 'short_name'],
+                'required': False,
+                'format': '{name}',
+                'label': '所属公司',
+                'help_text': '备案主体归属的公司',
+            },
+            # ICP 字段
+            'icp_number': {
+                'label': 'ICP 备案号',
+                'help_text': 'ICP 备案号，如 京ICP备2023000001号',
+            },
+            'icp_filing_date': {
+                'label': 'ICP 备案日期',
+                'help_text': 'ICP 备案通过日期',
+            },
+            'icp_unit_name': {
+                'label': 'ICP 备案主体',
+                'help_text': 'ICP 备案主体名称（单位/个人名称）',
+            },
+            'icp_status': {
+                'label': 'ICP 备案状态',
+                'help_text': 'ICP 备案当前状态：未备案/已备案/待人工确认/变更中',
+            },
+            'icp_check_status': {
+                'label': 'ICP 预检测状态',
+                'help_text': '首页悬挂备案号预检测结果',
+            },
+            'icp_has_www_record': {
+                'label': '有www解析',
+                'help_text': '域名是否存在 www 子域名的 DNS 解析记录',
+            },
+            'icp_footer_content': {
+                'label': '页脚内容',
+                'help_text': '首页页脚区域抓取到的文本内容',
+            },
+            'icp_check_conclusion': {
+                'label': '检测结论',
+                'help_text': '预检测的详细结论描述',
+            },
+            'icp_check_time': {
+                'read_only': True,
+                'label': '检测时间',
+                'help_text': '最近一次预检测执行时间',
+            },
+            # 公安字段
+            'ps_filing_number': {
+                'label': '公安备案号',
+                'help_text': '公安联网备案号，如 京公网安备110100000001号',
+            },
+            'ps_filing_date': {
+                'label': '公安备案日期',
+                'help_text': '公安联网备案通过日期',
+            },
+            'ps_unit_name': {
+                'label': '公安备案主体',
+                'help_text': '公安备案主体名称',
+            },
+            'ps_public_security_agency': {
+                'label': '备案公安机关',
+                'help_text': '受理备案的公安机关名称',
+            },
+            'ps_status': {
+                'label': '公安备案状态',
+                'help_text': '公安备案当前状态：未备案/已备案/待人工确认',
+            },
+            'description': {
+                'label': 'Description',
+                'help_text': '备注信息',
+            },
             'created_time': {
                 'read_only': True,
                 'label': 'Created time',

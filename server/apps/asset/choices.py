@@ -10,6 +10,25 @@ class AssetSourceChoices(models.TextChoices):
     LOCAL = 'local', '本地资产'
 
 
+class IcpFilingStatusChoices(models.TextChoices):
+    """备案状态枚举，同时用于 ICP 备案和公安备案。"""
+
+    NOT_FILED = 'not_filed', '未备案'
+    FILED = 'filed', '已备案'
+    PENDING_CONFIRM = 'pending_confirm', '待人工确认'
+    CHANGING = 'changing', '变更中'
+
+
+class IcpCheckStatusChoices(models.TextChoices):
+    """ICP 备案预检测状态枚举。"""
+
+    NOT_CHECKED = 'not_checked', '未检测'
+    PASSED = 'passed', '检测通过'
+    SUSPECTED_MISSING = 'suspected_missing', '疑似未悬挂'
+    NO_WWW_RECORD = 'no_www_record', '无www解析'
+    CHECK_FAILED = 'check_failed', '检测失败'
+
+
 class ServerOSTypeChoices(models.TextChoices):
     """服务器操作系统类型枚举。"""
 
