@@ -75,6 +75,7 @@ class RegionResolver:
             'tencent': ['ap-guangzhou'],
             'aliyun': ['cn-hangzhou'],
             'huawei': ['cn-north-4'],
+            'volcengine': ['cn-north-1'],
             'vcenter': ['default'],
             'meicheng': ['default'],
             'aws': ['us-east-1'],

@@ -12,6 +12,7 @@ class PlatformTypeChoices(models.TextChoices):
     AWS = 'aws', _('AWS')
     AZURE = 'azure', _('Azure')
     HUAWEI_CLOUD = 'huawei', _('华为云')
+    VOLCENGINE = 'volcengine', _('火山引擎')
     VCENTER = 'vcenter', _('vCenter')
     MEICHENG = 'meicheng', _('美橙')
     OTHER = 'other', _('其他')

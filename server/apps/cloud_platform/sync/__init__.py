@@ -31,6 +31,7 @@ def _ensure_platforms_loaded() -> None:
     import apps.cloud_platform.sync.platforms.huawei  # noqa: F401
     import apps.cloud_platform.sync.platforms.meicheng  # noqa: F401
     import apps.cloud_platform.sync.platforms.tencent  # noqa: F401
+    import apps.cloud_platform.sync.platforms.volcengine  # noqa: F401
     import apps.cloud_platform.sync.platforms.vsphere  # noqa: F401
 
     _platforms_loaded = True
