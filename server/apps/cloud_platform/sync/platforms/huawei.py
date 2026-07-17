@@ -304,25 +304,46 @@ class HuaweiCloudSyncer(BaseCloudSyncer):
     # ---------- 余额同步（BSS REST API） ----------
 
     def _fetch_balance(self) -> BalanceSyncData | None:
+
         import requests
 
         if not self._setup():
             return None
         try:
-            from huaweicloudsdkcore.signer import Signer
+            from huaweicloudsdkcore.auth.credentials import BasicCredentials
+            from huaweicloudsdkcore.sdk_request import SdkRequest
+            from huaweicloudsdkcore.signer.signer import Signer
 
-            region = self._get_region()
-            endpoint = f'https://bss.{region}.myhuaweicloud.com'
-            url = f'{endpoint}/v2/accounts/customer-accounts/balances'
-            signer = Signer()
-            signer.Key = self._ak
-            signer.Secret = self._sk
-            http_req = signer.Sign(requests.Request('POST', url))
-            resp = requests.Session().send(http_req.prepare(), timeout=30)
+            creds = BasicCredentials(self._ak, self._sk)
+            signer = Signer(creds)
+
+            # BSS 余额查询 API — 使用全局端点 GET 请求
+            host = 'bss.myhuaweicloud.com'
+            path = '/v2/accounts/customer-accounts/balances'
+            date_str = datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')
+
+            sdk_req = SdkRequest(
+                method='GET',
+                host=host,
+                resource_path=path,
+                header_params={'Content-Type': 'application/json', 'X-Sdk-Date': date_str},
+                query_params=[],
+                body='',
+            )
+            signed = signer.sign(sdk_req)
+
+            req = requests.Request(
+                'GET',
+                f'https://{host}{path}',
+                headers=dict(signed.header_params),
+            )
+            resp = requests.Session().send(req.prepare(), timeout=30)
             data = resp.json()
+
             total = Decimal('0')
             for acct in data.get('account_balances', []):
                 total += Decimal(str(acct.get('amount', 0)))
+
             return BalanceSyncData(
                 total_balance=total,
                 currency='CNY',
