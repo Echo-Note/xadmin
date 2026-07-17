@@ -344,6 +344,11 @@ class HuaweiCloudSyncer(BaseCloudSyncer):
             for acct in data.get('account_balances', []):
                 total += Decimal(str(acct.get('amount', 0)))
 
+            # debt_amount 是欠费金额（正数表示负债），从可用余额中扣除
+            debt = Decimal(str(data.get('debt_amount', 0)))
+            if debt > 0:
+                total -= debt
+
             return BalanceSyncData(
                 total_balance=total,
                 currency='CNY',
