@@ -617,6 +617,9 @@ class SearchColumnsAction:
             if tabs_info and tabs_label:
                 info['tabs_index'] = tabs_info.get(key, 0)
                 info['tabs_label'] = tabs_label[info['tabs_index']]
+            # 根据 ViewSet 的 ordering_fields 判断该列是否支持排序
+            ordering_fields: list = getattr(self, 'ordering_fields', []) or []
+            info['sortable'] = key in ordering_fields or key in [f.lstrip('-') for f in ordering_fields]
             results.append(info)
         return ApiResponse(data=results)
 

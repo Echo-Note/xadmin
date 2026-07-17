@@ -284,6 +284,24 @@ export function usePlusPage(emit: any, tableRef: Ref, props: RePlusPageProps) {
     emit("selectionChange", tableRef.value.getTableRef().getSelectionRows());
   };
 
+  const handleSortChange = ({
+    prop,
+    order
+  }: {
+    prop?: string;
+    order?: string;
+  }) => {
+    if (!prop || !order) {
+      // 取消排序时恢复默认排序
+      searchFields.value.ordering =
+        defaultValue.value.ordering || "-created_time";
+    } else {
+      searchFields.value.ordering = order === "ascending" ? prop : `-${prop}`;
+    }
+    searchFields.value.page = 1;
+    handleGetData();
+  };
+
   const onSelectionCancel = () => {
     selectedNum.value = 0;
     tableRef.value.getTableRef().clearSelection();
@@ -559,6 +577,7 @@ export function usePlusPage(emit: any, tableRef: Ref, props: RePlusPageProps) {
     onSelectionCancel,
     handleCurrentChange,
     handleTableBarChange,
-    handleSelectionChange
+    handleSelectionChange,
+    handleSortChange
   };
 }

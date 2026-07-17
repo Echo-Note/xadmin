@@ -249,6 +249,10 @@ export function useBaseColumns(localeName: string) {
         );
       }
       // pure-table ****** end
+      // 后端通过 columns 接口的 sortable 标记控制表头点击排序
+      if (column.sortable) {
+        item["sortable"] = "custom";
+      }
       switch (column.input_type) {
         case "integer":
         case "float":

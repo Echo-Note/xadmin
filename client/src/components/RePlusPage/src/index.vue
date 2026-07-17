@@ -76,7 +76,8 @@ const {
   onSelectionCancel,
   handleCurrentChange,
   handleTableBarChange,
-  handleSelectionChange
+  handleSelectionChange,
+  handleSortChange
 } = usePlusPage(emit, tableRef, props);
 
 function getTableRef() {
@@ -221,6 +222,7 @@ defineExpose({
         v-bind="pureTableProps"
         @selection-change="handleSelectionChange"
         @row-click="row => emit('rowClick', row)"
+        @sort-change="handleSortChange"
         @page-size-change="handleSizeChange"
         @page-current-change="handleCurrentChange"
       >

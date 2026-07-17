@@ -38,6 +38,7 @@ export type SearchColumnsResult = {
     help_text?: string;
     default?: string | number | any;
     choices?: Array<number | string | any>;
+    sortable?: boolean;
   }>;
 };
 
