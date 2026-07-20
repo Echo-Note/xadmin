@@ -346,6 +346,13 @@ const handleDelete = async (row: DnsRecordItem) => {
           </el-tag>
         </template>
       </el-table-column>
+      <el-table-column prop="is_ssl_enabled" label="SSL" width="60">
+        <template #default="{ row }">
+          <el-tag :type="row.is_ssl_enabled ? 'success' : 'info'" size="small">
+            {{ row.is_ssl_enabled ? "是" : "否" }}
+          </el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="120" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" size="small" @click="handleEdit(row)">

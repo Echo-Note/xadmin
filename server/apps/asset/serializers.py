@@ -820,7 +820,7 @@ class SslCertificateSerializer(BaseModelSerializer):
         tabs = [
             TabsColumn(
                 '基本信息',
-                ['domain', 'is_valid', 'check_time'],
+                ['domains_info', 'is_valid', 'check_time'],
             ),
             TabsColumn(
                 '主体信息',
@@ -857,6 +857,9 @@ class SslCertificateSerializer(BaseModelSerializer):
             'san_domains',
             'is_valid',
             'check_time',
+            'certificate_pem',
+            'intermediate_pem',
+            'private_key_pem',
             'description',
             'created_time',
             'updated_time',
@@ -921,6 +924,18 @@ class SslCertificateSerializer(BaseModelSerializer):
                 'label': '备用域名',
                 'help_text': 'Subject Alternative Names 域名列表',
             },
+            'certificate_pem': {
+                'label': '终端证书',
+                'help_text': '终端证书 PEM 格式内容（自动检测填充）',
+            },
+            'intermediate_pem': {
+                'label': '中间证书',
+                'help_text': '中间证书链 PEM 格式内容（自动检测填充）',
+            },
+            'private_key_pem': {
+                'label': '私钥',
+                'help_text': '私钥 PEM 格式内容（加密存储，需手动上传）',
+            },
             'is_valid': {
                 'label': '是否有效',
                 'help_text': '检测时证书是否在有效期内',
@@ -976,6 +991,7 @@ class DnsRecordSerializer(BaseModelSerializer):
             'ttl',
             'priority',
             'is_active',
+            'is_ssl_enabled',
             'description',
             'created_time',
             'updated_time',
@@ -1017,6 +1033,7 @@ class DnsRecordSerializer(BaseModelSerializer):
                 'help_text': 'MX/SRV 记录的优先级，值越小优先级越高',
             },
             'is_active': {'label': '启用状态', 'help_text': '解析记录是否生效'},
+            'is_ssl_enabled': {'label': 'SSL 证书', 'help_text': '该子域名是否支持 HTTPS'},
             'description': {'label': 'Description', 'help_text': '备注信息'},
             'created_time': {
                 'read_only': True,

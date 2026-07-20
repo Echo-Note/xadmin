@@ -13,11 +13,12 @@ export function useSslCertificate() {
     exportData: defaultAuths.exportData || defaultAuths.list
   });
 
+  /** 证书详情/编辑配置（可编辑私钥，不可手动新增） */
   const addOrEditOptions = reactive({
     title: "SSL 证书详情",
-    width: "40%",
+    width: "60%",
     addDisplay: false,
-    editDisplay: false
+    editDisplay: true
   });
 
   return {

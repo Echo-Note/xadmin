@@ -293,11 +293,39 @@ def _check_ssl_certificate(domain_name: str) -> dict[str, Any] | None:
             with ctx.wrap_socket(sock, server_hostname=hostname) as ssock:
                 der_cert = ssock.getpeercert(binary_form=True)
 
+                # 获取完整证书链（Python 3.13 公开 API，3.12 私有 API）
+                der_chain: list[bytes] | None = None
+                get_chain = getattr(ssock, 'get_unverified_chain', None)
+                if get_chain is None:
+                    get_chain = getattr(getattr(ssock, '_sslobj', None), 'get_unverified_chain', None)
+                if get_chain is not None:
+                    try:
+                        der_chain = list(get_chain())
+                    except Exception:
+                        der_chain = None
+
         if not der_cert:
             logger.debug('未获取到证书数据: %s', hostname)
             return None
 
         cert = x509.load_der_x509_certificate(der_cert)
+
+        # PEM 格式证书（用于部署）
+        from cryptography.hazmat.primitives import serialization
+
+        certificate_pem = cert.public_bytes(serialization.Encoding.PEM).decode('utf-8')
+
+        # 中间证书链 PEM（拼接所有非终端证书）
+        intermediate_pem = ''
+        if der_chain and len(der_chain) > 1:
+            parts: list[str] = []
+            for der_bytes in der_chain[1:]:
+                try:
+                    chain_cert = x509.load_der_x509_certificate(der_bytes)
+                    parts.append(chain_cert.public_bytes(serialization.Encoding.PEM).decode('utf-8'))
+                except Exception:
+                    pass
+            intermediate_pem = ''.join(parts)
 
         # 解析主体（Subject）
         subject = cert.subject
@@ -345,6 +373,8 @@ def _check_ssl_certificate(domain_name: str) -> dict[str, Any] | None:
             'san_domains': san_domains,
             'is_valid': is_valid,
             'fingerprint': cert.fingerprint(hashes.SHA256()).hex(),
+            'certificate_pem': certificate_pem,
+            'intermediate_pem': intermediate_pem,
         }
     except (ssl_module.SSLError, OSError) as e:
         logger.debug('SSL 证书检测失败 %s: %s', hostname, e)
@@ -573,6 +603,8 @@ def _sync_ssl_certificate_record(
             'san_domains': ssl_info['san_domains'],
             'is_valid': ssl_info['is_valid'],
             'check_time': check_time,
+            'certificate_pem': ssl_info.get('certificate_pem'),
+            'intermediate_pem': ssl_info.get('intermediate_pem'),
         },
     )
 

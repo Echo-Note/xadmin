@@ -29,6 +29,7 @@ from apps.asset.choices import (
 )
 from apps.cloud_platform.models import CloudPlatform
 from apps.common.core.models import DbAuditModel, DbUuidModel, upload_directory_path
+from apps.common.fields.encrypted import EncryptedTextField
 from apps.company.models import Company
 
 
@@ -676,6 +677,29 @@ class SslCertificate(DbAuditModel, DbUuidModel):
         db_comment='最近检测时间',
     )
 
+    # ---- PEM 格式证书文件（用于部署）----
+    certificate_pem = models.TextField(
+        verbose_name='终端证书',
+        null=True,
+        blank=True,
+        help_text='终端证书 PEM 格式内容（自动检测填充）',
+        db_comment='终端证书PEM',
+    )
+    intermediate_pem = models.TextField(
+        verbose_name='中间证书',
+        null=True,
+        blank=True,
+        help_text='中间证书链 PEM 格式内容（自动检测填充，可能包含多张中间证书）',
+        db_comment='中间证书链PEM',
+    )
+    private_key_pem = EncryptedTextField(
+        verbose_name='私钥',
+        null=True,
+        blank=True,
+        help_text='私钥 PEM 格式内容（加密存储，需手动上传，无法自动检测）',
+        db_comment='私钥PEM（加密）',
+    )
+
     class Meta:
         """元数据配置。"""
 
@@ -741,6 +765,12 @@ class DnsRecord(DbAuditModel, DbUuidModel):
         verbose_name='启用状态',
         help_text='解析记录是否生效',
         db_comment='启用状态：True启用/False禁用',
+    )
+    is_ssl_enabled = models.BooleanField(
+        default=False,
+        verbose_name='SSL 证书',
+        help_text='该子域名是否支持 HTTPS（由 SSL 定时检测自动更新）',
+        db_comment='是否支持HTTPS',
     )
 
     class Meta:

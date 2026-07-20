@@ -259,6 +259,11 @@ def _check_single_ssl(domain: Domain) -> dict[str, Any]:
     for record in dns_records:
         sub_domain_name = f'{record.host}.{domain.domain_name}'
         sub_ssl_info = _check_ssl_certificate_by_host(sub_domain_name)
+
+        # 更新 DnsRecord 的 SSL 状态
+        record.is_ssl_enabled = sub_ssl_info is not None
+        record.save(update_fields=['is_ssl_enabled'])
+
         if not sub_ssl_info:
             continue
 
@@ -297,7 +302,7 @@ def _check_ssl_certificate_by_host(hostname: str) -> dict[str, Any] | None:
     import ssl as ssl_module
 
     from cryptography import x509
-    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.x509.oid import ExtensionOID, NameOID
 
     try:
@@ -306,10 +311,34 @@ def _check_ssl_certificate_by_host(hostname: str) -> dict[str, Any] | None:
             with ctx.wrap_socket(sock, server_hostname=hostname) as ssock:
                 der_cert = ssock.getpeercert(binary_form=True)
 
+                # 获取完整证书链
+                der_chain: list[bytes] | None = None
+                get_chain = getattr(ssock, 'get_unverified_chain', None)
+                if get_chain is None:
+                    get_chain = getattr(getattr(ssock, '_sslobj', None), 'get_unverified_chain', None)
+                if get_chain is not None:
+                    try:
+                        der_chain = list(get_chain())
+                    except Exception:
+                        der_chain = None
+
         if not der_cert:
             return None
 
         cert = x509.load_der_x509_certificate(der_cert)
+
+        # PEM 格式证书
+        certificate_pem = cert.public_bytes(serialization.Encoding.PEM).decode('utf-8')
+        intermediate_pem = ''
+        if der_chain and len(der_chain) > 1:
+            parts: list[str] = []
+            for der_bytes in der_chain[1:]:
+                try:
+                    chain_cert = x509.load_der_x509_certificate(der_bytes)
+                    parts.append(chain_cert.public_bytes(serialization.Encoding.PEM).decode('utf-8'))
+                except Exception:
+                    pass
+            intermediate_pem = ''.join(parts)
 
         subject = cert.subject
         issuer = cert.issuer
@@ -346,6 +375,8 @@ def _check_ssl_certificate_by_host(hostname: str) -> dict[str, Any] | None:
             'san_domains': san_domains,
             'is_valid': is_valid,
             'fingerprint': cert.fingerprint(hashes.SHA256()).hex(),
+            'certificate_pem': certificate_pem,
+            'intermediate_pem': intermediate_pem,
         }
     except (ssl_module.SSLError, OSError):
         return None
