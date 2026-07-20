@@ -12,6 +12,8 @@
 - CSS 层：用 CSS 选择器精确定位 <footer>/.footer/#footer 等真实页脚节点
 - 正则层：精确省份简称单字 + 负向后行断言 (?<![\\u4e00-\\u9fa5])
 - 实体层：BeautifulSoup 自动解码 HTML 实体（&copy; &nbsp; 等）
+
+从 apps.asset.filing_checker 迁移而来。
 """
 
 from __future__ import annotations
@@ -26,10 +28,10 @@ import requests
 from bs4 import BeautifulSoup
 from django.utils import timezone
 
-from apps.asset.choices import IcpCheckStatusChoices, IcpFilingStatusChoices
+from apps.domain.choices import IcpCheckStatusChoices, IcpFilingStatusChoices
 
 if TYPE_CHECKING:
-    from apps.asset.models import Domain, Filing
+    from apps.domain.models import Domain, Filing
 
 logger = logging.getLogger(__name__)
 
@@ -585,7 +587,7 @@ def _sync_ssl_certificate_record(
         ssl_info: _check_ssl_certificate() 返回的证书信息字典（含 fingerprint）。
         check_time: 检测时间。
     """
-    from apps.asset.models import SslCertificate
+    from apps.domain.models import SslCertificate
 
     # 用指纹去重：相同证书只存一条
     cert, created = SslCertificate.objects.update_or_create(

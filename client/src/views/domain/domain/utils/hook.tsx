@@ -1,5 +1,5 @@
 import { getCurrentInstance, reactive, shallowRef, ref } from "vue";
-import { domainApi } from "@/api/asset";
+import { domainApi } from "@/api/domain";
 import { getDefaultAuths } from "@/router/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import type { OperationProps, RePlusPageProps } from "@/components/RePlusPage";

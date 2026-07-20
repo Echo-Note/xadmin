@@ -1,9 +1,11 @@
-"""资产管理定时任务。
+"""域名管理定时任务。
 
 包含：
 - daily_icp_precheck_task：每日凌晨 2:00 批量执行 ICP 备案悬挂预检测。
 - daily_ssl_certificate_check_task：每日凌晨 3:00 批量检测 SSL 证书状态。
 - batch_icp_precheck_task：手动触发批量预检测（并发控制，避免带宽暴增）。
+
+从 apps.asset.tasks 迁移而来。
 """
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -13,17 +15,17 @@ from celery import shared_task
 from django.db.models import QuerySet
 from django.utils import timezone
 
-from apps.asset.choices import IcpCheckStatusChoices
-from apps.asset.filing_checker import (
+from apps.common.celery.decorator import register_as_period_task
+from apps.common.utils import get_logger
+from apps.domain.choices import DnsRecordTypeChoices, IcpCheckStatusChoices
+from apps.domain.filing_checker import (
     _check_ssl_certificate,
     _get_name_attr,
     _sync_ssl_certificate_record,
     apply_precheck_result,
     run_icp_precheck,
 )
-from apps.asset.models import Domain, Filing
-from apps.common.celery.decorator import register_as_period_task
-from apps.common.utils import get_logger
+from apps.domain.models import Domain, Filing
 
 logger = get_logger(__name__)
 
@@ -163,7 +165,7 @@ def _run_batch_precheck(pks: list[str] | None = None) -> dict[str, Any]:
 
 
 @shared_task(
-    name='asset.icp_precheck.batch',
+    name='domain.icp_precheck.batch',
     verbose_name='批量 ICP 备案预检测',
 )
 def batch_icp_precheck_task(pks: list[str] | None = None) -> dict[str, Any]:
@@ -222,7 +224,7 @@ def _check_single_ssl(domain: Domain) -> dict[str, Any]:
     Raises:
         任意异常向上传播供外层捕获。
     """
-    from apps.asset.models import DnsRecord, DnsRecordTypeChoices
+    from apps.domain.models import DnsRecord
 
     ssl_info = _check_ssl_certificate(domain.domain_name)
     now = timezone.now()

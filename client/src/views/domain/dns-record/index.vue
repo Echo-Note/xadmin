@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { getCurrentInstance, reactive, shallowRef } from "vue";
-import { dnsRecordApi } from "@/api/asset";
+import { dnsRecordApi } from "@/api/domain";
 import { getDefaultAuths } from "@/router/utils";
 import type { RePlusPageProps } from "@/components/RePlusPage";
 

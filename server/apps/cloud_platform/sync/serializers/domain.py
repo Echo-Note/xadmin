@@ -9,10 +9,10 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from apps.asset.models import Domain
     from apps.cloud_platform.models import CloudPlatform
     from apps.cloud_platform.sync.schemas import DomainSyncData, SyncResult
     from apps.company.models import Company
+    from apps.domain.models import Domain
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +45,8 @@ class DomainSyncSerializer:
             result: 同步结果对象。
             company: 关联的企业主体实例（可选）。
         """
-        from apps.asset.models import Domain
-        from apps.asset.serializers import DomainSerializer
+        from apps.domain.models import Domain
+        from apps.domain.serializers import DomainSerializer
 
         serializer_data = self._build_serializer_data(data, company)
 
@@ -88,7 +88,7 @@ class DomainSyncSerializer:
         Returns:
             Domain 实例或 None。
         """
-        from apps.asset.models import Domain
+        from apps.domain.models import Domain
 
         return Domain.objects.filter(domain_name=domain_name).first()
 

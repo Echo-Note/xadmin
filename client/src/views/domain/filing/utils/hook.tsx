@@ -1,6 +1,6 @@
 import { getCurrentInstance, reactive, shallowRef } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { filingApi } from "@/api/asset";
+import { filingApi } from "@/api/domain";
 import { getDefaultAuths } from "@/router/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import type { OperationProps, RePlusPageProps } from "@/components/RePlusPage";

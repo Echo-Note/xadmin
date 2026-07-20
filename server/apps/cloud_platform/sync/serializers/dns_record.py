@@ -11,8 +11,8 @@ from typing import TYPE_CHECKING
 from apps.cloud_platform.sync.resolvers.dns_resolver import DNSResolver
 
 if TYPE_CHECKING:
-    from apps.asset.models import Domain
     from apps.cloud_platform.sync.schemas import DnsRecordSyncData, SyncResult
+    from apps.domain.models import Domain
 
 logger = logging.getLogger(__name__)
 
@@ -42,8 +42,8 @@ class DnsRecordSyncSerializer:
             data: DNS 记录同步数据（Pydantic 模型）。
             result: 同步结果对象。
         """
-        from apps.asset.models import DnsRecord
-        from apps.asset.serializers import DnsRecordSerializer
+        from apps.domain.models import DnsRecord
+        from apps.domain.serializers import DnsRecordSerializer
 
         domain = self._get_domain(data.domain_name)
         if not domain:
@@ -117,7 +117,7 @@ class DnsRecordSyncSerializer:
         Returns:
             Domain 实例或 None。
         """
-        from apps.asset.models import Domain
+        from apps.domain.models import Domain
 
         return Domain.objects.filter(domain_name=domain_name).first()
 

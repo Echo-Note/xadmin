@@ -3,7 +3,7 @@ import { ref, watch, nextTick, onBeforeUnmount } from "vue";
 import { Graph, NodeEvent } from "@antv/g6";
 import type { IPointerEvent } from "@antv/g6";
 import { ElDrawer, ElButton, ElEmpty } from "element-plus";
-import { fetchRelationGraph } from "@/api/asset";
+import { fetchRelationGraph } from "@/api/domain";
 import { http } from "@/utils/http";
 
 const props = defineProps<{
@@ -101,8 +101,8 @@ const FIELDS: Record<string, [string, string][]> = {
 };
 
 const API: Record<string, string> = {
-  domain: "/api/asset/domain/",
-  dns_record: "/api/asset/dns-record/",
+  domain: "/api/domain/domain/",
+  dns_record: "/api/domain/dns-record/",
   cloud_server: "/api/asset/cloud-server/",
   local_server: "/api/asset/local-server/",
   local_vm: "/api/asset/local-vm/",

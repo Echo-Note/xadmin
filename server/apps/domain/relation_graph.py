@@ -1,4 +1,8 @@
-"""资产关联图谱 — 构建域名、DNS记录、服务器、云平台、公司之间的关联关系。"""
+"""资产关联图谱 — 构建域名、DNS记录、服务器、云平台、公司之间的关联关系。
+
+从 apps.asset.relation_graph 迁移而来，DNS/域名模型从 apps.domain 引用，
+服务器模型从 apps.asset 引用（CloudServer/LocalServer/LocalVM 仍属于资产管理）。
+"""
 
 from __future__ import annotations
 
@@ -11,10 +15,11 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
-from apps.asset.models import CloudServer, DnsRecord, Domain, LocalServer, LocalVM
+from apps.asset.models import CloudServer, LocalServer, LocalVM
 from apps.cloud_platform.models import CloudPlatform
 from apps.common.core.response import ApiResponse
 from apps.company.models import Company
+from apps.domain.models import DnsRecord, Domain
 
 
 @dataclass
@@ -41,7 +46,7 @@ class RelationEdge:
 class RelationGraphView(APIView):
     """资产关联图谱 API。
 
-    GET /api/asset/relation-graph/?domain=<pk>
+    GET /api/domain/relation-graph/?domain=<pk>
 
     返回域名及其解析记录、关联服务器、云平台、公司主体的图谱数据。
     """
@@ -106,7 +111,7 @@ class RelationGraphView(APIView):
                 type='domain',
                 label=domain.domain_name,
                 pk=str(domain.pk),
-                detail_url=f'/api/asset/domain/{domain.pk}/',
+                detail_url=f'/api/domain/domain/{domain.pk}/',
                 extra={'registrar': domain.registrar or '', 'status': get_domain_status(domain)},
             )
         )
@@ -137,7 +142,7 @@ class RelationGraphView(APIView):
                     type='dns_record',
                     label=f'{rec.record_type} {full_domain}',
                     pk=str(rec.pk),
-                    detail_url=f'/api/asset/dns-record/{rec.pk}/',
+                    detail_url=f'/api/domain/dns-record/{rec.pk}/',
                     extra={
                         'value': rec.value,
                         'ttl': rec.ttl,

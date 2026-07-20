@@ -20,7 +20,7 @@ import {
   ElEmpty
 } from "element-plus";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import { dnsRecordApi } from "@/api/asset";
+import { dnsRecordApi } from "@/api/domain";
 
 /** DNS 记录类型枚举 */
 const recordTypes = [

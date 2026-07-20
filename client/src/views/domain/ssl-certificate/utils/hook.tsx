@@ -1,5 +1,5 @@
 import { getCurrentInstance, reactive } from "vue";
-import { sslCertificateApi } from "@/api/asset";
+import { sslCertificateApi } from "@/api/domain";
 import { getDefaultAuths } from "@/router/utils";
 
 export function useSslCertificate() {

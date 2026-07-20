@@ -10,7 +10,7 @@ import {
 import { Graph, NodeEvent, CanvasEvent } from "@antv/g6";
 import type { IPointerEvent } from "@antv/g6";
 import { ElMessage, ElSelect, ElOption, ElButton } from "element-plus";
-import { domainApi, fetchRelationGraph } from "@/api/asset";
+import { domainApi, fetchRelationGraph } from "@/api/domain";
 import { http } from "@/utils/http";
 
 defineOptions({ name: "AssetRelationGraph" });
@@ -247,8 +247,8 @@ const DETAIL_FIELDS: Record<string, { label: string; key: string }[]> = {
 /** 根据类型和 URL 映射，确定 API 路径 */
 const getDetailUrl = (type: string): string => {
   const map: Record<string, string> = {
-    domain: "/api/asset/domain/",
-    dns_record: "/api/asset/dns-record/",
+    domain: "/api/domain/domain/",
+    dns_record: "/api/domain/dns-record/",
     cloud_server: "/api/asset/cloud-server/",
     local_server: "/api/asset/local-server/",
     local_vm: "/api/asset/local-vm/"

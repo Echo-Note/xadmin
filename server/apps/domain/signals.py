@@ -1,10 +1,10 @@
-"""资产管理信号处理器 —— 域名创建/更新时自动同步 Filing 记录。"""
+"""域名管理信号处理器 —— 域名创建/更新时自动同步 Filing 记录。"""
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from apps.asset.models import Domain, Filing
 from apps.common.utils import get_logger
+from apps.domain.models import Domain, Filing
 
 logger = get_logger(__name__)
 

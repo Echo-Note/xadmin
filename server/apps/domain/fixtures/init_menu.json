@@ -1,0 +1,237 @@
+[
+  {
+    "name": "DomainManagement",
+    "menu_type": 0,
+    "rank": 91,
+    "path": "/domain",
+    "component": "",
+    "is_active": true,
+    "meta": {
+      "title": "域名管理",
+      "icon": "ri:global-line",
+      "is_show_menu": true,
+      "is_keepalive": true
+    },
+    "children": [
+      {
+        "name": "Domain",
+        "menu_type": 1,
+        "rank": 1,
+        "path": "/domain/domain/index",
+        "component": "domain/domain/index",
+        "is_active": true,
+        "meta": {
+          "title": "域名",
+          "icon": "ri:global-line",
+          "is_show_menu": true,
+          "is_keepalive": true
+        },
+        "permissions": [
+          {
+            "name": "list:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/domain$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查询域名列表" }
+          },
+          {
+            "name": "create:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/domain$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "新增域名" }
+          },
+          {
+            "name": "retrieve:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/domain/[a-zA-Z0-9-]+$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查看域名详情" }
+          },
+          {
+            "name": "update:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/domain/[a-zA-Z0-9-]+$",
+            "method": "PUT",
+            "is_active": true,
+            "meta": { "title": "更新域名" }
+          },
+          {
+            "name": "destroy:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/domain/[a-zA-Z0-9-]+$",
+            "method": "DELETE",
+            "is_active": true,
+            "meta": { "title": "删除域名" }
+          },
+          {
+            "name": "export:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/domain/export-data$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "导出域名数据" }
+          },
+          {
+            "name": "import:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/domain/import-data$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "导入域名数据" }
+          },
+          {
+            "name": "batchDestroy:Domain",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/domain/batch-destroy$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "批量删除域名" }
+          }
+        ]
+      },
+      {
+        "name": "Filing",
+        "menu_type": 1,
+        "rank": 2,
+        "path": "/domain/filing/index",
+        "component": "domain/filing/index",
+        "is_active": true,
+        "meta": {
+          "title": "备案管理",
+          "icon": "ri:file-list-3-line",
+          "is_show_menu": true,
+          "is_keepalive": true
+        },
+        "permissions": [
+          {
+            "name": "list:Filing",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/filing$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查询备案列表" }
+          },
+          {
+            "name": "create:Filing",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/filing$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "新增备案" }
+          },
+          {
+            "name": "retrieve:Filing",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/filing/[a-zA-Z0-9-]+$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查看备案详情" }
+          },
+          {
+            "name": "update:Filing",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/filing/[a-zA-Z0-9-]+$",
+            "method": "PUT",
+            "is_active": true,
+            "meta": { "title": "更新备案" }
+          },
+          {
+            "name": "destroy:Filing",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/filing/[a-zA-Z0-9-]+$",
+            "method": "DELETE",
+            "is_active": true,
+            "meta": { "title": "删除备案" }
+          },
+          {
+            "name": "export:Filing",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/filing/export-data$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "导出备案数据" }
+          },
+          {
+            "name": "import:Filing",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/filing/import-data$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "导入备案数据" }
+          },
+          {
+            "name": "batchDestroy:Filing",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/filing/batch-destroy$",
+            "method": "POST",
+            "is_active": true,
+            "meta": { "title": "批量删除备案" }
+          }
+        ]
+      },
+      {
+        "name": "SslCertificate",
+        "menu_type": 1,
+        "rank": 3,
+        "path": "/domain/ssl-certificate/index",
+        "component": "domain/ssl-certificate/index",
+        "is_active": true,
+        "meta": {
+          "title": "SSL 证书",
+          "icon": "ri:shield-keyhole-line",
+          "is_show_menu": true,
+          "is_keepalive": true
+        },
+        "permissions": [
+          {
+            "name": "list:SslCertificate",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/ssl-certificate$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查询SSL证书列表" }
+          },
+          {
+            "name": "retrieve:SslCertificate",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/ssl-certificate/[a-zA-Z0-9-]+$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查看SSL证书详情" }
+          },
+          {
+            "name": "export:SslCertificate",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/domain/ssl-certificate/export-data$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "导出SSL证书数据" }
+          }
+        ]
+      }
+    ]
+  }
+]

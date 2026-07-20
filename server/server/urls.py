@@ -40,6 +40,7 @@ urlpatterns = [
     re_path('^api/cloud/', include('apps.cloud_platform.urls', namespace='cloud_platform')),
     re_path('^api/company/', include('apps.company.urls', namespace='company')),
     re_path('^api/asset/', include('apps.asset.urls', namespace='asset')),
+    re_path('^api/domain/', include('apps.domain.urls', namespace='domain')),
     re_path('^api/flower/(?P<path>.*)$', CeleryFlowerAPIView.as_view(), name='flower-view'),
     # media路径配置 开发环境可以启动下面配置，正式环境需要让nginx读取资源，无需进行转发
     re_path('^media/(?P<path>.*)$', media_serve, {'document_root': settings.MEDIA_ROOT}),
