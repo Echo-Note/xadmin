@@ -5,8 +5,14 @@ defineOptions({
   name: "SslCertificate"
 });
 
-const { api, auth, addOrEditOptions, operationButtonsProps } =
-  useSslCertificate();
+const {
+  api,
+  auth,
+  addOrEditOptions,
+  operationButtonsProps,
+  listColumnsFormat,
+  detailColumnsFormat
+} = useSslCertificate();
 </script>
 
 <template>
@@ -16,5 +22,7 @@ const { api, auth, addOrEditOptions, operationButtonsProps } =
     locale-name="ssl-certificate"
     :addOrEditOptions="addOrEditOptions"
     :operationButtonsProps="operationButtonsProps"
+    :listColumnsFormat="listColumnsFormat"
+    :detailColumnsFormat="detailColumnsFormat"
   />
 </template>

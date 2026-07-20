@@ -274,9 +274,13 @@ class SslCertificateSerializer(BaseModelSerializer):
         help_text='使用该证书的所有域名列表',
     )
 
-    def get_domains_info(self, obj: models.SslCertificate) -> str:
-        """获取使用该证书的所有域名，逗号分隔。"""
-        return ', '.join(d.domain_name for d in obj.domains.all())
+    def get_domains_info(self, obj: models.SslCertificate) -> list[dict]:
+        """获取使用该证书的所有关联域名列表。
+
+        返回结构化数据（每个域名包含 pk 与 label），前端以标签形式渲染，
+        便于区分多个二级域名。
+        """
+        return [{'pk': domain.pk, 'label': domain.domain_name} for domain in obj.domains.all()]
 
     class Meta:
         """元数据配置。"""

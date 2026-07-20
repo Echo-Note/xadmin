@@ -3,7 +3,11 @@ import { ElMessage } from "element-plus";
 import { sslCertificateApi } from "@/api/domain";
 import { getDefaultAuths } from "@/router/utils";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
-import type { OperationProps, RePlusPageProps } from "@/components/RePlusPage";
+import {
+  getColourTypeByIndex,
+  type OperationProps,
+  type RePlusPageProps
+} from "@/components/RePlusPage";
 
 export function useSslCertificate() {
   const api = reactive(sslCertificateApi);
@@ -15,6 +19,48 @@ export function useSslCertificate() {
     ...defaultAuths,
     exportData: defaultAuths.exportData || defaultAuths.list
   });
+
+  /** 将关联域名列渲染为可滚动标签列表，便于区分多个二级域名 */
+  const renderDomainsTags = (value: Array<{ pk: string; label: string }>) => {
+    if (!Array.isArray(value) || value.length === 0) return <span></span>;
+    return (
+      <el-scrollbar>
+        <el-space wrap>
+          {value.map((item, index) => (
+            <el-tag
+              key={item.pk}
+              type={getColourTypeByIndex(index + 1)}
+              effect="light"
+            >
+              {item.label}
+            </el-tag>
+          ))}
+        </el-space>
+      </el-scrollbar>
+    );
+  };
+
+  /** 列表列格式化：关联域名渲染为标签 */
+  const listColumnsFormat: RePlusPageProps["listColumnsFormat"] = columns => {
+    columns.forEach(column => {
+      if (column.prop === "domains_info") {
+        column.cellRenderer = ({ row }) => renderDomainsTags(row.domains_info);
+      }
+    });
+    return columns;
+  };
+
+  /** 详情列格式化：关联域名渲染为标签 */
+  const detailColumnsFormat: RePlusPageProps["detailColumnsFormat"] =
+    columns => {
+      columns.forEach(column => {
+        if (column.prop === "domains_info") {
+          column.render = (value: Array<{ pk: string; label: string }>) =>
+            renderDomainsTags(value);
+        }
+      });
+      return columns;
+    };
 
   /** 证书详情/编辑配置（可编辑私钥，不可手动新增） */
   const addOrEditOptions = shallowRef<RePlusPageProps["addOrEditOptions"]>({
@@ -91,6 +137,8 @@ export function useSslCertificate() {
     api,
     auth,
     addOrEditOptions,
-    operationButtonsProps
+    operationButtonsProps,
+    listColumnsFormat,
+    detailColumnsFormat
   };
 }
