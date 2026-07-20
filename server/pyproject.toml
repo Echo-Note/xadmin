@@ -89,6 +89,8 @@ dependencies = [
     "volcengine>=1.0.226",
     "beautifulsoup4>=4.15.0",
     "lxml>=6.1.1",
+    "tencentcloud-sdk-python>=3.1.136",
+    "pyvmomi>=9.1.0.0",
 ]
 
 # 开发依赖组，不会打包进生产环境

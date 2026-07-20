@@ -2507,6 +2507,14 @@ wheels = [
 ]
 
 [[package]]
+name = "pyvmomi"
+version = "9.1.0.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bd/5c/044debed55cf2ea6f7bdd7da7bb4c0b5feeb06158380dfd0b450b3b55611/pyvmomi-9.1.0.0-py3-none-any.whl", hash = "sha256:f4b024baa7e5179d14f350dd006b788365e4aaadf15850e36024945a114db92b", size = 552669, upload-time = "2026-05-12T10:23:45.268Z" },
+]
+
+[[package]]
 name = "pyyaml"
 version = "6.0.3"
 source = { registry = "https://pypi.org/simple" }
@@ -2814,6 +2822,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/47/c6/ee486fd809e357697ee8a44d3d69222b344920433d3b6666ccd9b374630c/tenacity-9.1.4.tar.gz", hash = "sha256:adb31d4c263f2bd041081ab33b498309a57c77f9acf2db65aadf0898179cf93a", size = 49413, upload-time = "2026-02-07T10:45:33.841Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d7/c1/eb8f9debc45d3b7918a32ab756658a0904732f75e555402972246b0b8e71/tenacity-9.1.4-py3-none-any.whl", hash = "sha256:6095a360c919085f28c6527de529e76a06ad89b23659fa881ae0649b867a9d55", size = 28926, upload-time = "2026-02-07T10:45:32.24Z" },
+]
+
+[[package]]
+name = "tencentcloud-sdk-python"
+version = "3.1.136"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0d/9e/9ebfc50f0b76ed380cd500cd5f0b1803947aa76e4a0b0f0374fdc56b8d24/tencentcloud_sdk_python-3.1.136.tar.gz", hash = "sha256:911cf0c7b9fffcf14d757a10f3af96d985092ebb234d9d06722b0a5740e93708", size = 15759905, upload-time = "2026-07-19T20:14:26.616Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4e/38/463691cbcc3cd61f7fe46475fc681464d0526db46ace29bb307f25e177e8/tencentcloud_sdk_python-3.1.136-py2.py3-none-any.whl", hash = "sha256:7a8ccaac0a31e70bca523e823b6e42712442a1afb9f5f961a42aae1726772029", size = 16672121, upload-time = "2026-07-19T20:13:46.662Z" },
 ]
 
 [[package]]
@@ -3206,9 +3226,11 @@ dependencies = [
     { name = "pyexcel-xlsx" },
     { name = "pyotp" },
     { name = "python-daemon" },
+    { name = "pyvmomi" },
     { name = "pyzipper" },
     { name = "redis" },
     { name = "requests" },
+    { name = "tencentcloud-sdk-python" },
     { name = "unicodecsv" },
     { name = "user-agents" },
     { name = "uvicorn" },
@@ -3273,9 +3295,11 @@ requires-dist = [
     { name = "pyexcel-xlsx", specifier = "==0.6.1" },
     { name = "pyotp", specifier = "==2.9.0" },
     { name = "python-daemon", specifier = "==3.1.2" },
+    { name = "pyvmomi", specifier = ">=9.1.0.0" },
     { name = "pyzipper", specifier = "==0.3.6" },
     { name = "redis", specifier = ">=5.0,<6.0" },
     { name = "requests", specifier = "==2.32.5" },
+    { name = "tencentcloud-sdk-python", specifier = ">=3.1.136" },
     { name = "unicodecsv", specifier = "==0.14.1" },
     { name = "user-agents", specifier = "==2.2.0" },
     { name = "uvicorn", specifier = "==0.38.0" },
