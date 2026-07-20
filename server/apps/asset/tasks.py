@@ -1,7 +1,8 @@
 """资产管理定时任务。
 
 包含：
-- daily_icp_precheck_task：每日凌晨批量执行 ICP 备案悬挂预检测。
+- daily_icp_precheck_task：每日凌晨 2:00 批量执行 ICP 备案悬挂预检测。
+- daily_ssl_certificate_check_task：每日凌晨 3:00 批量检测 SSL 证书状态。
 - batch_icp_precheck_task：手动触发批量预检测（并发控制，避免带宽暴增）。
 """
 
@@ -10,10 +11,16 @@ from typing import Any
 
 from celery import shared_task
 from django.db.models import QuerySet
+from django.utils import timezone
 
-from apps.asset.choices import IcpCheckStatusChoices, IcpFilingStatusChoices
-from apps.asset.filing_checker import run_icp_precheck
-from apps.asset.models import Filing
+from apps.asset.choices import IcpCheckStatusChoices
+from apps.asset.filing_checker import (
+    _check_ssl_certificate,
+    _sync_ssl_certificate_record,
+    apply_precheck_result,
+    run_icp_precheck,
+)
+from apps.asset.models import Domain, Filing
 from apps.common.celery.decorator import register_as_period_task
 from apps.common.utils import get_logger
 
@@ -48,52 +55,19 @@ def _run_single_precheck(filing_pk: str) -> dict[str, Any]:
 
     filing = Filing.objects.select_related('domain').get(pk=filing_pk)
     domain_name = filing.domain.domain_name
-    now = timezone.now()
 
     result = run_icp_precheck(domain_name)
 
-    # 回写检测元信息
-    filing.icp_has_www_record = result['has_www_record']
-    filing.icp_check_status = result['check_status']
-    filing.icp_check_conclusion = result['conclusion']
-    filing.icp_check_time = now
-    if result.get('footer_content') is not None:
-        filing.icp_footer_content = result['footer_content']
+    # 回写检测结果（公共方法统一处理元信息 + ICP/公安状态联动 + SSL 同步）
+    update_fields = apply_precheck_result(filing, result, check_time=timezone.now())
+    filing.save(update_fields=update_fields)
 
-    # 联动回写 ICP 备案号和状态
-    icp_nums = result.get('detected_icp_numbers', [])
-    if icp_nums:
-        filing.icp_number = icp_nums[0]
-        filing.icp_status = IcpFilingStatusChoices.FILED
-    elif result['check_status'] == IcpCheckStatusChoices.SUSPECTED_MISSING:
-        filing.icp_status = IcpFilingStatusChoices.PENDING_CONFIRM
-
-    # 联动回写公安备案号和状态
-    ps_nums = result.get('detected_ps_numbers', [])
-    if ps_nums:
-        filing.ps_filing_number = ps_nums[0]
-        filing.ps_status = IcpFilingStatusChoices.FILED
-    elif result['check_status'] == IcpCheckStatusChoices.SUSPECTED_MISSING:
-        filing.ps_status = IcpFilingStatusChoices.PENDING_CONFIRM
-
-    filing.save(
-        update_fields=[
-            'icp_has_www_record',
-            'icp_check_status',
-            'icp_check_conclusion',
-            'icp_check_time',
-            'icp_footer_content',
-            'icp_number',
-            'icp_status',
-            'ps_filing_number',
-            'ps_status',
-        ]
-    )
-
-    # 同步更新 Domain 的 SSL 启用状态
+    # 同步更新 Domain（SSL 启用状态 + 到期时间）
     if result.get('has_www_record'):
-        filing.domain.is_ssl_enabled = result.get('used_https', False)
-        filing.domain.save(update_fields=['is_ssl_enabled'])
+        domain_fields = ['is_ssl_enabled']
+        if result.get('ssl_certificate'):
+            domain_fields.append('ssl_expire_time')
+        filing.domain.save(update_fields=domain_fields)
 
     return {
         'pk': str(filing.pk),
@@ -222,3 +196,117 @@ def daily_icp_precheck_task() -> dict:
     复用 _run_batch_precheck 实现并发控制，自动筛选需检测的记录。
     """
     return _run_batch_precheck()
+
+
+# =============================================================================
+# SSL 证书定时检测
+# =============================================================================
+
+
+def _check_single_ssl(domain: Domain) -> dict[str, Any]:
+    """检测单个域名的 SSL 证书并更新记录。
+
+    直接通过 TLS 连接获取证书信息，不依赖备案预检测流程。
+
+    Args:
+        domain: Domain 模型实例。
+
+    Returns:
+        检测结果摘要字典。
+
+    Raises:
+        任意异常向上传播供外层捕获。
+    """
+    ssl_info = _check_ssl_certificate(domain.domain_name)
+    now = timezone.now()
+
+    if ssl_info:
+        domain.is_ssl_enabled = True
+        domain.ssl_expire_time = ssl_info['not_after'].date()
+        _sync_ssl_certificate_record(domain, ssl_info, now)
+        domain.save(update_fields=['is_ssl_enabled', 'ssl_expire_time'])
+        return {
+            'domain_name': domain.domain_name,
+            'is_ssl_enabled': True,
+            'subject_cn': ssl_info['subject_cn'],
+            'not_after': ssl_info['not_after'].strftime('%Y-%m-%d'),
+        }
+    else:
+        domain.is_ssl_enabled = False
+        domain.save(update_fields=['is_ssl_enabled'])
+        return {
+            'domain_name': domain.domain_name,
+            'is_ssl_enabled': False,
+            'subject_cn': None,
+            'not_after': None,
+        }
+
+
+def _run_batch_ssl_check() -> dict[str, Any]:
+    """批量 SSL 证书检测，复用并发控制逻辑。
+
+    只检测已开启 SSL 的域名（is_ssl_enabled=True），避免对无 SSL 的域名
+    做无意义的 TLS 连接尝试。通过 ThreadPoolExecutor 控制并发
+    （最多 _MAX_WORKERS 个同时请求），避免带宽暴增。
+
+    Returns:
+        汇总结果字典。
+    """
+    domains = list(Domain.objects.filter(is_active=True, is_ssl_enabled=True))
+    total = len(domains)
+
+    if total == 0:
+        logger.info('无待检测的域名，跳过 SSL 证书检测')
+        return {'total': 0, 'checked': 0, 'errors': 0}
+
+    logger.info(
+        '批量 SSL 证书检测开始：共 %d 个域名（批次=%d, 并发=%d）',
+        total,
+        _BATCH_SIZE,
+        _MAX_WORKERS,
+    )
+
+    checked = 0
+    errors = 0
+
+    for start in range(0, total, _BATCH_SIZE):
+        chunk = domains[start : start + _BATCH_SIZE]
+
+        with ThreadPoolExecutor(max_workers=_MAX_WORKERS) as executor:
+            futures = {executor.submit(_check_single_ssl, d): d for d in chunk}
+            for future in as_completed(futures, timeout=_WORKER_TIMEOUT * _MAX_WORKERS):
+                domain = futures[future]
+                try:
+                    result = future.result(timeout=_WORKER_TIMEOUT)
+                    checked += 1
+                    logger.debug(
+                        'SSL 检测完成 [%s]: enabled=%s',
+                        result['domain_name'],
+                        result['is_ssl_enabled'],
+                    )
+                except Exception as e:
+                    errors += 1
+                    logger.exception('SSL 检测异常 [%s]: %s', domain.domain_name, e)
+
+    logger.info(
+        '批量 SSL 证书检测结束：共 %d 个，成功 %d，失败 %d',
+        total,
+        checked,
+        errors,
+    )
+
+    return {'total': total, 'checked': checked, 'errors': errors}
+
+
+@shared_task(verbose_name='每日 SSL 证书检测')
+@register_as_period_task(
+    crontab='0 3 * * *',
+    description='每天凌晨 3:00 自动检测所有域名的 SSL 证书状态',
+)
+def daily_ssl_certificate_check_task() -> dict[str, Any]:
+    """每日定时 SSL 证书检测（凌晨 3:00）。
+
+    错开备案预检测（02:00），遍历所有启用域名检测 SSL 证书详情，
+    更新 SslCertificate 记录及 Domain 的 is_ssl_enabled / ssl_expire_time。
+    """
+    return _run_batch_ssl_check()

@@ -14,16 +14,22 @@
 - 实体层：BeautifulSoup 自动解码 HTML 实体（&copy; &nbsp; 等）
 """
 
+from __future__ import annotations
+
 import logging
 import re
 import socket
-from typing import Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import requests
 from bs4 import BeautifulSoup
 from django.utils import timezone
 
-from apps.asset.choices import IcpCheckStatusChoices
+from apps.asset.choices import IcpCheckStatusChoices, IcpFilingStatusChoices
+
+if TYPE_CHECKING:
+    from apps.asset.models import Domain, Filing
 
 logger = logging.getLogger(__name__)
 
@@ -251,6 +257,115 @@ def _detect_filing_numbers(text: str) -> tuple[list[str], list[str]]:
     return icp, ps
 
 
+def _check_ssl_certificate(domain_name: str) -> dict[str, Any] | None:
+    """获取域名 SSL 证书详细信息。
+
+    通过 TLS 连接 www.{domain_name}:443 获取 DER 格式证书，
+    用 cryptography.x509 解析主体/颁发者/有效期/SAN 等字段。
+
+    Args:
+        domain_name: 域名，如 example.com。
+
+    Returns:
+        证书信息字典，包含以下键：
+        - subject_cn / subject_o / subject_ou: 主体信息
+        - issuer_cn / issuer_o: 颁发者信息
+        - serial_number: 序列号（十六进制字符串）
+        - signature_algorithm: 签名算法
+        - not_before / not_after: 有效期（datetime 对象）
+        - san_domains: 备用域名列表
+        - is_valid: 是否在有效期内
+        检测失败返回 None。
+    """
+    import socket
+    import ssl as ssl_module
+
+    from cryptography import x509
+    from cryptography.x509.oid import ExtensionOID, NameOID
+
+    hostname = f'www.{domain_name}'
+
+    try:
+        # 建立 TLS 连接获取证书
+        ctx = ssl_module.create_default_context()
+        with socket.create_connection((hostname, 443), timeout=HTTP_TIMEOUT) as sock:
+            with ctx.wrap_socket(sock, server_hostname=hostname) as ssock:
+                der_cert = ssock.getpeercert(binary_form=True)
+
+        if not der_cert:
+            logger.debug('未获取到证书数据: %s', hostname)
+            return None
+
+        cert = x509.load_der_x509_certificate(der_cert)
+
+        # 解析主体（Subject）
+        subject = cert.subject
+        subject_cn = _get_name_attr(subject, NameOID.COMMON_NAME)
+        subject_o = _get_name_attr(subject, NameOID.ORGANIZATION_NAME)
+        subject_ou = _get_name_attr(subject, NameOID.ORGANIZATIONAL_UNIT_NAME)
+
+        # 解析颁发者（Issuer）
+        issuer = cert.issuer
+        issuer_cn = _get_name_attr(issuer, NameOID.COMMON_NAME)
+        issuer_o = _get_name_attr(issuer, NameOID.ORGANIZATION_NAME)
+
+        # 解析 SAN（Subject Alternative Names）
+        san_domains: list[str] = []
+        try:
+            san_ext = cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+            san_domains = san_ext.value.get_values_for_type(x509.DNSName)
+        except x509.ExtensionNotFound:
+            pass
+
+        # 有效期（优先使用 timezone-aware 版本，cryptography 42+）
+        not_before = getattr(cert, 'not_valid_before_utc', None) or cert.not_valid_before
+        not_after = getattr(cert, 'not_valid_after_utc', None) or cert.not_valid_after
+
+        # 签名算法
+        sig_algo = cert.signature_hash_algorithm
+        sig_algo_name = sig_algo.name if sig_algo else None
+
+        # 判断是否在有效期内
+        from datetime import datetime
+
+        now_utc = datetime.now(UTC)
+        is_valid = not_before <= now_utc <= not_after
+
+        return {
+            'subject_cn': subject_cn,
+            'subject_o': subject_o,
+            'subject_ou': subject_ou,
+            'issuer_cn': issuer_cn,
+            'issuer_o': issuer_o,
+            'serial_number': format(cert.serial_number, 'x'),
+            'signature_algorithm': sig_algo_name,
+            'not_before': not_before,
+            'not_after': not_after,
+            'san_domains': san_domains,
+            'is_valid': is_valid,
+        }
+    except (ssl_module.SSLError, OSError) as e:
+        logger.debug('SSL 证书检测失败 %s: %s', hostname, e)
+        return None
+    except Exception as e:
+        logger.warning('SSL 证书解析异常 %s: %s', hostname, e)
+        return None
+
+
+def _get_name_attr(name: Any, oid: Any) -> str | None:
+    """从 x509.Name 中获取指定 OID 的属性值。
+
+    Args:
+        name: x509.Name 对象（subject 或 issuer）。
+        oid: NameOID 常量。
+
+    Returns:
+        属性值字符串，不存在返回 None。
+    """
+    attrs = name.get_attributes_for_oid(oid)
+    return attrs[0].value if attrs else None
+
+
 def run_icp_precheck(domain_name: str) -> dict[str, Any]:
     """对指定域名执行备案号悬挂预检测（ICP + 公安）。
 
@@ -336,3 +451,129 @@ def run_icp_precheck(domain_name: str) -> dict[str, Any]:
         result['conclusion'] = f'首页页脚未检测到 ICP/公安备案号，建议人工确认 https://www.{domain_name}/。'
 
     return result
+
+
+def apply_precheck_result(
+    filing: Filing,
+    result: dict[str, Any],
+    check_time: datetime | None = None,
+) -> list[str]:
+    """将预检测结果回写到 Filing 记录（不调用 save，由调用方保存）。
+
+    统一处理检测元信息、ICP/公安备案号与状态联动、Domain SSL 状态同步，
+    避免 tasks.py 和 views.py 中重复编写相同的回写逻辑。
+
+    回写规则：
+    - 检测元信息：icp_has_www_record / icp_check_status / icp_check_conclusion /
+      icp_check_time / icp_footer_content（始终更新）
+    - ICP 备案号：检测到 → 填入 icp_number，状态置 filed
+                  未悬挂(suspected_missing) → 状态置 not_filed
+    - 公安备案号：同 ICP 逻辑
+    - Domain.is_ssl_enabled：有 www 记录时根据 used_https 同步更新
+
+    Args:
+        filing: Filing 模型实例（需已关联 domain）。
+        result: run_icp_precheck() 返回的检测结果字典。
+        check_time: 检测时间，默认使用 timezone.now()。
+
+    Returns:
+        Filing 需要更新的字段名列表（用于 save(update_fields=...)）。
+        调用方负责执行 filing.save() 和 filing.domain.save()。
+    """
+    if check_time is None:
+        check_time = timezone.now()
+
+    # 1. 检测元信息
+    filing.icp_has_www_record = result['has_www_record']
+    filing.icp_check_status = result['check_status']
+    filing.icp_check_conclusion = result['conclusion']
+    filing.icp_check_time = check_time
+    if result.get('footer_content') is not None:
+        filing.icp_footer_content = result['footer_content']
+
+    update_fields = [
+        'icp_has_www_record',
+        'icp_check_status',
+        'icp_check_conclusion',
+        'icp_check_time',
+        'icp_footer_content',
+        'icp_number',
+        'icp_status',
+        'ps_filing_number',
+        'ps_status',
+    ]
+
+    # 2. ICP 备案号和状态联动
+    icp_nums = result.get('detected_icp_numbers', [])
+    if icp_nums:
+        filing.icp_number = icp_nums[0]
+        filing.icp_status = IcpFilingStatusChoices.FILED
+    elif result['check_status'] == IcpCheckStatusChoices.SUSPECTED_MISSING:
+        # 网站可访问但未检测到备案号 → 标记为未悬挂
+        filing.icp_status = IcpFilingStatusChoices.NOT_FILED
+
+    # 3. 公安备案号和状态联动
+    ps_nums = result.get('detected_ps_numbers', [])
+    if ps_nums:
+        filing.ps_filing_number = ps_nums[0]
+        filing.ps_status = IcpFilingStatusChoices.FILED
+    elif result['check_status'] == IcpCheckStatusChoices.SUSPECTED_MISSING:
+        filing.ps_status = IcpFilingStatusChoices.NOT_FILED
+
+    # 4. Domain SSL 状态同步（有 www 记录时才更新）
+    if result.get('has_www_record'):
+        filing.domain.is_ssl_enabled = result.get('used_https', False)
+
+        # HTTPS 可用时检测 SSL 证书详情
+        if result.get('used_https'):
+            ssl_info = _check_ssl_certificate(filing.domain.domain_name)
+            result['ssl_certificate'] = ssl_info
+
+            if ssl_info:
+                # 同步 Domain.ssl_expire_time（冗余字段，方便列表展示）
+                filing.domain.ssl_expire_time = ssl_info['not_after'].date()
+
+                # 创建/更新 SslCertificate 记录
+                _sync_ssl_certificate_record(filing.domain, ssl_info, check_time)
+
+    return update_fields
+
+
+def _sync_ssl_certificate_record(
+    domain: Domain,
+    ssl_info: dict[str, Any],
+    check_time: datetime,
+) -> None:
+    """创建或更新 SslCertificate 记录（直接 save）。
+
+    Args:
+        domain: 关联的 Domain 实例。
+        ssl_info: _check_ssl_certificate() 返回的证书信息字典。
+        check_time: 检测时间。
+    """
+    from apps.asset.models import SslCertificate
+
+    cert, _created = SslCertificate.objects.update_or_create(
+        domain=domain,
+        defaults={
+            'subject_cn': ssl_info['subject_cn'],
+            'subject_o': ssl_info['subject_o'],
+            'subject_ou': ssl_info['subject_ou'],
+            'issuer_cn': ssl_info['issuer_cn'],
+            'issuer_o': ssl_info['issuer_o'],
+            'serial_number': ssl_info['serial_number'],
+            'signature_algorithm': ssl_info['signature_algorithm'],
+            'not_before': ssl_info['not_before'],
+            'not_after': ssl_info['not_after'],
+            'san_domains': ssl_info['san_domains'],
+            'is_valid': ssl_info['is_valid'],
+            'check_time': check_time,
+        },
+    )
+    logger.debug(
+        'SSL 证书记录已%s: %s → %s (到期: %s)',
+        '创建' if _created else '更新',
+        domain.domain_name,
+        ssl_info['subject_cn'],
+        ssl_info['not_after'].strftime('%Y-%m-%d'),
+    )

@@ -800,6 +800,157 @@ class LocalVMSerializer(BaseModelSerializer):
         }
 
 
+class SslCertificateSerializer(BaseModelSerializer):
+    """SSL 证书详细信息序列化器。"""
+
+    domain_info = serializers.SerializerMethodField(
+        read_only=True,
+        label='关联域名',
+        help_text='归属域名的摘要信息',
+    )
+
+    def get_domain_info(self, obj: models.SslCertificate) -> dict:
+        """获取归属域名的摘要信息。"""
+        return {
+            'pk': obj.domain.pk,
+            'domain_name': obj.domain.domain_name,
+        }
+
+    class Meta:
+        """元数据配置。"""
+
+        model = models.SslCertificate
+        tabs = [
+            TabsColumn(
+                '基本信息',
+                ['domain', 'is_valid', 'check_time'],
+            ),
+            TabsColumn(
+                '主体信息',
+                ['subject_cn', 'subject_o', 'subject_ou'],
+            ),
+            TabsColumn(
+                '颁发者信息',
+                ['issuer_cn', 'issuer_o'],
+            ),
+            TabsColumn(
+                '证书属性',
+                [
+                    'serial_number',
+                    'signature_algorithm',
+                    'not_before',
+                    'not_after',
+                    'san_domains',
+                ],
+            ),
+        ]
+        fields = [
+            'pk',
+            'domain',
+            'domain_info',
+            'subject_cn',
+            'subject_o',
+            'subject_ou',
+            'issuer_cn',
+            'issuer_o',
+            'serial_number',
+            'signature_algorithm',
+            'not_before',
+            'not_after',
+            'san_domains',
+            'is_valid',
+            'check_time',
+            'description',
+            'created_time',
+            'updated_time',
+        ]
+        table_fields = [
+            'domain_info',
+            'subject_cn',
+            'issuer_cn',
+            'not_after',
+            'is_valid',
+            'san_domains',
+            'check_time',
+        ]
+        extra_kwargs = {
+            'pk': {
+                'read_only': True,
+                'label': 'ID',
+                'help_text': '主键唯一标识',
+            },
+            'domain': {
+                'attrs': ['pk', 'domain_name'],
+                'required': True,
+                'format': '{domain_name}',
+                'label': '关联域名',
+                'help_text': '该 SSL 证书记录关联的域名',
+            },
+            'subject_cn': {
+                'label': '主体通用名',
+                'help_text': '证书主体 Common Name',
+            },
+            'subject_o': {
+                'label': '主体组织',
+                'help_text': '证书主体 Organization',
+            },
+            'subject_ou': {
+                'label': '主体组织单元',
+                'help_text': '证书主体 Organizational Unit',
+            },
+            'issuer_cn': {
+                'label': '颁发机构通用名',
+                'help_text': '颁发机构 Common Name',
+            },
+            'issuer_o': {
+                'label': '颁发机构组织',
+                'help_text': '颁发机构 Organization',
+            },
+            'serial_number': {
+                'label': '序列号',
+                'help_text': '证书唯一序列号（十六进制）',
+            },
+            'signature_algorithm': {
+                'label': '签名算法',
+                'help_text': '证书签名哈希算法',
+            },
+            'not_before': {
+                'label': '有效期起始',
+                'help_text': '证书生效时间（UTC）',
+            },
+            'not_after': {
+                'label': '有效期结束',
+                'help_text': '证书到期时间（UTC）',
+            },
+            'san_domains': {
+                'label': '备用域名',
+                'help_text': 'Subject Alternative Names 域名列表',
+            },
+            'is_valid': {
+                'label': '是否有效',
+                'help_text': '检测时证书是否在有效期内',
+            },
+            'check_time': {
+                'label': '检测时间',
+                'help_text': '最近一次 SSL 证书检测时间',
+            },
+            'description': {
+                'label': 'Description',
+                'help_text': '备注信息',
+            },
+            'created_time': {
+                'read_only': True,
+                'label': 'Created time',
+                'help_text': '创建时间',
+            },
+            'updated_time': {
+                'read_only': True,
+                'label': 'Updated time',
+                'help_text': '更新时间',
+            },
+        }
+
+
 class DnsRecordSerializer(BaseModelSerializer):
     """DNS 解析记录序列化器。"""
 

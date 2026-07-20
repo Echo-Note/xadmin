@@ -278,9 +278,52 @@
         ]
       },
       {
-        "name": "LocalServer",
+        "name": "SslCertificate",
         "menu_type": 1,
         "rank": 4,
+        "path": "/asset/ssl-certificate/index",
+        "component": "asset/ssl-certificate/index",
+        "is_active": true,
+        "meta": {
+          "title": "SSL 证书",
+          "icon": "ri:shield-keyhole-line",
+          "is_show_menu": true,
+          "is_keepalive": true
+        },
+        "permissions": [
+          {
+            "name": "list:SslCertificate",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/ssl-certificate$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查询SSL证书列表" }
+          },
+          {
+            "name": "retrieve:SslCertificate",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/ssl-certificate/[a-zA-Z0-9-]+$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "查看SSL证书详情" }
+          },
+          {
+            "name": "export:SslCertificate",
+            "menu_type": 2,
+            "rank": 0,
+            "path": "api/asset/ssl-certificate/export-data$",
+            "method": "GET",
+            "is_active": true,
+            "meta": { "title": "导出SSL证书数据" }
+          }
+        ]
+      },
+      {
+        "name": "LocalServer",
+        "menu_type": 1,
+        "rank": 5,
         "path": "/asset/local-server/index",
         "component": "asset/local-server/index",
         "is_active": true,
@@ -368,7 +411,7 @@
       {
         "name": "LocalVM",
         "menu_type": 1,
-        "rank": 5,
+        "rank": 6,
         "path": "/asset/local-vm/index",
         "component": "asset/local-vm/index",
         "is_active": true,

@@ -11,6 +11,7 @@ from apps.asset.views import (
     FilingViewSet,
     LocalServerViewSet,
     LocalVMViewSet,
+    SslCertificateViewSet,
 )
 
 app_name = 'asset'
@@ -23,6 +24,7 @@ router.register('local-server', LocalServerViewSet, basename='asset_local_server
 router.register('local-vm', LocalVMViewSet, basename='asset_local_vm')
 router.register('dns-record', DnsRecordViewSet, basename='asset_dns_record')
 router.register('filing', FilingViewSet, basename='asset_filing')
+router.register('ssl-certificate', SslCertificateViewSet, basename='asset_ssl_certificate')
 
 urlpatterns = [
     path('relation-graph/', RelationGraphView.as_view(), name='relation_graph'),

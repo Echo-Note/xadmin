@@ -17,6 +17,9 @@ export const localServerApi = new BaseApi("/api/asset/local-server");
 /** 本地虚拟主机 API */
 export const localVmApi = new BaseApi("/api/asset/local-vm");
 
+/** SSL 证书 API */
+export const sslCertificateApi = new BaseApi("/api/asset/ssl-certificate");
+
 /** 备案信息 API */
 class FilingApi extends BaseApi {
   /** 对单条记录执行 ICP 备案预检测 */

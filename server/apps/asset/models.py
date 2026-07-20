@@ -550,6 +550,137 @@ class Filing(DbAuditModel, DbUuidModel):
 
 
 # =============================================================================
+# SSL 证书
+# =============================================================================
+
+
+class SslCertificate(DbAuditModel, DbUuidModel):
+    """SSL 证书详细信息，每个域名对应一条最新检测的证书记录。
+
+    由备案预检测流程自动填充：当检测到域名支持 HTTPS 时，通过 TLS
+    连接获取证书并用 cryptography.x509 解析详情。Domain 的 is_ssl_enabled
+    和 ssl_expire_time 为冗余字段，本模型存储完整证书信息。
+    """
+
+    domain = models.OneToOneField(
+        to=Domain,
+        on_delete=models.CASCADE,
+        related_name='ssl_certificate',
+        verbose_name='关联域名',
+        help_text='该 SSL 证书记录关联的域名',
+        db_comment='关联域名ID，一对一',
+    )
+
+    # ---- 主体信息（Subject）----
+    subject_cn = models.CharField(
+        max_length=256,
+        verbose_name='主体通用名',
+        null=True,
+        blank=True,
+        help_text='证书主体 Common Name，通常为域名',
+        db_comment='主体CN',
+    )
+    subject_o = models.CharField(
+        max_length=256,
+        verbose_name='主体组织',
+        null=True,
+        blank=True,
+        help_text='证书主体 Organization',
+        db_comment='主体O',
+    )
+    subject_ou = models.CharField(
+        max_length=256,
+        verbose_name='主体组织单元',
+        null=True,
+        blank=True,
+        help_text='证书主体 Organizational Unit',
+        db_comment='主体OU',
+    )
+
+    # ---- 颁发者信息（Issuer）----
+    issuer_cn = models.CharField(
+        max_length=256,
+        verbose_name='颁发机构通用名',
+        null=True,
+        blank=True,
+        help_text='颁发机构 Common Name',
+        db_comment='颁发机构CN',
+    )
+    issuer_o = models.CharField(
+        max_length=256,
+        verbose_name='颁发机构组织',
+        null=True,
+        blank=True,
+        help_text='颁发机构 Organization',
+        db_comment='颁发机构O',
+    )
+
+    # ---- 证书属性 ----
+    serial_number = models.CharField(
+        max_length=128,
+        verbose_name='序列号',
+        null=True,
+        blank=True,
+        help_text='证书唯一序列号（十六进制）',
+        db_comment='证书序列号',
+    )
+    signature_algorithm = models.CharField(
+        max_length=64,
+        verbose_name='签名算法',
+        null=True,
+        blank=True,
+        help_text='证书签名哈希算法，如 sha256',
+        db_comment='签名算法',
+    )
+    not_before = models.DateTimeField(
+        verbose_name='有效期起始',
+        null=True,
+        blank=True,
+        help_text='证书生效时间（UTC）',
+        db_comment='证书有效期起始',
+    )
+    not_after = models.DateTimeField(
+        verbose_name='有效期结束',
+        null=True,
+        blank=True,
+        help_text='证书到期时间（UTC）',
+        db_comment='证书有效期结束',
+    )
+    san_domains = models.JSONField(
+        verbose_name='备用域名',
+        default=list,
+        blank=True,
+        help_text='Subject Alternative Names 列表（证书覆盖的所有域名）',
+        db_comment='SAN域名列表',
+    )
+    is_valid = models.BooleanField(
+        default=False,
+        verbose_name='是否有效',
+        help_text='检测时证书是否在有效期内',
+        db_comment='证书是否有效',
+    )
+    check_time = models.DateTimeField(
+        verbose_name='检测时间',
+        null=True,
+        blank=True,
+        help_text='最近一次 SSL 证书检测时间',
+        db_comment='最近检测时间',
+    )
+
+    class Meta:
+        """元数据配置。"""
+
+        verbose_name = 'SSL 证书'
+        verbose_name_plural = verbose_name
+        ordering = ['-created_time']
+        db_table_comment = 'SSL证书详细信息表，存储证书主体/颁发者/有效期/SAN等，与域名一对一'
+
+    def __str__(self) -> str:
+        """返回字符串表示。"""
+        return f'{self.domain.domain_name} SSL: {self.subject_cn or "未知"}'
+
+
+# =============================================================================
 # DNS 解析记录
 # =============================================================================
 

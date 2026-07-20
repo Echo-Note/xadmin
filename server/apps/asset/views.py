@@ -14,8 +14,17 @@ from apps.asset.filters import (
     FilingFilter,
     LocalServerFilter,
     LocalVMFilter,
+    SslCertificateFilter,
 )
-from apps.asset.models import CloudServer, DnsRecord, Domain, Filing, LocalServer, LocalVM
+from apps.asset.models import (
+    CloudServer,
+    DnsRecord,
+    Domain,
+    Filing,
+    LocalServer,
+    LocalVM,
+    SslCertificate,
+)
 from apps.asset.serializers import (
     CloudServerSerializer,
     DnsRecordSerializer,
@@ -23,8 +32,9 @@ from apps.asset.serializers import (
     FilingSerializer,
     LocalServerSerializer,
     LocalVMSerializer,
+    SslCertificateSerializer,
 )
-from apps.common.core.modelset import BaseModelSet, ImportExportDataAction
+from apps.common.core.modelset import BaseModelSet, ImportExportDataAction, OnlyListModelSet
 from apps.common.core.response import ApiResponse
 
 
@@ -96,53 +106,21 @@ class FilingViewSet(BaseModelSet, ImportExportDataAction):
         Returns:
             包含检测结果的 ApiResponse。
         """
-        from apps.asset.filing_checker import run_icp_precheck
+        from apps.asset.filing_checker import apply_precheck_result, run_icp_precheck
 
         filing = self.get_object()
         result = run_icp_precheck(filing.domain.domain_name)
 
-        # 回写检测元信息
-        filing.icp_has_www_record = result['has_www_record']
-        filing.icp_check_status = result['check_status']
-        filing.icp_check_conclusion = result['conclusion']
-        filing.icp_check_time = timezone.now()
-        if result.get('footer_content') is not None:
-            filing.icp_footer_content = result['footer_content']
+        # 回写检测结果（公共方法统一处理元信息 + ICP/公安状态联动 + SSL 同步）
+        update_fields = apply_precheck_result(filing, result, check_time=timezone.now())
+        filing.save(update_fields=update_fields)
 
-        # 联动回写 ICP 备案号和状态
-        icp_nums = result.get('detected_icp_numbers', [])
-        if icp_nums:
-            filing.icp_number = icp_nums[0]
-            filing.icp_status = 'filed'
-        elif result['check_status'] == 'suspected_missing':
-            filing.icp_status = 'pending_confirm'
-
-        # 联动回写公安备案号和状态
-        ps_nums = result.get('detected_ps_numbers', [])
-        if ps_nums:
-            filing.ps_filing_number = ps_nums[0]
-            filing.ps_status = 'filed'
-        elif result['check_status'] == 'suspected_missing':
-            filing.ps_status = 'pending_confirm'
-
-        filing.save(
-            update_fields=[
-                'icp_has_www_record',
-                'icp_check_status',
-                'icp_check_conclusion',
-                'icp_check_time',
-                'icp_footer_content',
-                'icp_number',
-                'icp_status',
-                'ps_filing_number',
-                'ps_status',
-            ]
-        )
-
-        # 同步更新 Domain 的 SSL 启用状态
+        # 同步更新 Domain（SSL 启用状态 + 到期时间）
         if result.get('has_www_record'):
-            filing.domain.is_ssl_enabled = result.get('used_https', False)
-            filing.domain.save(update_fields=['is_ssl_enabled'])
+            domain_fields = ['is_ssl_enabled']
+            if result.get('ssl_certificate'):
+                domain_fields.append('ssl_expire_time')
+            filing.domain.save(update_fields=domain_fields)
 
         return ApiResponse(data=result)
 
@@ -179,3 +157,12 @@ class FilingViewSet(BaseModelSet, ImportExportDataAction):
                 'filings_count': len(pks) if pks else 'auto',
             }
         )
+
+
+class SslCertificateViewSet(OnlyListModelSet, ImportExportDataAction):
+    """SSL 证书管理（只读列表 + 详情 + 导出），数据由备案预检测自动填充。"""
+
+    queryset = SslCertificate.objects.select_related('domain')
+    serializer_class = SslCertificateSerializer
+    filterset_class = SslCertificateFilter
+    ordering_fields = ['not_after', 'not_before', 'created_time', 'domain__domain_name']
