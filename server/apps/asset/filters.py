@@ -182,22 +182,21 @@ class SslCertificateFilter(BaseFilterSet):
     """SSL 证书过滤器。"""
 
     pk = filters.CharFilter(field_name='id')
-    domain = filters.ModelChoiceFilter(
-        field_name='domain',
-        lookup_expr='exact',
-        queryset=Domain.objects.filter(is_active=True),
-        label='关联域名',
-    )
     is_valid = filters.BooleanFilter(field_name='is_valid')
     issuer_cn = filters.CharFilter(field_name='issuer_cn', lookup_expr='icontains')
     subject_cn = filters.CharFilter(field_name='subject_cn', lookup_expr='icontains')
     not_after = filters.DateFromToRangeFilter(field_name='not_after')
+    domain_name = filters.CharFilter(
+        field_name='domains__domain_name',
+        lookup_expr='icontains',
+        label='关联域名',
+    )
 
     class Meta:
         """元数据配置。"""
 
         model = SslCertificate
-        fields = ['domain', 'is_valid', 'issuer_cn', 'subject_cn', 'not_after']
+        fields = ['is_valid', 'issuer_cn', 'subject_cn', 'not_after', 'domain_name']
 
 
 class LocalServerFilter(BaseFilterSet):

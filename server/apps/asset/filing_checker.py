@@ -19,7 +19,7 @@ from __future__ import annotations
 import logging
 import re
 import socket
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 import requests
@@ -281,6 +281,7 @@ def _check_ssl_certificate(domain_name: str) -> dict[str, Any] | None:
     import ssl as ssl_module
 
     from cryptography import x509
+    from cryptography.hazmat.primitives import hashes
     from cryptography.x509.oid import ExtensionOID, NameOID
 
     hostname = f'www.{domain_name}'
@@ -326,7 +327,7 @@ def _check_ssl_certificate(domain_name: str) -> dict[str, Any] | None:
         sig_algo_name = sig_algo.name if sig_algo else None
 
         # 判断是否在有效期内
-        from datetime import datetime
+        from datetime import UTC, datetime
 
         now_utc = datetime.now(UTC)
         is_valid = not_before <= now_utc <= not_after
@@ -343,6 +344,7 @@ def _check_ssl_certificate(domain_name: str) -> dict[str, Any] | None:
             'not_after': not_after,
             'san_domains': san_domains,
             'is_valid': is_valid,
+            'fingerprint': cert.fingerprint(hashes.SHA256()).hex(),
         }
     except (ssl_module.SSLError, OSError) as e:
         logger.debug('SSL 证书检测失败 %s: %s', hostname, e)
@@ -544,17 +546,20 @@ def _sync_ssl_certificate_record(
     ssl_info: dict[str, Any],
     check_time: datetime,
 ) -> None:
-    """创建或更新 SslCertificate 记录（直接 save）。
+    """创建或更新 SslCertificate 记录，并关联到 Domain（直接 save）。
+
+    相同证书（SHA256 指纹相同）只存一条，多个 Domain 关联到同一条记录。
 
     Args:
-        domain: 关联的 Domain 实例。
-        ssl_info: _check_ssl_certificate() 返回的证书信息字典。
+        domain: Domain 实例。
+        ssl_info: _check_ssl_certificate() 返回的证书信息字典（含 fingerprint）。
         check_time: 检测时间。
     """
     from apps.asset.models import SslCertificate
 
-    cert, _created = SslCertificate.objects.update_or_create(
-        domain=domain,
+    # 用指纹去重：相同证书只存一条
+    cert, created = SslCertificate.objects.update_or_create(
+        fingerprint=ssl_info['fingerprint'],
         defaults={
             'subject_cn': ssl_info['subject_cn'],
             'subject_o': ssl_info['subject_o'],
@@ -570,10 +575,15 @@ def _sync_ssl_certificate_record(
             'check_time': check_time,
         },
     )
+
+    # 关联 Domain 到证书记录（相同证书自动共用）
+    domain.ssl_certificate = cert
+
     logger.debug(
-        'SSL 证书记录已%s: %s → %s (到期: %s)',
-        '创建' if _created else '更新',
+        'SSL 证书记录%s: %s → %s (到期: %s, 指纹: %s...)',
+        '创建' if created else '更新',
         domain.domain_name,
         ssl_info['subject_cn'],
         ssl_info['not_after'].strftime('%Y-%m-%d'),
+        ssl_info['fingerprint'][:16],
     )

@@ -803,18 +803,15 @@ class LocalVMSerializer(BaseModelSerializer):
 class SslCertificateSerializer(BaseModelSerializer):
     """SSL 证书详细信息序列化器。"""
 
-    domain_info = serializers.SerializerMethodField(
+    domains_info = serializers.SerializerMethodField(
         read_only=True,
         label='关联域名',
-        help_text='归属域名的摘要信息',
+        help_text='使用该证书的所有域名列表',
     )
 
-    def get_domain_info(self, obj: models.SslCertificate) -> dict:
-        """获取归属域名的摘要信息。"""
-        return {
-            'pk': obj.domain.pk,
-            'domain_name': obj.domain.domain_name,
-        }
+    def get_domains_info(self, obj: models.SslCertificate) -> list[dict]:
+        """获取使用该证书的所有域名列表。"""
+        return [{'pk': d.pk, 'domain_name': d.domain_name} for d in obj.domains.all()]
 
     class Meta:
         """元数据配置。"""
@@ -846,8 +843,8 @@ class SslCertificateSerializer(BaseModelSerializer):
         ]
         fields = [
             'pk',
-            'domain',
-            'domain_info',
+            'fingerprint',
+            'domains_info',
             'subject_cn',
             'subject_o',
             'subject_ou',
@@ -865,7 +862,7 @@ class SslCertificateSerializer(BaseModelSerializer):
             'updated_time',
         ]
         table_fields = [
-            'domain_info',
+            'domains_info',
             'subject_cn',
             'issuer_cn',
             'not_after',
@@ -879,12 +876,10 @@ class SslCertificateSerializer(BaseModelSerializer):
                 'label': 'ID',
                 'help_text': '主键唯一标识',
             },
-            'domain': {
-                'attrs': ['pk', 'domain_name'],
-                'required': True,
-                'format': '{domain_name}',
-                'label': '关联域名',
-                'help_text': '该 SSL 证书记录关联的域名',
+            'fingerprint': {
+                'read_only': True,
+                'label': '证书指纹',
+                'help_text': 'SHA256 指纹，用于判断证书是否完全一致',
             },
             'subject_cn': {
                 'label': '主体通用名',

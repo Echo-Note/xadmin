@@ -115,11 +115,11 @@ class FilingViewSet(BaseModelSet, ImportExportDataAction):
         update_fields = apply_precheck_result(filing, result, check_time=timezone.now())
         filing.save(update_fields=update_fields)
 
-        # 同步更新 Domain（SSL 启用状态 + 到期时间）
+        # 同步更新 Domain（SSL 启用状态 + 到期时间 + 证书关联）
         if result.get('has_www_record'):
             domain_fields = ['is_ssl_enabled']
             if result.get('ssl_certificate'):
-                domain_fields.append('ssl_expire_time')
+                domain_fields.extend(['ssl_expire_time', 'ssl_certificate'])
             filing.domain.save(update_fields=domain_fields)
 
         return ApiResponse(data=result)
@@ -162,7 +162,7 @@ class FilingViewSet(BaseModelSet, ImportExportDataAction):
 class SslCertificateViewSet(OnlyListModelSet, ImportExportDataAction):
     """SSL 证书管理（只读列表 + 详情 + 导出），数据由备案预检测自动填充。"""
 
-    queryset = SslCertificate.objects.select_related('domain')
+    queryset = SslCertificate.objects.prefetch_related('domains')
     serializer_class = SslCertificateSerializer
     filterset_class = SslCertificateFilter
     ordering_fields = ['not_after', 'not_before', 'created_time', 'domain__domain_name']

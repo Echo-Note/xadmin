@@ -315,6 +315,16 @@ class Domain(DbAuditModel, DbUuidModel):
         help_text='SSL 证书到期日期',
         db_comment='SSL证书到期日期',
     )
+    ssl_certificate = models.ForeignKey(
+        to='SslCertificate',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='domains',
+        verbose_name='SSL 证书',
+        help_text='关联的 SSL 证书记录，相同证书共用一条记录',
+        db_comment='关联SSL证书记录ID',
+    )
 
     # --- 证书与责任人 ---
     domain_certificate = models.FileField(
@@ -555,20 +565,19 @@ class Filing(DbAuditModel, DbUuidModel):
 
 
 class SslCertificate(DbAuditModel, DbUuidModel):
-    """SSL 证书详细信息，每个域名对应一条最新检测的证书记录。
+    """SSL 证书详细信息，相同证书（SHA256 指纹相同）只存一条。
 
-    由备案预检测流程自动填充：当检测到域名支持 HTTPS 时，通过 TLS
-    连接获取证书并用 cryptography.x509 解析详情。Domain 的 is_ssl_enabled
-    和 ssl_expire_time 为冗余字段，本模型存储完整证书信息。
+    多个 Domain 通过 ForeignKey 关联到同一条 SslCertificate 记录，
+    避免通配符/SAN 证书被重复存储。由预检测流程和定时任务自动填充。
     """
 
-    domain = models.OneToOneField(
-        to=Domain,
-        on_delete=models.CASCADE,
-        related_name='ssl_certificate',
-        verbose_name='关联域名',
-        help_text='该 SSL 证书记录关联的域名',
-        db_comment='关联域名ID，一对一',
+    # ---- 证书唯一标识 ----
+    fingerprint = models.CharField(
+        max_length=128,
+        unique=True,
+        verbose_name='证书指纹',
+        help_text='SHA256 指纹，用于判断证书是否完全一致（去重依据）',
+        db_comment='SHA256指纹，唯一标识',
     )
 
     # ---- 主体信息（Subject）----
@@ -673,11 +682,11 @@ class SslCertificate(DbAuditModel, DbUuidModel):
         verbose_name = 'SSL 证书'
         verbose_name_plural = verbose_name
         ordering = ['-created_time']
-        db_table_comment = 'SSL证书详细信息表，存储证书主体/颁发者/有效期/SAN等，与域名一对一'
+        db_table_comment = 'SSL证书详细信息表，相同证书（指纹去重）只存一条，被多个域名关联'
 
     def __str__(self) -> str:
         """返回字符串表示。"""
-        return f'{self.domain.domain_name} SSL: {self.subject_cn or "未知"}'
+        return f'SSL: {self.subject_cn or "未知"} ({self.serial_number or "?"})'
 
 
 # =============================================================================

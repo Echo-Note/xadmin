@@ -16,6 +16,7 @@ from django.utils import timezone
 from apps.asset.choices import IcpCheckStatusChoices
 from apps.asset.filing_checker import (
     _check_ssl_certificate,
+    _get_name_attr,
     _sync_ssl_certificate_record,
     apply_precheck_result,
     run_icp_precheck,
@@ -62,11 +63,11 @@ def _run_single_precheck(filing_pk: str) -> dict[str, Any]:
     update_fields = apply_precheck_result(filing, result, check_time=timezone.now())
     filing.save(update_fields=update_fields)
 
-    # 同步更新 Domain（SSL 启用状态 + 到期时间）
+    # 同步更新 Domain（SSL 启用状态 + 到期时间 + 证书关联）
     if result.get('has_www_record'):
         domain_fields = ['is_ssl_enabled']
         if result.get('ssl_certificate'):
-            domain_fields.append('ssl_expire_time')
+            domain_fields.extend(['ssl_expire_time', 'ssl_certificate'])
         filing.domain.save(update_fields=domain_fields)
 
     return {
@@ -206,7 +207,11 @@ def daily_icp_precheck_task() -> dict:
 def _check_single_ssl(domain: Domain) -> dict[str, Any]:
     """检测单个域名的 SSL 证书并更新记录。
 
-    直接通过 TLS 连接获取证书信息，不依赖备案预检测流程。
+    检测流程：
+    1. 检测主域名 www.{domain_name} 的 SSL 证书
+    2. 查询该域名的 DNS 解析记录中的 A/AAAA 子域名，逐个检测 SSL
+    3. 相同证书（指纹去重）共用一条 SslCertificate 记录
+    4. 子域名在 Domain 表中有独立记录时更新其 ssl_certificate 关联
 
     Args:
         domain: Domain 模型实例。
@@ -217,6 +222,8 @@ def _check_single_ssl(domain: Domain) -> dict[str, Any]:
     Raises:
         任意异常向上传播供外层捕获。
     """
+    from apps.asset.models import DnsRecord, DnsRecordTypeChoices
+
     ssl_info = _check_ssl_certificate(domain.domain_name)
     now = timezone.now()
 
@@ -224,8 +231,8 @@ def _check_single_ssl(domain: Domain) -> dict[str, Any]:
         domain.is_ssl_enabled = True
         domain.ssl_expire_time = ssl_info['not_after'].date()
         _sync_ssl_certificate_record(domain, ssl_info, now)
-        domain.save(update_fields=['is_ssl_enabled', 'ssl_expire_time'])
-        return {
+        domain.save(update_fields=['is_ssl_enabled', 'ssl_expire_time', 'ssl_certificate'])
+        main_result = {
             'domain_name': domain.domain_name,
             'is_ssl_enabled': True,
             'subject_cn': ssl_info['subject_cn'],
@@ -233,13 +240,118 @@ def _check_single_ssl(domain: Domain) -> dict[str, Any]:
         }
     else:
         domain.is_ssl_enabled = False
-        domain.save(update_fields=['is_ssl_enabled'])
-        return {
+        domain.ssl_certificate = None
+        domain.save(update_fields=['is_ssl_enabled', 'ssl_certificate'])
+        main_result = {
             'domain_name': domain.domain_name,
             'is_ssl_enabled': False,
             'subject_cn': None,
             'not_after': None,
         }
+
+    # 检测二级域名（DNS A/AAAA 记录指向的子域名）
+    sub_results: list[dict[str, Any]] = []
+    dns_records = DnsRecord.objects.filter(
+        domain=domain,
+        record_type__in=[DnsRecordTypeChoices.A, DnsRecordTypeChoices.AAAA],
+    ).exclude(host__in=['@', 'www', ''])  # 主域名和 www 已检测过
+
+    for record in dns_records:
+        sub_domain_name = f'{record.host}.{domain.domain_name}'
+        sub_ssl_info = _check_ssl_certificate_by_host(sub_domain_name)
+        if not sub_ssl_info:
+            continue
+
+        # 查找子域名是否有独立的 Domain 记录
+        sub_domain = Domain.objects.filter(domain_name=sub_domain_name, is_active=True).first()
+        if sub_domain:
+            sub_domain.is_ssl_enabled = True
+            sub_domain.ssl_expire_time = sub_ssl_info['not_after'].date()
+            _sync_ssl_certificate_record(sub_domain, sub_ssl_info, now)
+            sub_domain.save(update_fields=['is_ssl_enabled', 'ssl_expire_time', 'ssl_certificate'])
+            sub_results.append(
+                {
+                    'domain_name': sub_domain_name,
+                    'is_ssl_enabled': True,
+                    'subject_cn': sub_ssl_info['subject_cn'],
+                    'same_as_main': sub_ssl_info['fingerprint'] == ssl_info.get('fingerprint') if ssl_info else False,
+                }
+            )
+
+    main_result['subdomains'] = sub_results
+    return main_result
+
+
+def _check_ssl_certificate_by_host(hostname: str) -> dict[str, Any] | None:
+    """检测指定主机名的 SSL 证书（复用 _check_ssl_certificate 逻辑）。
+
+    与 _check_ssl_certificate 的区别：直接用完整主机名连接，不加 www 前缀。
+
+    Args:
+        hostname: 完整主机名，如 mail.example.com。
+
+    Returns:
+        证书信息字典，失败返回 None。
+    """
+    import socket
+    import ssl as ssl_module
+
+    from cryptography import x509
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.x509.oid import ExtensionOID, NameOID
+
+    try:
+        ctx = ssl_module.create_default_context()
+        with socket.create_connection((hostname, 443), timeout=10) as sock:
+            with ctx.wrap_socket(sock, server_hostname=hostname) as ssock:
+                der_cert = ssock.getpeercert(binary_form=True)
+
+        if not der_cert:
+            return None
+
+        cert = x509.load_der_x509_certificate(der_cert)
+
+        subject = cert.subject
+        issuer = cert.issuer
+        subject_cn = _get_name_attr(subject, NameOID.COMMON_NAME)
+        issuer_cn = _get_name_attr(issuer, NameOID.COMMON_NAME)
+        issuer_o = _get_name_attr(issuer, NameOID.ORGANIZATION_NAME)
+
+        san_domains: list[str] = []
+        try:
+            san_ext = cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+            san_domains = san_ext.value.get_values_for_type(x509.DNSName)
+        except x509.ExtensionNotFound:
+            pass
+
+        not_before = getattr(cert, 'not_valid_before_utc', None) or cert.not_valid_before
+        not_after = getattr(cert, 'not_valid_after_utc', None) or cert.not_valid_after
+
+        from datetime import UTC, datetime
+
+        now_utc = datetime.now(UTC)
+        is_valid = not_before <= now_utc <= not_after
+
+        sig_algo = cert.signature_hash_algorithm
+        return {
+            'subject_cn': subject_cn,
+            'subject_o': _get_name_attr(subject, NameOID.ORGANIZATION_NAME),
+            'subject_ou': _get_name_attr(subject, NameOID.ORGANIZATIONAL_UNIT_NAME),
+            'issuer_cn': issuer_cn,
+            'issuer_o': issuer_o,
+            'serial_number': format(cert.serial_number, 'x'),
+            'signature_algorithm': sig_algo.name if sig_algo else None,
+            'not_before': not_before,
+            'not_after': not_after,
+            'san_domains': san_domains,
+            'is_valid': is_valid,
+            'fingerprint': cert.fingerprint(hashes.SHA256()).hex(),
+        }
+    except (ssl_module.SSLError, OSError):
+        return None
+    except Exception as e:
+        logger.debug('SSL 证书检测失败 %s: %s', hostname, e)
+        return None
 
 
 def _run_batch_ssl_check() -> dict[str, Any]:
