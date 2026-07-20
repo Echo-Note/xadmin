@@ -145,12 +145,17 @@ class SslCertificateViewSet(OnlyListModelSet, ImportExportDataAction):
         - Apache: cert.pem（终端证书）+ chain.pem（中间证书链）+ privkey.pem
         - Caddy:  fullchain.pem + privkey.pem（同 NGINX）
 
-        GET /api/domain/ssl-certificate/{pk}/export-cert/?format=nginx
+        GET /api/domain/ssl-certificate/{pk}/export-cert?type=nginx
+
+        注意：查询参数使用 ``type`` 而非 ``format``，因为 DRF 默认将 ``format``
+        查询参数用于内容协商（``URL_FORMAT_OVERRIDE``），若使用 ``format=nginx``
+        会触发 ``select_renderer → filter_renderers`` 找不到匹配渲染器而抛出
+        ``Http404``，最终被全局异常处理器转换为 400 响应。
         """
         cert = self.get_object()
 
         # 确定导出格式
-        fmt = request.query_params.get('format', 'nginx').lower()
+        fmt = request.query_params.get('type', 'nginx').lower()
         if fmt not in ('nginx', 'apache', 'caddy'):
             fmt = 'nginx'
 

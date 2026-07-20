@@ -12,7 +12,7 @@ export const dnsRecordApi = new BaseApi("/api/domain/dns-record");
 class SslCertificateApi extends BaseApi {
   /** 导出证书文件包（zip），支持 nginx/apache/caddy 格式 */
   exportCert = (pk: string, format: "nginx" | "apache" | "caddy") => {
-    const url = `${this.baseApi}/${pk}/export-cert?format=${format}`;
+    const url = `${this.baseApi}/${pk}/export-cert?type=${format}`;
     return http.autoDownload(url, null, {});
   };
 }
