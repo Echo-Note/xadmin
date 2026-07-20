@@ -109,6 +109,29 @@ export function useFiling(getSelectedPks: () => string[]) {
     ]
   });
 
+  /** 列表列格式化：关联域名列渲染为可点击链接，显示 www 前缀完整域名并新标签页打开 */
+  const listColumnsFormat: RePlusPageProps["listColumnsFormat"] = columns => {
+    columns.forEach(column => {
+      if (column.prop === "domain_info") {
+        column.cellRenderer = ({ row }) => {
+          const info = row.domain_info;
+          if (!info?.url) return <span>{info?.label ?? ""}</span>;
+          return (
+            <el-link
+              type="primary"
+              href={info.url}
+              target="_blank"
+              underline={false}
+            >
+              {info.label}
+            </el-link>
+          );
+        };
+      }
+    });
+    return columns;
+  };
+
   const addOrEditOptions = shallowRef<RePlusPageProps["addOrEditOptions"]>({
     props: {
       minWidth: "700px",
@@ -123,6 +146,7 @@ export function useFiling(getSelectedPks: () => string[]) {
     auth,
     addOrEditOptions,
     tableBarButtonsProps,
-    operationButtonsProps
+    operationButtonsProps,
+    listColumnsFormat
   };
 }

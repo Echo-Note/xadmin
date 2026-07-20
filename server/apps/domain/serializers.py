@@ -274,13 +274,9 @@ class SslCertificateSerializer(BaseModelSerializer):
         help_text='使用该证书的所有域名列表',
     )
 
-    def get_domains_info(self, obj: models.SslCertificate) -> list[dict]:
-        """获取使用该证书的所有关联域名列表。
-
-        返回结构化数据（每个域名包含 pk 与 label），前端以标签形式渲染，
-        便于区分多个二级域名。
-        """
-        return [{'pk': domain.pk, 'label': domain.domain_name} for domain in obj.domains.all()]
+    def get_domains_info(self, obj: models.SslCertificate) -> str:
+        """获取使用该证书的所有域名，逗号分隔。"""
+        return ', '.join(d.domain_name for d in obj.domains.all())
 
     class Meta:
         """元数据配置。"""
@@ -531,11 +527,19 @@ class FilingSerializer(BaseModelSerializer):
     )
 
     def get_domain_info(self, obj: models.Filing) -> dict:
-        """获取归属域名的摘要信息。"""
-        return {
-            'pk': obj.domain.pk,
-            'domain_name': obj.domain.domain_name,
-        }
+        """获取归属域名的摘要信息。
+
+        由 Domain 主域名与 DnsRecord 表中**实际存在的 www 记录**拼接生成关联域名：
+        存在 host='www' 的解析记录时，关联域名为 www.{主域名}；
+        否则关联域名为主域名本身。返回完整域名（label）与 https 访问地址（url）。
+
+        依赖 ViewSet 通过 Prefetch 预加载的 www_dns_records 属性，避免 N+1 查询。
+        """
+        domain = obj.domain
+        base = domain.domain_name
+        has_www = bool(getattr(domain, 'www_dns_records', None))
+        full = f'www.{base}' if has_www else base
+        return {'pk': domain.pk, 'label': full, 'url': f'https://{full}'}
 
     class Meta:
         """元数据配置。"""
@@ -597,7 +601,7 @@ class FilingSerializer(BaseModelSerializer):
             'updated_time',
         ]
         table_fields = [
-            'domain',
+            'domain_info',
             'icp_number',
             'icp_status',
             'icp_check_status',

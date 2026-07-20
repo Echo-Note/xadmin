@@ -12,7 +12,8 @@ const {
   auth,
   addOrEditOptions,
   tableBarButtonsProps,
-  operationButtonsProps
+  operationButtonsProps,
+  listColumnsFormat
 } = useFiling(() => rePlusPageRef.value?.getSelectPks() ?? []);
 </script>
 
@@ -25,5 +26,6 @@ const {
     :addOrEditOptions="addOrEditOptions"
     :tableBarButtonsProps="tableBarButtonsProps"
     :operationButtonsProps="operationButtonsProps"
+    :listColumnsFormat="listColumnsFormat"
   />
 </template>

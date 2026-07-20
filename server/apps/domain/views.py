@@ -4,7 +4,7 @@ import io
 import zipfile
 from typing import Any
 
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework.decorators import action
@@ -55,7 +55,14 @@ class DnsRecordViewSet(BaseModelSet, ImportExportDataAction):
 class FilingViewSet(BaseModelSet, ImportExportDataAction):
     """备案信息管理，同时管理 ICP 备案与公安备案，支持 ICP 预检测。"""
 
-    queryset = Filing.objects.select_related('domain', 'company')
+    # 预加载关联域名的 www 解析记录到 www_dns_records 属性，避免序列化时 N+1 查询
+    queryset = Filing.objects.select_related('domain', 'company').prefetch_related(
+        Prefetch(
+            'domain__dns_records',
+            queryset=DnsRecord.objects.filter(host='www'),
+            to_attr='www_dns_records',
+        )
+    )
     serializer_class = FilingSerializer
     filterset_class = FilingFilter
     ordering_fields = ['created_time', 'domain__domain_name']
