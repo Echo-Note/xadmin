@@ -469,11 +469,26 @@ export function useBaseColumns(localeName: string) {
               formatAddOrEditOptions(column?.choices)
             );
             // pure-table ****** start
-            item["cellRenderer"] = ({ row }) => (
-              <span v-copy={get(row, `${column.key}.label`)}>
-                {get(row, `${column.key}.label`)}
-              </span>
-            );
+            item["cellRenderer"] = ({ row }) => {
+              const choiceData = get(row, column.key);
+              const label = choiceData?.label;
+              if (!label) return <span></span>;
+              // 根据选项在 choices 中的序号映射 tag 颜色
+              const choiceIndex =
+                column?.choices?.findIndex(
+                  (c: { value: string; label: string }) =>
+                    c.value === choiceData?.value
+                ) ?? -1;
+              const tagType =
+                choiceIndex >= 0
+                  ? getColourTypeByIndex(choiceIndex + 1)
+                  : "info";
+              return (
+                <el-tag v-copy={label} type={tagType} effect="light">
+                  {label}
+                </el-tag>
+              );
+            };
             // pure-table ****** end
             break;
           case "object_related_field":
@@ -482,21 +497,33 @@ export function useBaseColumns(localeName: string) {
               item["options"] = computed(() =>
                 formatAddOrEditOptions(column?.choices)
               );
+              // pure-table ****** start
+              item["cellRenderer"] = ({ row }) => {
+                const label =
+                  get(row, `${column.key}.label`) ?? get(row, `${column.key}`);
+                if (!label) return <span></span>;
+                return (
+                  <el-tag v-copy={label} type="info" effect="light">
+                    {label}
+                  </el-tag>
+                );
+              };
+              // pure-table ****** end
             } else {
               item["valueType"] = "text";
               item["prop"] = `${column.key}.label`;
+              // pure-table ****** start
+              item["cellRenderer"] = ({ row }) => (
+                <span
+                  v-copy={
+                    get(row, `${column.key}.label`) ?? get(row, `${column.key}`)
+                  }
+                >
+                  {get(row, `${column.key}.label`) ?? get(row, `${column.key}`)}
+                </span>
+              );
+              // pure-table ****** end
             }
-            // pure-table ****** start
-            item["cellRenderer"] = ({ row }) => (
-              <span
-                v-copy={
-                  get(row, `${column.key}.label`) ?? get(row, `${column.key}`)
-                }
-              >
-                {get(row, `${column.key}.label`) ?? get(row, `${column.key}`)}
-              </span>
-            );
-            // pure-table ****** end
             break;
           case "m2m_related_field":
           case "labeled_multiple_choice":
