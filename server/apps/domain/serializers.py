@@ -244,9 +244,9 @@ class SslCertificateSerializer(BaseModelSerializer):
         help_text='使用该证书的所有域名列表',
     )
 
-    def get_domains_info(self, obj: models.SslCertificate) -> list[dict]:
-        """获取使用该证书的所有域名列表。"""
-        return [{'pk': d.pk, 'domain_name': d.domain_name} for d in obj.domains.all()]
+    def get_domains_info(self, obj: models.SslCertificate) -> str:
+        """获取使用该证书的所有域名，逗号分隔。"""
+        return ', '.join(d.domain_name for d in obj.domains.all())
 
     class Meta:
         """元数据配置。"""
@@ -436,7 +436,7 @@ class DnsRecordSerializer(BaseModelSerializer):
             'updated_time',
         ]
         table_fields = [
-            'domain_info',
+            'domain',
             'record_type',
             'host',
             'value',
@@ -563,7 +563,7 @@ class FilingSerializer(BaseModelSerializer):
             'updated_time',
         ]
         table_fields = [
-            'domain_info',
+            'domain',
             'icp_number',
             'icp_status',
             'icp_check_status',
