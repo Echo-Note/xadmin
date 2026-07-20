@@ -5,7 +5,8 @@ defineOptions({
   name: "SslCertificate"
 });
 
-const { api, auth, addOrEditOptions } = useSslCertificate();
+const { api, auth, addOrEditOptions, operationButtonsProps } =
+  useSslCertificate();
 </script>
 
 <template>
@@ -14,5 +15,6 @@ const { api, auth, addOrEditOptions } = useSslCertificate();
     :auth="auth"
     locale-name="ssl-certificate"
     :addOrEditOptions="addOrEditOptions"
+    :operationButtonsProps="operationButtonsProps"
   />
 </template>

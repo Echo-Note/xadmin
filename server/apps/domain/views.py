@@ -1,8 +1,11 @@
 """域名管理应用的视图集。"""
 
+import io
+import zipfile
 from typing import Any
 
 from django.db.models import Count
+from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -124,9 +127,66 @@ class FilingViewSet(BaseModelSet, ImportExportDataAction):
 
 
 class SslCertificateViewSet(OnlyListModelSet, ImportExportDataAction):
-    """SSL 证书管理（只读列表 + 详情 + 导出），数据由备案预检测自动填充。"""
+    """SSL 证书管理（只读列表 + 详情 + 导出），数据由备案预检测自动填充。
+
+    支持导出为 NGINX / Apache / Caddy 格式的证书文件包（zip）。
+    """
 
     queryset = SslCertificate.objects.prefetch_related('domains')
     serializer_class = SslCertificateSerializer
     filterset_class = SslCertificateFilter
     ordering_fields = ['not_after', 'not_before', 'created_time', 'domain__domain_name']
+
+    @action(detail=True, methods=['get'], url_path='export-cert')
+    def export_cert(self, request: Any, pk: str) -> HttpResponse:
+        """导出 SSL 证书文件包（zip），支持 NGINX / Apache / Caddy 三种格式。
+
+        - NGINX: fullchain.pem（终端证书+中间证书链）+ privkey.pem
+        - Apache: cert.pem（终端证书）+ chain.pem（中间证书链）+ privkey.pem
+        - Caddy:  fullchain.pem + privkey.pem（同 NGINX）
+
+        GET /api/domain/ssl-certificate/{pk}/export-cert/?format=nginx
+        """
+        cert = self.get_object()
+
+        # 确定导出格式
+        fmt = request.query_params.get('format', 'nginx').lower()
+        if fmt not in ('nginx', 'apache', 'caddy'):
+            fmt = 'nginx'
+
+        # 获取证书内容
+        certificate_pem = cert.certificate_pem or ''
+        intermediate_pem = cert.intermediate_pem or ''
+        private_key_pem = cert.private_key_pem or ''
+
+        # 获取关联域名作为文件名前缀
+        domain_name = cert.domains.first()
+        file_prefix = domain_name.domain_name if domain_name else f'cert-{pk}'
+
+        # 构建 zip 文件
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+            if fmt in ('nginx', 'caddy'):
+                # NGINX / Caddy: fullchain.pem = 终端证书 + 中间证书链
+                fullchain = certificate_pem
+                if intermediate_pem:
+                    if not fullchain.endswith('\n'):
+                        fullchain += '\n'
+                    fullchain += intermediate_pem
+                zf.writestr(f'{file_prefix}_fullchain.pem', fullchain)
+                if private_key_pem:
+                    zf.writestr(f'{file_prefix}_privkey.pem', private_key_pem)
+            elif fmt == 'apache':
+                # Apache: 分开存放终端证书和中间证书链
+                zf.writestr(f'{file_prefix}_cert.pem', certificate_pem)
+                if intermediate_pem:
+                    zf.writestr(f'{file_prefix}_chain.pem', intermediate_pem)
+                if private_key_pem:
+                    zf.writestr(f'{file_prefix}_privkey.pem', private_key_pem)
+
+        zip_buffer.seek(0)
+
+        # 构建响应
+        response: HttpResponse = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename="{file_prefix}_{fmt}.zip"'
+        return response

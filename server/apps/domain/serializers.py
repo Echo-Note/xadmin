@@ -275,6 +275,10 @@ class SslCertificateSerializer(BaseModelSerializer):
                     'san_domains',
                 ],
             ),
+            TabsColumn(
+                '证书文件',
+                ['certificate_pem', 'intermediate_pem', 'private_key_pem'],
+            ),
         ]
         fields = [
             'pk',
