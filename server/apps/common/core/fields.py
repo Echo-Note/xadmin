@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-# -*- coding:utf-8 -*-
 # project : xadmin-server
 # filename : fields
 # author : ly_13
 # date : 8/6/2024
 """自定义序列化器字段模块，提供标签选择字段、主键关联字段、手机号字段等。"""
+
 from functools import partial
 from typing import Any
 
@@ -44,30 +44,42 @@ def attr_get(obj: Any, attr: str, sp: str = '.') -> Any:
 
 
 class LabeledChoiceField(serializers.ChoiceField):
-    """带标签的 choice 字段，序列化时返回 value+label 结构。"""
+    """带标签的 choice 字段，序列化时返回 value+label 结构。
+
+    支持通过 ``tag_types`` 参数为每个选项指定前端 el-tag 颜色类型，
+    序列化时在返回字典中附加 ``type`` 字段（如 success/danger/warning/info）。
+    """
 
     def __init__(self, **kwargs: Any) -> None:
         """初始化标签选择字段。
 
         Args:
-            **kwargs: 透传给父类的关键字参数，支持 ``attrs`` 自定义返回字段。
+            **kwargs: 透传给父类的关键字参数，支持 ``attrs`` 自定义返回字段、
+                ``tag_types`` 指定选项到 tag 颜色类型的映射。
         """
-        self.attrs = kwargs.pop("attrs", None) or ("value", "label")
+        self.attrs = kwargs.pop('attrs', None) or ('value', 'label')
+        self.tag_types: dict[str, str] | None = kwargs.pop('tag_types', None)
         super().__init__(**kwargs)
 
     def to_representation(self, key: Any) -> dict | None:
         """将 choice 值序列化为 value+label 字典。
 
+        当配置了 ``tag_types`` 时，额外返回 ``type`` 字段（如 success/danger），
+        前端据此渲染对应颜色的 el-tag；未配置时不含 ``type``，前端按纯文本展示。
+
         Args:
             key: choice 的原始值。
 
         Returns:
-            包含 value 和 label 的字典，值为 None 时原样返回。
+            包含 value 和 label（可选 type）的字典，值为 None 时原样返回。
         """
         if key is None:
             return key
         label = self.choices.get(key, key)
-        return {"value": key, "label": label}
+        result: dict[str, Any] = {'value': key, 'label': label}
+        if self.tag_types and key in self.tag_types:
+            result['type'] = self.tag_types[key]
+        return result
 
     def to_internal_value(self, data: Any) -> Any:
         """将前端传入的数据转换为内部 choice 值。
@@ -83,33 +95,24 @@ class LabeledChoiceField(serializers.ChoiceField):
         if not data:
             return data
         if isinstance(data, dict):
-            data = data.get("value")
-        if isinstance(data, str) and "(" in data and data.endswith(")"):
-            data = data.strip(")").split('(')[-1]
-        return super(LabeledChoiceField, self).to_internal_value(data)
+            data = data.get('value')
+        if isinstance(data, str) and '(' in data and data.endswith(')'):
+            data = data.strip(')').split('(')[-1]
+        return super().to_internal_value(data)
 
     def get_schema(self) -> dict:
         """为 drf-spectacular 提供 OpenAPI schema"""
         if getattr(self, 'many', False):
             return {
                 'type': 'array',
-                'items': {
-                    'type': 'object',
-                    'properties': {
-                        'value': {'type': 'string'},
-                        'label': {'type': 'string'}
-                    }
-                },
+                'items': {'type': 'object', 'properties': {'value': {'type': 'string'}, 'label': {'type': 'string'}}},
                 'description': getattr(self, 'help_text', ''),
                 'title': getattr(self, 'label', ''),
             }
         else:
             return {
                 'type': 'object',
-                'properties': {
-                    'value': {'type': 'string'},
-                    'label': {'type': 'string'}
-                },
+                'properties': {'value': {'type': 'string'}, 'label': {'type': 'string'}},
                 'description': getattr(self, 'help_text', ''),
                 'title': getattr(self, 'label', ''),
             }
@@ -125,9 +128,7 @@ class LabeledMultipleChoiceField(serializers.MultipleChoiceField):
             **kwargs: 透传给父类的关键字参数。
         """
         super().__init__(**kwargs)
-        self.choice_mapper = {
-            key: value for key, value in self.choices.items()
-        }
+        self.choice_mapper = dict(self.choices)
 
     def to_representation(self, keys: list | None) -> list | None:
         """将 choice 值列表序列化为 value+label 字典列表。
@@ -140,10 +141,7 @@ class LabeledMultipleChoiceField(serializers.MultipleChoiceField):
         """
         if keys is None:
             return keys
-        return [
-            {"value": key, "label": self.choice_mapper.get(key)}
-            for key in keys
-        ]
+        return [{'value': key, 'label': self.choice_mapper.get(key)} for key in keys]
 
     def to_internal_value(self, data: list) -> list:
         """将前端传入的数据列表转换为内部 choice 值列表。
@@ -158,7 +156,7 @@ class LabeledMultipleChoiceField(serializers.MultipleChoiceField):
             return data
 
         if isinstance(data[0], dict):
-            return [item.get("value") for item in data]
+            return [item.get('value') for item in data]
         else:
             return data
 
@@ -167,11 +165,12 @@ class BasePrimaryKeyRelatedField(serializers.RelatedField):
     """
     Base class for primary key related fields.
     """
+
     default_error_messages = {
-        "required": _("This field is required."),
-        "does_not_exist": _('Invalid pk "{pk_value}" - object does not exist.'),
-        "incorrect_type": _("Incorrect type. Expected pk value, received {data_type}."),
-        "queryset_none": _("The query set is empty."),
+        'required': _('This field is required.'),
+        'does_not_exist': _('Invalid pk "{pk_value}" - object does not exist.'),
+        'incorrect_type': _('Incorrect type. Expected pk value, received {data_type}.'),
+        'queryset_none': _('The query set is empty.'),
     }
 
     def __init__(self, attrs: list | None = None, ignore_field_permission: bool = False, **kwargs: Any) -> None:
@@ -179,12 +178,12 @@ class BasePrimaryKeyRelatedField(serializers.RelatedField):
         :param attrs: 默认为 None，返回默认的 pk， 一般需要自定义
         :param ignore_field_permission: 忽略字段权限控制
         """
-        self.attrs = attrs if attrs else ["pk"]
-        self.label_format = kwargs.pop("format", None)
-        self.input_type = kwargs.pop("input_type", None)
-        self.input_type_prefix = kwargs.pop("input_type_prefix", None)
-        self.input_type_suffix = kwargs.pop("input_type_suffix", None)
-        self.many = kwargs.get("many", False)
+        self.attrs = attrs if attrs else ['pk']
+        self.label_format = kwargs.pop('format', None)
+        self.input_type = kwargs.pop('input_type', None)
+        self.input_type_prefix = kwargs.pop('input_type_prefix', None)
+        self.input_type_suffix = kwargs.pop('input_type_suffix', None)
+        self.many = kwargs.get('many', False)
         super().__init__(**kwargs)
         self.request: Request = get_current_request()
         self.ignore_field_permission = ignore_field_permission
@@ -230,17 +229,17 @@ class BasePrimaryKeyRelatedField(serializers.RelatedField):
             for item in queryset:
                 data = self.to_representation(item)
                 if isinstance(data, dict):
-                    if "pk" in data:
-                        data['value'] = data.get("pk")
+                    if 'pk' in data:
+                        data['value'] = data.get('pk')
                 else:
-                    data = {"value": data, "label": data}
+                    data = {'value': data, 'label': data}
                 result.append(data)
         else:
             result = {}
             for item in queryset:
                 key = self.to_representation(item)
                 if isinstance(key, dict):
-                    key = key.get("pk")
+                    key = key.get('pk')
                 result[key] = self.display_value(item)
         return result
 
@@ -262,14 +261,14 @@ class BasePrimaryKeyRelatedField(serializers.RelatedField):
             self.attrs = fields
         extra_fields = set(self.attrs) - set(fields)  # 这些字段不在model内，并且不受权限控制
 
-        if self.ignore_field_permission or (self.request and hasattr(self.request, "ignore_field_permission")):
+        if self.ignore_field_permission or (self.request and hasattr(self.request, 'ignore_field_permission')):
             return set(self.attrs)
 
         allow_fields = []
         if self.request and settings.PERMISSION_FIELD_ENABLED:
-            if hasattr(self.request, "user") and self.request.user and self.request.user.is_superuser:
+            if hasattr(self.request, 'user') and self.request.user and self.request.user.is_superuser:
                 allow_fields = self.attrs
-            elif hasattr(self.request, "fields"):
+            elif hasattr(self.request, 'fields'):
                 if self.request.fields and isinstance(self.request.fields, dict):
                     allow_fields = self.request.fields.get(value._meta.label_lower, [])
         else:
@@ -296,7 +295,7 @@ class BasePrimaryKeyRelatedField(serializers.RelatedField):
             # data[attr] = getattr(value, attr)
             try:
                 data[attr] = attr_get(value, attr, '__')
-            except:
+            except Exception:
                 continue
             if isinstance(data[attr], FieldFile):
                 data[attr] = get_file_absolute_uri(data[attr], self.request)
@@ -305,12 +304,12 @@ class BasePrimaryKeyRelatedField(serializers.RelatedField):
         if data:
             if self.label_format:
                 try:
-                    data["label"] = self.label_format.format(**data)
+                    data['label'] = self.label_format.format(**data)
                 except Exception:  # 使用权限控制的时候，format字段可能不在权限里面
-                    data["label"] = data.get("pk")
+                    data['label'] = data.get('pk')
             else:
-                if "label" not in self.attrs:
-                    data["label"] = data.get("pk")
+                if 'label' not in self.attrs:
+                    data['label'] = data.get('pk')
         return data
 
     def to_internal_value(self, data: Any) -> Model:
@@ -327,23 +326,23 @@ class BasePrimaryKeyRelatedField(serializers.RelatedField):
         """
         queryset = self.get_queryset()
         if queryset is None:
-            return self.fail("queryset_none")
+            return self.fail('queryset_none')
         if isinstance(data, Model):
             return queryset.get(pk=data.pk)
 
         if not isinstance(data, dict):
             pk = data
         else:
-            pk = data.get("id") or data.get("pk") or data.get(self.attrs[0])
+            pk = data.get('id') or data.get('pk') or data.get(self.attrs[0])
 
         try:
             if isinstance(data, bool):
                 raise TypeError
             return queryset.get(pk=pk)
         except ObjectDoesNotExist:
-            self.fail("does_not_exist", pk_value=pk)
+            self.fail('does_not_exist', pk_value=pk)
         except (TypeError, ValueError):
-            self.fail("incorrect_type", data_type=type(pk).__name__)
+            self.fail('incorrect_type', data_type=type(pk).__name__)
 
     def get_schema(self) -> dict:
         """为 drf-spectacular 提供 OpenAPI schema"""
@@ -379,16 +378,9 @@ class BasePrimaryKeyRelatedField(serializers.RelatedField):
         for attr in self.attrs:
             # 尝试从 queryset 的 model 中获取字段信息
             field_type = self._infer_field_type(attr)
-            properties[attr] = {
-                'type': field_type,
-                'description': f'{attr} field'
-            }
+            properties[attr] = {'type': field_type, 'description': f'{attr} field'}
 
-        return {
-            'type': 'object',
-            'properties': properties,
-            'required': ['id'] if 'id' in self.attrs else []
-        }
+        return {'type': 'object', 'properties': properties, 'required': ['id'] if 'id' in self.attrs else []}
 
     def _infer_field_type(self, attr_name: str) -> str:
         """智能推断字段类型"""
@@ -490,15 +482,15 @@ class PhoneField(serializers.CharField):
             phone = data.get('phone', '')
             if code and phone:
                 code = code.replace('+', '')
-                data = '+{}{}'.format(code, phone)
+                data = f'+{code}{phone}'
             else:
                 data = phone
         if data:
             try:
                 phone = phonenumbers.parse(data, 'CN')
-                data = '+{}{}'.format(phone.country_code, phone.national_number)
+                data = f'+{phone.country_code}{phone.national_number}'
             except phonenumbers.NumberParseException:
-                data = '+86{}'.format(data)
+                data = f'+86{data}'
 
         return super().to_internal_value(data)
 
@@ -513,7 +505,7 @@ class PhoneField(serializers.CharField):
         """
         try:
             phone = phonenumbers.parse(value, 'CN')
-            value = {'code': '+%s' % phone.country_code, 'phone': phone.national_number}
+            value = {'code': f'+{phone.country_code}', 'phone': phone.national_number}
         except phonenumbers.NumberParseException:
             value = {'code': '+86', 'phone': value}
         return value

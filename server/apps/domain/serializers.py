@@ -9,6 +9,35 @@ from rest_framework import serializers
 from apps.common.core.serializers import BaseModelSerializer, TabsColumn
 from apps.domain import models
 
+# 备案状态 → el-tag 颜色类型（ICP/公安共用 IcpFilingStatusChoices）
+_FILING_STATUS_TAG_TYPES: dict[str, str] = {
+    'not_filed': 'danger',
+    'filed': 'success',
+    'pending_confirm': 'warning',
+    'changing': 'info',
+}
+
+# ICP 预检测状态 → el-tag 颜色类型
+_CHECK_STATUS_TAG_TYPES: dict[str, str] = {
+    'not_checked': 'info',
+    'passed': 'success',
+    'suspected_missing': 'warning',
+    'no_www_record': 'info',
+    'check_failed': 'danger',
+}
+
+# 域名状态 → el-tag 颜色类型
+_DOMAIN_STATUS_TAG_TYPES: dict[str, str] = {
+    'active': 'success',
+    'expired': 'danger',
+    'pending': 'warning',
+    'transferring': 'warning',
+    'locked': 'danger',
+    'forbidden': 'danger',
+    'unverified': 'warning',
+    'other': 'info',
+}
+
 
 class DomainSerializer(BaseModelSerializer):
     """域名资产序列化器。"""
@@ -174,6 +203,7 @@ class DomainSerializer(BaseModelSerializer):
             'status': {
                 'label': '域名状态',
                 'help_text': '域名当前状态',
+                'tag_types': _DOMAIN_STATUS_TAG_TYPES,
             },
             'owner_name': {
                 'label': '所有者',
@@ -608,10 +638,12 @@ class FilingSerializer(BaseModelSerializer):
             'icp_status': {
                 'label': 'ICP 备案状态',
                 'help_text': 'ICP 备案当前状态：未备案/已备案/待人工确认/变更中',
+                'tag_types': _FILING_STATUS_TAG_TYPES,
             },
             'icp_check_status': {
                 'label': 'ICP 预检测状态',
                 'help_text': '首页悬挂备案号预检测结果',
+                'tag_types': _CHECK_STATUS_TAG_TYPES,
             },
             'icp_has_www_record': {
                 'label': '有www解析',
@@ -650,6 +682,7 @@ class FilingSerializer(BaseModelSerializer):
             'ps_status': {
                 'label': '公安备案状态',
                 'help_text': '公安备案当前状态：未备案/已备案/待人工确认',
+                'tag_types': _FILING_STATUS_TAG_TYPES,
             },
             'description': {
                 'label': 'Description',
