@@ -313,16 +313,16 @@ def _check_ssl_certificate_by_host(hostname: str) -> dict[str, Any] | None:
             with ctx.wrap_socket(sock, server_hostname=hostname) as ssock:
                 der_cert = ssock.getpeercert(binary_form=True)
 
-                # 获取完整证书链
-                der_chain: list[bytes] | None = None
+                # 获取完整证书链（_ssl.Certificate 对象列表，非 DER bytes）
+                cert_chain: list[Any] | None = None
                 get_chain = getattr(ssock, 'get_unverified_chain', None)
                 if get_chain is None:
                     get_chain = getattr(getattr(ssock, '_sslobj', None), 'get_unverified_chain', None)
                 if get_chain is not None:
                     try:
-                        der_chain = list(get_chain())
+                        cert_chain = list(get_chain())
                     except Exception:
-                        der_chain = None
+                        cert_chain = None
 
         if not der_cert:
             return None
@@ -332,12 +332,15 @@ def _check_ssl_certificate_by_host(hostname: str) -> dict[str, Any] | None:
         # PEM 格式证书
         certificate_pem = cert.public_bytes(serialization.Encoding.PEM).decode('utf-8')
         intermediate_pem = ''
-        if der_chain and len(der_chain) > 1:
+        # _ssl.Certificate.public_bytes(1) 返回 PEM 数据（1=PEM, 0=DER）
+        # Python 3.12 的 _ssl.Certificate 不支持 DER(0)，仅支持 PEM(1)
+        # 注意：Python 3.12 public_bytes(1) 返回 str，3.13 返回 bytes，需兼容处理
+        if cert_chain and len(cert_chain) > 1:
             parts: list[str] = []
-            for der_bytes in der_chain[1:]:
+            for chain_cert_obj in cert_chain[1:]:
                 try:
-                    chain_cert = x509.load_der_x509_certificate(der_bytes)
-                    parts.append(chain_cert.public_bytes(serialization.Encoding.PEM).decode('utf-8'))
+                    pem_data = chain_cert_obj.public_bytes(1)
+                    parts.append(pem_data if isinstance(pem_data, str) else pem_data.decode('utf-8'))
                 except Exception:
                     pass
             intermediate_pem = ''.join(parts)

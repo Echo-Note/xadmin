@@ -296,15 +296,17 @@ def _check_ssl_certificate(domain_name: str) -> dict[str, Any] | None:
                 der_cert = ssock.getpeercert(binary_form=True)
 
                 # 获取完整证书链（Python 3.13 公开 API，3.12 私有 API）
-                der_chain: list[bytes] | None = None
+                # get_unverified_chain() 返回 _ssl.Certificate 对象列表（非 DER bytes），
+                # 需调用 .public_bytes(1) 获取 PEM 格式（Python 3.12 不支持 DER 格式即 0）
+                cert_chain: list[Any] | None = None
                 get_chain = getattr(ssock, 'get_unverified_chain', None)
                 if get_chain is None:
                     get_chain = getattr(getattr(ssock, '_sslobj', None), 'get_unverified_chain', None)
                 if get_chain is not None:
                     try:
-                        der_chain = list(get_chain())
+                        cert_chain = list(get_chain())
                     except Exception:
-                        der_chain = None
+                        cert_chain = None
 
         if not der_cert:
             logger.debug('未获取到证书数据: %s', hostname)
@@ -318,13 +320,17 @@ def _check_ssl_certificate(domain_name: str) -> dict[str, Any] | None:
         certificate_pem = cert.public_bytes(serialization.Encoding.PEM).decode('utf-8')
 
         # 中间证书链 PEM（拼接所有非终端证书）
+        # _ssl.Certificate.public_bytes(1) 返回 PEM 数据（1=PEM, 0=DER）
+        # Python 3.12 的 _ssl.Certificate 不支持 DER(0)，仅支持 PEM(1)
+        # Python 3.13 可用 ssl.Encoding.PEM，但 3.12 未公开该枚举，统一用整数 1
+        # 注意：Python 3.12 public_bytes(1) 返回 str，3.13 返回 bytes，需兼容处理
         intermediate_pem = ''
-        if der_chain and len(der_chain) > 1:
+        if cert_chain and len(cert_chain) > 1:
             parts: list[str] = []
-            for der_bytes in der_chain[1:]:
+            for chain_cert_obj in cert_chain[1:]:
                 try:
-                    chain_cert = x509.load_der_x509_certificate(der_bytes)
-                    parts.append(chain_cert.public_bytes(serialization.Encoding.PEM).decode('utf-8'))
+                    pem_data = chain_cert_obj.public_bytes(1)
+                    parts.append(pem_data if isinstance(pem_data, str) else pem_data.decode('utf-8'))
                 except Exception:
                     pass
             intermediate_pem = ''.join(parts)
