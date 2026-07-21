@@ -14,6 +14,7 @@ from apps.cloud_platform.sync.agents.balance_agent import BalanceSyncAgent
 from apps.cloud_platform.sync.agents.base import SyncAgent, SyncAgentResult
 from apps.cloud_platform.sync.agents.dns_agent import DnsRecordSyncAgent
 from apps.cloud_platform.sync.agents.domain_agent import DomainSyncAgent
+from apps.cloud_platform.sync.agents.domain_post_agent import DomainPostSyncAgent
 from apps.cloud_platform.sync.agents.server_agent import ServerSyncAgent
 from apps.cloud_platform.sync.agents.vsphere_server_agent import VsphereServerSyncAgent
 
@@ -22,6 +23,7 @@ __all__ = [
     'SyncAgentResult',
     'ServerSyncAgent',
     'DomainSyncAgent',
+    'DomainPostSyncAgent',
     'DnsRecordSyncAgent',
     'BalanceSyncAgent',
     'VsphereServerSyncAgent',

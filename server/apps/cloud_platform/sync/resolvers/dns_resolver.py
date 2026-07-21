@@ -48,7 +48,7 @@ class DNSResolver:
             匹配的平台类型列表。
         """
         matched: list[str] = []
-        for platform_type, keywords in cls.PLATFORM_DNS_KEYWORDS.items():
+        for platform_type, _keywords in cls.PLATFORM_DNS_KEYWORDS.items():
             if cls.is_managed_by(dns_server, platform_type):
                 matched.append(platform_type)
         return matched

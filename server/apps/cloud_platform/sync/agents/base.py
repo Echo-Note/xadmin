@@ -32,6 +32,7 @@ class SyncAgentResult(BaseModel):
     errors: list[dict] = Field(default_factory=list, description='错误列表')
     started_at: datetime | None = Field(default=None, description='Agent 开始执行时间')
     finished_at: datetime | None = Field(default=None, description='Agent 结束执行时间')
+    extra_data: dict = Field(default_factory=dict, description='额外数据（写入 AgentLog.extra_data）')
 
     @property
     def total_changes(self) -> int:
@@ -110,8 +111,8 @@ class SyncAgent(ABC):
         else:
             agent_status = AgentStatusChoices.SUCCESS
 
-        # 将 companies_created 写入 extra_data 以便追溯
-        agent_extra = {}
+        # 将 companies_created 和 extra_data 写入 extra_data 以便追溯
+        agent_extra = dict(result.extra_data)  # 复制 Agent 返回的额外数据
         if result.companies_created > 0:
             agent_extra['companies_created'] = result.companies_created
 

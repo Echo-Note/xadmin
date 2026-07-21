@@ -1,31 +1,6 @@
-"""域名管理信号处理器 —— 域名创建/更新时自动同步 Filing 记录。"""
+"""域名管理信号处理器。
 
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-from apps.common.utils import get_logger
-from apps.domain.models import Domain, Filing
-
-logger = get_logger(__name__)
-
-
-@receiver(post_save, sender=Domain)
-def auto_create_filing_on_domain_save(
-    sender: type[Domain],
-    instance: Domain,
-    created: bool,
-    **kwargs,
-) -> None:
-    """域名创建时自动创建对应的 Filing 备案记录。
-
-    仅在 Domain 首次创建或 Filing 不存在时创建新的 Filing 记录。
-    已存在的 Filing 不会重复创建或覆盖。
-    """
-    Filing.objects.get_or_create(
-        domain=instance,
-        defaults={
-            'company': instance.company,
-            'icp_status': 'not_filed',
-            'ps_status': 'not_filed',
-        },
-    )
+注意：Filing 备案记录不再通过信号自动创建，而是在域名同步后处理阶段
+（post_sync）根据 www DNS 解析记录是否存在来决定是否创建。
+仅有 www 解析记录的域名才会生成 Filing 记录。
+"""

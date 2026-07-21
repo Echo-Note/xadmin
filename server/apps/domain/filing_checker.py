@@ -259,11 +259,144 @@ def _detect_filing_numbers(text: str) -> tuple[list[str], list[str]]:
     return icp, ps
 
 
+def _fetch_tls_cert(hostname: str, verify: bool = True) -> tuple:
+    """建立 TLS 连接并获取终端证书 DER 及完整证书链。
+
+    Args:
+        hostname: 完整主机名（如 www.example.com）。
+        verify: 是否校验证书链。False 时跳过主机名和证书链校验，
+                用于获取过期/自签名证书的信息。
+
+    Returns:
+        (der_cert: bytes, cert_chain: list | None) 元组。
+
+    Raises:
+        ssl.SSLError: TLS 握手失败（证书校验失败、协议错误等）。
+        OSError: 连接超时、连接被拒、EOF 等网络层错误。
+    """
+    import socket
+    import ssl as ssl_module
+
+    ctx = ssl_module.create_default_context()
+    if not verify:
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl_module.CERT_NONE
+
+    with socket.create_connection((hostname, 443), timeout=HTTP_TIMEOUT) as sock:
+        with ctx.wrap_socket(sock, server_hostname=hostname) as ssock:
+            der_cert = ssock.getpeercert(binary_form=True)
+
+            # 获取完整证书链（Python 3.13 公开 API，3.12 私有 API）
+            # get_unverified_chain() 返回 _ssl.Certificate 对象列表（非 DER bytes），
+            # 需调用 .public_bytes(1) 获取 PEM 格式（Python 3.12 不支持 DER 格式即 0）
+            cert_chain: list[Any] | None = None
+            get_chain = getattr(ssock, 'get_unverified_chain', None)
+            if get_chain is None:
+                get_chain = getattr(getattr(ssock, '_sslobj', None), 'get_unverified_chain', None)
+            if get_chain is not None:
+                try:
+                    cert_chain = list(get_chain())
+                except Exception:
+                    cert_chain = None
+
+    return der_cert, cert_chain
+
+
+def _parse_ssl_cert_info(der_cert: bytes, cert_chain: list | None) -> dict[str, Any]:
+    """解析 DER 格式证书，提取主体/颁发者/有效期/SAN/PEM 等信息。
+
+    Args:
+        der_cert: DER 格式终端证书二进制数据。
+        cert_chain: 证书链对象列表（用于提取中间证书 PEM）。
+
+    Returns:
+        证书信息字典。
+    """
+    from cryptography import x509
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.x509.oid import ExtensionOID, NameOID
+
+    cert = x509.load_der_x509_certificate(der_cert)
+
+    # PEM 格式证书（用于部署）
+    certificate_pem = cert.public_bytes(serialization.Encoding.PEM).decode('utf-8')
+
+    # 中间证书链 PEM（拼接所有非终端证书）
+    # _ssl.Certificate.public_bytes(1) 返回 PEM 数据（1=PEM, 0=DER）
+    # Python 3.12 的 _ssl.Certificate 不支持 DER(0)，仅支持 PEM(1)
+    # 注意：Python 3.12 public_bytes(1) 返回 str，3.13 返回 bytes，需兼容处理
+    intermediate_pem = ''
+    if cert_chain and len(cert_chain) > 1:
+        parts: list[str] = []
+        for chain_cert_obj in cert_chain[1:]:
+            try:
+                pem_data = chain_cert_obj.public_bytes(1)
+                parts.append(pem_data if isinstance(pem_data, str) else pem_data.decode('utf-8'))
+            except Exception:
+                pass
+        intermediate_pem = ''.join(parts)
+
+    # 解析主体（Subject）
+    subject = cert.subject
+    subject_cn = _get_name_attr(subject, NameOID.COMMON_NAME)
+    subject_o = _get_name_attr(subject, NameOID.ORGANIZATION_NAME)
+    subject_ou = _get_name_attr(subject, NameOID.ORGANIZATIONAL_UNIT_NAME)
+
+    # 解析颁发者（Issuer）
+    issuer = cert.issuer
+    issuer_cn = _get_name_attr(issuer, NameOID.COMMON_NAME)
+    issuer_o = _get_name_attr(issuer, NameOID.ORGANIZATION_NAME)
+
+    # 解析 SAN（Subject Alternative Names）
+    san_domains: list[str] = []
+    try:
+        san_ext = cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+        san_domains = san_ext.value.get_values_for_type(x509.DNSName)
+    except x509.ExtensionNotFound:
+        pass
+
+    # 有效期（优先使用 timezone-aware 版本，cryptography 42+）
+    not_before = getattr(cert, 'not_valid_before_utc', None) or cert.not_valid_before
+    not_after = getattr(cert, 'not_valid_after_utc', None) or cert.not_valid_after
+
+    # 签名算法
+    sig_algo = cert.signature_hash_algorithm
+    sig_algo_name = sig_algo.name if sig_algo else None
+
+    # 判断是否在有效期内
+    from datetime import UTC, datetime
+
+    now_utc = datetime.now(UTC)
+    is_valid = not_before <= now_utc <= not_after
+
+    return {
+        'subject_cn': subject_cn,
+        'subject_o': subject_o,
+        'subject_ou': subject_ou,
+        'issuer_cn': issuer_cn,
+        'issuer_o': issuer_o,
+        'serial_number': format(cert.serial_number, 'x'),
+        'signature_algorithm': sig_algo_name,
+        'not_before': not_before,
+        'not_after': not_after,
+        'san_domains': san_domains,
+        'is_valid': is_valid,
+        'fingerprint': cert.fingerprint(hashes.SHA256()).hex(),
+        'certificate_pem': certificate_pem,
+        'intermediate_pem': intermediate_pem,
+    }
+
+
 def _check_ssl_certificate(domain_name: str) -> dict[str, Any] | None:
     """获取域名 SSL 证书详细信息。
 
     通过 TLS 连接 www.{domain_name}:443 获取 DER 格式证书，
     用 cryptography.x509 解析主体/颁发者/有效期/SAN 等字段。
+
+    检测策略（两级降级）：
+    1. 严格模式（verify=True）：完整校验证书链和主机名
+    2. 宽松模式（verify=False）：跳过校验，仅获取证书数据
+       → 覆盖证书过期、自签名等场景，确保已部署 SSL 的域名都能被检测到
 
     Args:
         domain_name: 域名，如 example.com。
@@ -279,114 +412,38 @@ def _check_ssl_certificate(domain_name: str) -> dict[str, Any] | None:
         - is_valid: 是否在有效期内
         检测失败返回 None。
     """
-    import socket
     import ssl as ssl_module
-
-    from cryptography import x509
-    from cryptography.hazmat.primitives import hashes
-    from cryptography.x509.oid import ExtensionOID, NameOID
 
     hostname = f'www.{domain_name}'
 
+    der_cert: bytes | None = None
+    cert_chain: list | None = None
+
+    # 策略 1: 严格模式
     try:
-        # 建立 TLS 连接获取证书
-        ctx = ssl_module.create_default_context()
-        with socket.create_connection((hostname, 443), timeout=HTTP_TIMEOUT) as sock:
-            with ctx.wrap_socket(sock, server_hostname=hostname) as ssock:
-                der_cert = ssock.getpeercert(binary_form=True)
+        der_cert, cert_chain = _fetch_tls_cert(hostname, verify=True)
+    except ssl_module.SSLError as e:
+        # 证书校验失败（过期/自签名/域名不匹配）→ 降级到宽松模式
+        logger.debug('严格 SSL 校验失败，尝试宽松模式 %s: %s', hostname, e)
+    except OSError as e:
+        # 网络层错误（超时/连接拒绝/EOF）→ SSL 确实不可用，不降级
+        logger.debug('SSL 连接失败 %s: %s', hostname, e)
+        return None
 
-                # 获取完整证书链（Python 3.13 公开 API，3.12 私有 API）
-                # get_unverified_chain() 返回 _ssl.Certificate 对象列表（非 DER bytes），
-                # 需调用 .public_bytes(1) 获取 PEM 格式（Python 3.12 不支持 DER 格式即 0）
-                cert_chain: list[Any] | None = None
-                get_chain = getattr(ssock, 'get_unverified_chain', None)
-                if get_chain is None:
-                    get_chain = getattr(getattr(ssock, '_sslobj', None), 'get_unverified_chain', None)
-                if get_chain is not None:
-                    try:
-                        cert_chain = list(get_chain())
-                    except Exception:
-                        cert_chain = None
-
-        if not der_cert:
-            logger.debug('未获取到证书数据: %s', hostname)
+    # 策略 2: 宽松模式（仅当严格模式因 SSLError 失败时）
+    if der_cert is None:
+        try:
+            der_cert, cert_chain = _fetch_tls_cert(hostname, verify=False)
+        except (ssl_module.SSLError, OSError) as e:
+            logger.debug('宽松模式 SSL 检测也失败 %s: %s', hostname, e)
             return None
 
-        cert = x509.load_der_x509_certificate(der_cert)
-
-        # PEM 格式证书（用于部署）
-        from cryptography.hazmat.primitives import serialization
-
-        certificate_pem = cert.public_bytes(serialization.Encoding.PEM).decode('utf-8')
-
-        # 中间证书链 PEM（拼接所有非终端证书）
-        # _ssl.Certificate.public_bytes(1) 返回 PEM 数据（1=PEM, 0=DER）
-        # Python 3.12 的 _ssl.Certificate 不支持 DER(0)，仅支持 PEM(1)
-        # Python 3.13 可用 ssl.Encoding.PEM，但 3.12 未公开该枚举，统一用整数 1
-        # 注意：Python 3.12 public_bytes(1) 返回 str，3.13 返回 bytes，需兼容处理
-        intermediate_pem = ''
-        if cert_chain and len(cert_chain) > 1:
-            parts: list[str] = []
-            for chain_cert_obj in cert_chain[1:]:
-                try:
-                    pem_data = chain_cert_obj.public_bytes(1)
-                    parts.append(pem_data if isinstance(pem_data, str) else pem_data.decode('utf-8'))
-                except Exception:
-                    pass
-            intermediate_pem = ''.join(parts)
-
-        # 解析主体（Subject）
-        subject = cert.subject
-        subject_cn = _get_name_attr(subject, NameOID.COMMON_NAME)
-        subject_o = _get_name_attr(subject, NameOID.ORGANIZATION_NAME)
-        subject_ou = _get_name_attr(subject, NameOID.ORGANIZATIONAL_UNIT_NAME)
-
-        # 解析颁发者（Issuer）
-        issuer = cert.issuer
-        issuer_cn = _get_name_attr(issuer, NameOID.COMMON_NAME)
-        issuer_o = _get_name_attr(issuer, NameOID.ORGANIZATION_NAME)
-
-        # 解析 SAN（Subject Alternative Names）
-        san_domains: list[str] = []
-        try:
-            san_ext = cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
-            san_domains = san_ext.value.get_values_for_type(x509.DNSName)
-        except x509.ExtensionNotFound:
-            pass
-
-        # 有效期（优先使用 timezone-aware 版本，cryptography 42+）
-        not_before = getattr(cert, 'not_valid_before_utc', None) or cert.not_valid_before
-        not_after = getattr(cert, 'not_valid_after_utc', None) or cert.not_valid_after
-
-        # 签名算法
-        sig_algo = cert.signature_hash_algorithm
-        sig_algo_name = sig_algo.name if sig_algo else None
-
-        # 判断是否在有效期内
-        from datetime import UTC, datetime
-
-        now_utc = datetime.now(UTC)
-        is_valid = not_before <= now_utc <= not_after
-
-        return {
-            'subject_cn': subject_cn,
-            'subject_o': subject_o,
-            'subject_ou': subject_ou,
-            'issuer_cn': issuer_cn,
-            'issuer_o': issuer_o,
-            'serial_number': format(cert.serial_number, 'x'),
-            'signature_algorithm': sig_algo_name,
-            'not_before': not_before,
-            'not_after': not_after,
-            'san_domains': san_domains,
-            'is_valid': is_valid,
-            'fingerprint': cert.fingerprint(hashes.SHA256()).hex(),
-            'certificate_pem': certificate_pem,
-            'intermediate_pem': intermediate_pem,
-        }
-    except (ssl_module.SSLError, OSError) as e:
-        logger.debug('SSL 证书检测失败 %s: %s', hostname, e)
+    if not der_cert:
+        logger.debug('未获取到证书数据: %s', hostname)
         return None
+
+    try:
+        return _parse_ssl_cert_info(der_cert, cert_chain)
     except Exception as e:
         logger.warning('SSL 证书解析异常 %s: %s', hostname, e)
         return None

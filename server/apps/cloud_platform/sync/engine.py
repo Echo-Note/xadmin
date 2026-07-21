@@ -22,6 +22,7 @@ from apps.cloud_platform.sync.agents.balance_agent import BalanceSyncAgent
 from apps.cloud_platform.sync.agents.base import SyncAgent, SyncAgentResult
 from apps.cloud_platform.sync.agents.dns_agent import DnsRecordSyncAgent
 from apps.cloud_platform.sync.agents.domain_agent import DomainSyncAgent
+from apps.cloud_platform.sync.agents.domain_post_agent import DomainPostSyncAgent
 from apps.cloud_platform.sync.agents.server_agent import ServerSyncAgent
 from apps.cloud_platform.sync.agents.vsphere_server_agent import VsphereServerSyncAgent
 from apps.cloud_platform.sync.registry import get_syncer_by_platform
@@ -40,10 +41,11 @@ class SyncEngine:
         sync_record = engine.run(cloud_platform, sync_type='manual', resources=['server', 'domain'])
     """
 
-    # Agent 阶段分组（保证依赖顺序：domain 在 dns_record 之前）
+    # Agent 阶段分组（保证依赖顺序：domain → dns_record → domain_post）
     PHASE_GROUPS: list[list[str]] = [
         ['server', 'domain', 'balance'],  # Phase 1: 独立并行
         ['dns_record'],  # Phase 2: 依赖 Domain 已存在
+        ['domain_post'],  # Phase 3: 域名后处理（SSL检测+Filing联动），依赖 DNS 记录已同步
     ]
 
     # 资源类型 → Agent 类的映射
@@ -52,6 +54,7 @@ class SyncEngine:
         'domain': DomainSyncAgent,
         'dns_record': DnsRecordSyncAgent,
         'balance': BalanceSyncAgent,
+        'domain_post': DomainPostSyncAgent,
     }
 
     def run(
@@ -105,6 +108,11 @@ class SyncEngine:
                 sync_record,
                 f'平台 [{cloud_platform.name}] 不支持任何资源同步',
             )
+
+        # 域名同步时自动追加后处理阶段（SSL 检测 + Filing 联动）
+        # domain_post 不在 SUPPORTED_RESOURCES 中，由 domain 自动触发
+        if 'domain' in target_resources and 'domain_post' not in target_resources:
+            target_resources.append('domain_post')
 
         # ---- Step 4: 分阶段并行执行 Agent ----
         all_results: dict[str, SyncAgentResult] = {}

@@ -42,6 +42,7 @@ def _ensure_platforms_loaded() -> None:
 from apps.cloud_platform.sync.agents import (  # noqa: E402
     BalanceSyncAgent,
     DnsRecordSyncAgent,
+    DomainPostSyncAgent,
     DomainSyncAgent,
     ServerSyncAgent,
     SyncAgent,
@@ -112,6 +113,7 @@ __all__ = [
     'SyncAgentResult',
     'ServerSyncAgent',
     'DomainSyncAgent',
+    'DomainPostSyncAgent',
     'DnsRecordSyncAgent',
     'BalanceSyncAgent',
     # Serializer
